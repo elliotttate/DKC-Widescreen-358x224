@@ -1,0 +1,43 @@
+# Build output
+**/bin/
+**/obj/
+**/.vs/
+**/__pycache__/
+**/.pytest_cache/
+*.user
+*.suo
+
+# Local dependencies and runtime output
+.deps/
+artifacts/
+RegressionRuns/
+RealtimeScrollRuns/
+Runs/
+Sessions/
+status.json
+*.jsonl
+*.csv
+
+# Copyrighted/user-supplied game data
+*.sfc
+*.smc
+*.srm
+*.szst*
+*.state
+*.sav
+*.zip
+*.7z
+
+# Installed binaries and captures
+*.dll
+*.exe
+*.pdb
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.gif
+
+# Local configuration
+.env
+local.settings.json

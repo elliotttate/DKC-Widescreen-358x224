@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "realtime-jungle-right-y-cadence",
+  "description": "Load a clean Jungle Hijinxs state, install a long RIGHT+Y schedule while paused, then resume ordinary real-time emulation for a wall-clock cadence measurement. This recipe never exact-steps frames.",
+  "controller": 1,
+  "macro": "0-7199=RIGHT+Y",
+  "warmupSeconds": 7.0,
+  "measurementSeconds": 30.0,
+  "minimumFullCadenceWindows": 4,
+  "minimumScrollPixels": 64,
+  "watches": [
+    {"name":"camera_x","address":"0x7E1A62","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Level_CameraXPos"},
+    {"name":"camera_y","address":"0x7E1A4C","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Level_CameraYPos"},
+    {"name":"layer1_x","address":"0x7E088B","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Global_Layer1XPos"},
+    {"name":"layer1_y","address":"0x7E0895","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Global_Layer1YPos"},
+    {"name":"p1_held","address":"0x7E0500","size":2,"signed":false,"source":"DKC1 RAM map: Global_HeldButtons P1"}
+  ]
+}

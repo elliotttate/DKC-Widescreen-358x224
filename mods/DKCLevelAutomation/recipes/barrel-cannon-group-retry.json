@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "name": "barrel-cannon-group-retry",
+  "description": "Load the preserved Barrel Cannon Canyon state and prove that the wide type-5 controller retries the two children that were skipped during the original one-shot allocation pass.",
+  "tilemapLayers": "1,2",
+  "watches": [
+    {"name":"level_id","address":"0x7E0030","size":2,"signed":false,"units":"id","source":"DKC1 level ID; Barrel Cannon Canyon is 0x0006"},
+    {"name":"entrance_id","address":"0x7E003E","size":2,"signed":false,"units":"id","source":"DKC1 entrance/checkpoint ID; this state is 0x0019"},
+    {"name":"bottom_child_slot","address":"0x7E19B5","size":1,"signed":false,"units":"slot map","source":"Type-5 child bookkeeping index 0x8A"},
+    {"name":"zinger_child_slot","address":"0x7E19B6","size":1,"signed":false,"units":"slot map","source":"Type-5 child bookkeeping index 0x8B; zero was the regression"},
+    {"name":"target_child_slot","address":"0x7E19B7","size":1,"signed":false,"units":"slot map","source":"Type-5 child bookkeeping index 0x8C; zero was the regression"},
+    {"name":"zinger_id","address":"0x7E0D57","size":2,"signed":false,"units":"sprite id","source":"Deterministic free normal-sprite slot 9; Zinger is 0x0019"},
+    {"name":"target_barrel_id","address":"0x7E0D59","size":2,"signed":false,"units":"sprite id","source":"Deterministic free normal-sprite slot 10; automatic barrel cannon is 0x0038"},
+    {"name":"target_barrel_x","address":"0x7E0B2D","size":2,"signed":false,"units":"world pixels","source":"Normal-sprite X table slot 10"},
+    {"name":"target_barrel_y","address":"0x7E0BD5","size":2,"signed":false,"units":"world pixels","source":"Normal-sprite Y table slot 10"},
+    {"name":"target_barrel_state","address":"0x7E103D","size":2,"signed":false,"units":"state","source":"Normal-sprite state table slot 10"}
+  ],
+  "steps": [
+    {"kind":"automation","command":"load_rom","args":{"path":"${ROM}","load_last_state":false}},
+    {"kind":"automation","command":"load_state_file","args":{"path":"${STATE}"}},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0-1=NONE"}},
+    {"kind":"automation","command":"step_frames","args":{"count":2,"timeout_ms":10000}},
+    {"kind":"automation","command":"clear_schedule","args":{"controller":1}},
+    {"kind":"checkpoint","label":"missing-group-children-retried","capture":true,"expect":{"level_id":"0x0006","entrance_id":"0x0019","bottom_child_slot":{"op":"ne","value":"0x00"},"zinger_child_slot":{"op":"ne","value":"0x00"},"target_child_slot":{"op":"ne","value":"0x00"},"zinger_id":"0x0019","target_barrel_id":"0x0038","target_barrel_x":"0x8428","target_barrel_y":"0x0118"}},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0-299=NONE"}},
+    {"kind":"automation","command":"run_frames","args":{"count":300,"timeout_ms":30000}},
+    {"kind":"automation","command":"clear_schedule","args":{"controller":1}},
+    {"kind":"checkpoint","label":"retried-target-persists","capture":true,"expect":{"level_id":"0x0006","target_child_slot":{"op":"ne","value":"0x00"},"target_barrel_id":"0x0038"}}
+  ]
+}

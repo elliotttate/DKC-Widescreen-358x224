@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "dkc-saved-states-framebuffer",
+  "description": "Exact-frame stock/candidate renderer oracle cases for the saved Jungle, cave-exit, and Barrel states.",
+  "cases": [
+    {
+      "id": "jungle-scroll-right-y",
+      "description": "Clean Jungle entry followed by deterministic continuous RIGHT+Y scrolling.",
+      "stateKey": "jungle",
+      "controller": 1,
+      "macro": "0-127=RIGHT+Y",
+      "checkpoints": [0, 1, 8, 16, 32, 64, 96, 128],
+      "imagePreference": ["frame-composed.png", "frame-main.png"]
+    },
+    {
+      "id": "cave-exit-right-y",
+      "description": "Known cave-exit repro: one neutral frame, then 90 RIGHT+Y frames, then neutral animation frames.",
+      "stateKey": "cave",
+      "controller": 1,
+      "macro": "0=NONE;1-90=RIGHT+Y;91-119=NONE",
+      "checkpoints": [0, 1, 16, 32, 64, 90, 91, 120],
+      "imagePreference": ["frame-composed.png", "frame-main.png"]
+    },
+    {
+      "id": "barrel-neutral-animation",
+      "description": "Renderer-only oracle for an explicitly supplied saved Barrel state; advances neutral animation frames without assuming gameplay input.",
+      "stateKey": "barrel",
+      "controller": 1,
+      "macro": "0-63=NONE",
+      "checkpoints": [0, 1, 2, 8, 16, 32, 64],
+      "imagePreference": ["frame-composed.png", "frame-main.png"]
+    }
+  ]
+}

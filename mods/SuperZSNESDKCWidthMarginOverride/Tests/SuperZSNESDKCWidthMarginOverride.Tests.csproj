@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <BepInExRoot Condition="'$(BepInExRoot)' == ''">$(RepoRoot).deps\BepInEx</BepInExRoot>
+    <GameManagedDir Condition="'$(GameManagedDir)' == ''">$(RepoRoot).deps\SuperZSNES\SUPERZSNES_Data\Managed</GameManagedDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SuperZSNESDKCWidthMarginOverride.csproj" />
+    <Reference Include="BepInEx"><HintPath>$(BepInExRoot)\BepInEx\core\BepInEx.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(BepInExRoot)\BepInEx\core\0Harmony.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="Mono.Cecil"><HintPath>$(BepInExRoot)\BepInEx\core\Mono.Cecil.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(GameManagedDir)\UnityEngine.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameManagedDir)\UnityEngine.CoreModule.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+</Project>

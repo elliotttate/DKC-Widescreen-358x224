@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net472</TargetFramework><LangVersion>10.0</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable>
+    <GameManagedDir Condition="'$(GameManagedDir)' == ''">$(RepoRoot).deps\SuperZSNES\SUPERZSNES_Data\Managed</GameManagedDir>
+    <BepInExRoot Condition="'$(BepInExRoot)' == ''">$(RepoRoot).deps\BepInEx</BepInExRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp"><HintPath>$(GameManagedDir)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(BepInExRoot)\BepInEx\core\0Harmony.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

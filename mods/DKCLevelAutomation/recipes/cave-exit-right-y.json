@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "name": "cave-exit-right-y",
+  "description": "Load the preserved Jungle Hijinxs Bonus 1 cave state, prove that the widened endpoint clamp lets RIGHT+Y activate exit entrance 0x0008, then run through the fade and assert that the outdoor Jungle scene is fully loaded.",
+  "tilemapLayers": "1,2",
+  "watches": [
+    {"name":"level_id","address":"0x7E0030","size":2,"signed":false,"units":"id","source":"DKC1 level ID; Jungle Hijinxs Bonus 1 is 0x0009"},
+    {"name":"entrance_id","address":"0x7E003E","size":2,"signed":false,"units":"id","source":"DKC1 RAM map: Global_EntranceID"},
+    {"name":"screen_display","address":"0x7E051A","size":2,"signed":false,"units":"PPU display state","source":"DKC1 RAM map: Global_ScreenDisplayRegister; 0x000F is fully visible"},
+    {"name":"held_p1","address":"0x7E0500","size":2,"signed":false,"units":"SNES buttons","source":"DKC1 RAM map: Global_HeldButtonsP1"},
+    {"name":"controlled_kong","address":"0x7E056F","size":2,"signed":false,"units":"selector","source":"DKC1 RAM map: Player_CurrentKong"},
+    {"name":"layer1_x","address":"0x7E088B","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Global_Layer1XPos"},
+    {"name":"camera_left_bound","address":"0x7E1B23","size":2,"signed":false,"units":"pixels","source":"Current level camera lower X bound"},
+    {"name":"camera_right_bound","address":"0x7E1B25","size":2,"signed":false,"units":"pixels","source":"Current level camera upper X bound"},
+    {"name":"donkey_x","address":"0x7E0B1B","size":2,"signed":false,"units":"pixels","source":"Normal-sprite X table slot 1 (Donkey Kong)"},
+    {"name":"diddy_x","address":"0x7E0B1D","size":2,"signed":false,"units":"pixels","source":"Normal-sprite X table slot 2 (Diddy Kong)"},
+    {"name":"rambi_x","address":"0x7E0B1F","size":2,"signed":false,"units":"pixels","source":"Normal-sprite X table slot 3 (Rambi/current mount)"},
+    {"name":"donkey_id","address":"0x7E0D47","size":2,"signed":false,"units":"sprite id","source":"Normal-sprite ID table slot 1; Donkey Kong is 0x0001"},
+    {"name":"diddy_id","address":"0x7E0D49","size":2,"signed":false,"units":"sprite id","source":"Normal-sprite ID table slot 2; Diddy Kong is 0x0002"},
+    {"name":"exit_slot_id","address":"0x7E0D4D","size":2,"signed":false,"units":"sprite id","source":"Normal-sprite ID table slot 4; exit door is 0x006A"},
+    {"name":"exit_slot_x","address":"0x7E0B21","size":2,"signed":false,"units":"pixels","source":"Normal-sprite X table slot 4"},
+    {"name":"exit_slot_state","address":"0x7E1031","size":2,"signed":false,"units":"state","source":"Normal-sprite state table 0x1029, slot 4"}
+  ],
+  "steps": [
+    {"kind":"automation","command":"load_rom","args":{"path":"${ROM}","load_last_state":false}},
+    {"kind":"automation","command":"load_state_file","args":{"path":"${STATE}"}},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0=NONE"}},
+    {"kind":"automation","command":"step_frames","args":{"count":1,"timeout_ms":10000}},
+    {"kind":"checkpoint","label":"cave-exit-start","capture":true,"expect":{"level_id":"0x0009","entrance_id":"0x0006","exit_slot_id":"0x006A","exit_slot_x":"0x6CD0"}},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0-89=RIGHT+Y"}},
+    {"kind":"automation","command":"run_frames","args":{"count":90,"timeout_ms":30000}},
+    {"kind":"checkpoint","label":"cave-exit-transitioned","capture":true,"expect":{"entrance_id":"0x0008"}},
+    {"kind":"automation","command":"clear_schedule","args":{"controller":1}},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0-399=NONE"}},
+    {"kind":"automation","command":"run_frames","args":{"count":400,"timeout_ms":60000}},
+    {"kind":"automation","command":"clear_schedule","args":{"controller":1}},
+    {"kind":"checkpoint","label":"jungle-outside-loaded","capture":true,"expect":{"level_id":"0x0000","entrance_id":"0x0008","screen_display":"0x000F","camera_left_bound":"0x0038","camera_right_bound":"0x13C8","donkey_id":"0x0001","diddy_id":"0x0002"}}
+  ]
+}

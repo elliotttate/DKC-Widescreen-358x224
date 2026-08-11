@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>DKCTilemapInspector.BridgeStress</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\LoopbackBridge.cs" Link="LoopbackBridge.cs" />
+    <Compile Include="..\Json.cs" Link="Json.cs" />
+  </ItemGroup>
+</Project>

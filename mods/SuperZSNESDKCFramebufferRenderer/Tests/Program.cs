@@ -1,0 +1,146 @@
+using System;
+using System.Linq;
+using System.Reflection;
+using HarmonyLib;
+using UnityEngine;
+
+internal static class Program
+{
+    private static int Main()
+    {
+        try
+        {
+            Assembly plugin = Assembly.Load("SuperZSNESDKCFramebufferRenderer");
+            Type rasterizer = plugin.GetType("SuperZSNESDKCFramebufferRenderer.DkcFrameRasterizer", true);
+            TestPlanar(rasterizer);
+            TestTileMap(rasterizer);
+            TestColorMath(rasterizer);
+            TestRegionModes(rasterizer);
+            TestStockPaletteExpansion(rasterizer);
+            TestCachePrimitives(rasterizer);
+            TestRuntimeShape();
+            Console.WriteLine("PASS: planar decode, tilemap addressing, color math, window regions, retained-cache primitives, and v0.230 patch targets.");
+            return 0;
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine("FAIL: " + exception);
+            return 1;
+        }
+    }
+
+    private static void TestPlanar(Type type)
+    {
+        MethodInfo decode = Required(type, "DecodePlanarAtAddress");
+        byte[] vram = new byte[65536];
+        // One 4bpp row: colors 1,2,4,8,15,0,3,12.
+        int[] expected = { 1, 2, 4, 8, 15, 0, 3, 12 };
+        for (int x = 0; x < 8; x++)
+        {
+            int bit = 7 - x;
+            int color = expected[x];
+            if ((color & 1) != 0) vram[0] |= (byte)(1 << bit);
+            if ((color & 2) != 0) vram[1] |= (byte)(1 << bit);
+            if ((color & 4) != 0) vram[16] |= (byte)(1 << bit);
+            if ((color & 8) != 0) vram[17] |= (byte)(1 << bit);
+        }
+        for (int x = 0; x < 8; x++)
+            Require((int)decode.Invoke(null, new object[] { vram, 0, 4, x, 0 }) == expected[x],
+                "4bpp planar decode mismatch at x=" + x);
+    }
+
+    private static void TestTileMap(Type type)
+    {
+        MethodInfo address = Required(type, "GetTileAddress");
+        int A(int x, int y, byte size, bool large) =>
+            (int)address.Invoke(null, new object[] { x, y, size, large });
+        Require(A(0, 0, 0, false) == 0, "32x32 origin");
+        Require(A(31, 31, 0, false) == 2046, "32x32 end");
+        Require(A(32, 0, 1, false) == 2048, "horizontal second screen");
+        Require(A(0, 32, 2, false) == 2048, "vertical second screen");
+        Require(A(32, 32, 3, false) == 6144, "64x64 fourth screen");
+        Require(A(2, 0, 0, true) == 2, "16x16 coordinate reduction");
+    }
+
+    private static void TestColorMath(Type type)
+    {
+        MethodInfo blend = Required(type, "Blend");
+        ushort red10 = 10;
+        ushort red7 = 7;
+        Require((ushort)blend.Invoke(null, new object[] { red10, red7, false, false }) == 17, "add");
+        Require((ushort)blend.Invoke(null, new object[] { red10, red7, true, false }) == 3, "subtract");
+        Require((ushort)blend.Invoke(null, new object[] { red7, red10, true, false }) == 0, "subtract clamp");
+        Require((ushort)blend.Invoke(null, new object[] { (ushort)31, (ushort)31, false, false }) == 31, "add clamp");
+        Require((ushort)blend.Invoke(null, new object[] { (ushort)20, (ushort)10, false, true }) == 15, "half");
+        Require((ushort)blend.Invoke(null, new object[] { (ushort)31, (ushort)31, false, true }) == 31,
+            "half-add divides before saturation");
+    }
+
+    private static void TestRegionModes(Type type)
+    {
+        MethodInfo apply = Required(type, "ApplyRegionMode");
+        bool R(int mode, bool inside, bool math) =>
+            (bool)apply.Invoke(null, new object[] { mode, inside, math });
+        Require(R(0, false, true) && R(0, true, true), "math always");
+        Require(!R(3, false, true) && !R(3, true, true), "math never");
+        Require(!R(0, false, false) && !R(0, true, false), "clip never");
+        Require(R(3, false, false) && R(3, true, false), "clip always");
+    }
+
+    private static void TestCachePrimitives(Type type)
+    {
+        MethodInfo bucket = Required(type, "TileBucket");
+        Require((int)bucket.Invoke(null, new object[] { 0x8161 }) == 0x8160, "positive tile bucket");
+        Require((int)bucket.Invoke(null, new object[] { 0xFFFF }) == 0xFFF8, "wrapped tile bucket");
+
+        MethodInfo equal = Required(type, "CircularRangeEquals");
+        byte[] source = new byte[65536];
+        source[65534] = 1; source[65535] = 2; source[0] = 3; source[1] = 4;
+        byte[] snapshot = { 1, 2, 3, 4 };
+        Require((bool)equal.Invoke(null, new object[] { source, 65534, 4, snapshot }),
+            "circular VRAM range compare");
+        source[0] = 5;
+        Require(!(bool)equal.Invoke(null, new object[] { source, 65534, 4, snapshot }),
+            "circular VRAM change invalidation");
+    }
+
+    private static void TestStockPaletteExpansion(Type type)
+    {
+        MethodInfo expand = Required(type, "ExpandStockChannel");
+        int E(int value, int brightness) =>
+            (byte)expand.Invoke(null, new object[] { value, brightness });
+        Require(E(0, 15) == 1, "stock palette zero clamp");
+        Require(E(25, 15) == 199, "stock palette c/32 conversion");
+        Require(E(31, 15) == 247, "stock palette maximum");
+        Require(E(31, 0) == 0, "zero brightness");
+    }
+
+    private static void TestRuntimeShape()
+    {
+        Require(AccessTools.Method(typeof(PPURenderer), "GenerateBackgrounds", Type.EmptyTypes) != null,
+            "GenerateBackgrounds target missing");
+        MethodInfo image = AccessTools.Method(typeof(MainScreenBlit), "OnRenderImage",
+            new[] { typeof(RenderTexture), typeof(RenderTexture) });
+        Require(image != null && image.IsPrivate, "private OnRenderImage target missing");
+        Require(AccessTools.Method(typeof(SNESPPU), "WriteIO", new[] { typeof(uint), typeof(byte) }) != null,
+            "SNESPPU.WriteIO target missing");
+        Require(AccessTools.Field(typeof(MainScreenBlit), "_transferMaterialUsed") != null,
+            "transfer material field missing");
+        string[] required = { "_ppuStartFrame", "_ppuLineChanges", "_cgLineChanges" };
+        foreach (string property in required)
+            Require(typeof(SNESPPU).GetProperty(property) != null, "SNESPPU property missing: " + property);
+    }
+
+    private static MethodInfo Required(Type type, string name)
+    {
+        MethodInfo method = type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+            .SingleOrDefault(m => m.Name == name);
+        if (method == null) throw new MissingMethodException(type.FullName, name);
+        return method;
+    }
+
+    private static void Require(bool condition, string message)
+    {
+        if (!condition) throw new InvalidOperationException(message);
+    }
+}

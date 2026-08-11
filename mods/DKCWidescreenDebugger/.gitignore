@@ -1,0 +1,7 @@
+bin/
+obj/
+package/
+*.zip
+.venv/
+__pycache__/
+.pytest_cache/

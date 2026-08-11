@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "cave-banana-position-and-pickup",
+  "description": "Reproduce the cave banana-formation widescreen offset and capture the exact frame where the corrected visible banana and pickup hitbox overlap.",
+  "tilemapLayers": "1,2",
+  "watches": [
+    {"name":"banana_count","address":"0x7E057B","size":2,"signed":false,"units":"bananas","source":"DKC1 RAM map: Player_CurrentBananaCount"},
+    {"name":"player_probe_x","address":"0x7E00C5","size":2,"signed":false,"units":"level-local pixels","source":"Banana formation collision input"},
+    {"name":"formation_local_x","address":"0x7E0056","size":2,"signed":false,"units":"level-local pixels","source":"Banana formation render/collision scratch"},
+    {"name":"formation_camera_basis","address":"0x7E00BE","size":2,"signed":false,"units":"pixels","source":"Banana formation Layer1X-minus-lower-bound basis"},
+    {"name":"layer1_x","address":"0x7E088B","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Global_Layer1XPos"},
+    {"name":"camera_left_bound","address":"0x7E1B23","size":2,"signed":false,"units":"pixels","source":"Current level camera lower X bound"},
+    {"name":"camera_right_bound","address":"0x7E1B25","size":2,"signed":false,"units":"pixels","source":"Current level camera upper X bound"}
+  ],
+  "steps": [
+    {"kind":"automation","command":"load_rom","args":{"path":"${ROM}","load_last_state":false}},
+    {"kind":"automation","command":"load_state_file","args":{"path":"${STATE}"}},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0=NONE"}},
+    {"kind":"automation","command":"step_frames","args":{"count":1,"timeout_ms":10000}},
+    {"kind":"checkpoint","label":"cave-banana-start","capture":true},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0-31=RIGHT"}},
+    {"kind":"automation","command":"run_frames","args":{"count":32,"timeout_ms":15000}},
+    {"kind":"checkpoint","label":"cave-banana-before-pickup","capture":true},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0=RIGHT"}},
+    {"kind":"automation","command":"run_frames","args":{"count":1,"timeout_ms":10000}},
+    {"kind":"checkpoint","label":"cave-banana-after-pickup","capture":true},
+    {"kind":"automation","command":"clear_schedule","args":{"controller":1}}
+  ]
+}

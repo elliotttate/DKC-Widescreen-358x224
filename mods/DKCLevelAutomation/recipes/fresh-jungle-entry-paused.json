@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "fresh-jungle-entry-paused",
+  "description": "Load the requested Jungle Hijinxs state, suppress physical P1 input, remain paused, and capture the exact loaded state plus its first neutral emulated frame.",
+  "tilemapLayers": "1,2",
+  "watches": [
+    {"name":"camera_x","address":"0x7E1A62","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Level_CameraXPos"},
+    {"name":"camera_y","address":"0x7E1A4C","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Level_CameraYPos"},
+    {"name":"layer1_x","address":"0x7E088B","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Global_Layer1XPos"},
+    {"name":"layer1_y","address":"0x7E0895","size":2,"signed":false,"units":"pixels","source":"DKC1 RAM map: Global_Layer1YPos"},
+    {"name":"sprite0_x","address":"0x7E0B19","size":2,"signed":true,"units":"pixels","source":"DKC1 RAM map: NorSpr_XPos slot 0"},
+    {"name":"sprite0_y","address":"0x7E0BC1","size":2,"signed":true,"units":"pixels","source":"DKC1 RAM map: NorSpr_YPos slot 0"},
+    {"name":"sprite1_x","address":"0x7E0B1B","size":2,"signed":true,"units":"pixels","source":"DKC1 RAM map: NorSpr_XPos slot 1"},
+    {"name":"sprite1_y","address":"0x7E0BC3","size":2,"signed":true,"units":"pixels","source":"DKC1 RAM map: NorSpr_YPos slot 1"},
+    {"name":"p1_held","address":"0x7E0500","size":2,"signed":false,"source":"DKC1 RAM map: Global_HeldButtons P1"}
+  ],
+  "steps": [
+    {"kind":"automation","command":"load_rom","args":{"path":"${ROM}","load_last_state":false}},
+    {"kind":"automation","command":"load_state_file","args":{"path":"${STATE}"}},
+    {"kind":"automation","command":"schedule","args":{"controller":1,"macro":"0-1=NONE"}},
+    {"kind":"checkpoint","label":"jungle-entry-loaded-paused","capture":true},
+    {"kind":"automation","command":"step_frames","args":{"count":1,"timeout_ms":10000}},
+    {"kind":"checkpoint","label":"jungle-entry-first-neutral-frame","capture":true}
+  ]
+}

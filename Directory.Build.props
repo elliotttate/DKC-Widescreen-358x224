@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</RepoRoot>
+    <BepInExRoot Condition="'$(BepInExRoot)' == '' and '$(BEPINEX_ROOT)' != ''">$(BEPINEX_ROOT)</BepInExRoot>
+    <BepInExRoot Condition="'$(BepInExRoot)' == ''">$(RepoRoot).deps\BepInEx</BepInExRoot>
+    <SuperZSNESRoot Condition="'$(SuperZSNESRoot)' == '' and '$(SUPERZSNES_ROOT)' != ''">$(SUPERZSNES_ROOT)</SuperZSNESRoot>
+    <SuperZSNESRoot Condition="'$(SuperZSNESRoot)' == ''">$(RepoRoot).deps\SuperZSNES</SuperZSNESRoot>
+    <GameManagedDir Condition="'$(GameManagedDir)' == '' and '$(SUPERZSNES_MANAGED_DIR)' != ''">$(SUPERZSNES_MANAGED_DIR)</GameManagedDir>
+    <GameManagedDir Condition="'$(GameManagedDir)' == ''">$(SuperZSNESRoot)\SUPERZSNES_Data\Managed</GameManagedDir>
+  </PropertyGroup>
+</Project>

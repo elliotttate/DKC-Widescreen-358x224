@@ -1,0 +1,8 @@
+bin/
+obj/
+tests/bin/
+tests/obj/
+__pycache__/
+*.user
+bridge.json
+RegressionRuns/

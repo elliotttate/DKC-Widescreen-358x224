@@ -1,0 +1,42 @@
+{
+  "steps": [
+    {
+      "command": "load_rom",
+      "args": {
+        "path": "D:\\ROMs\\Donkey Kong Country (USA).sfc",
+        "load_last_state": false
+      }
+    },
+    {
+      "command": "load_state_file",
+      "args": {
+        "path": "D:\\States\\jungle-hijinx-start.szst0"
+      }
+    },
+    {
+      "command": "schedule",
+      "args": {
+        "controller": 1,
+        "macro": "0-59=RIGHT+Y;60=B;61-179=RIGHT"
+      }
+    },
+    {
+      "command": "wait_wram",
+      "args": {
+        "address": "0x7E1234",
+        "size": 2,
+        "op": "ge",
+        "value": "0x0100",
+        "max_frames": 180,
+        "timeout_ms": 15000
+      }
+    },
+    {
+      "command": "read_wram",
+      "args": {
+        "address": "0x7E1234",
+        "size": 2
+      }
+    }
+  ]
+}
