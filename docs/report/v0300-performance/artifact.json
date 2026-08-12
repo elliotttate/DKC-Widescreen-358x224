@@ -105,6 +105,28 @@
           ]
         },
         "layout": "full"
+      },
+      {
+        "id": "native_atlas_followup",
+        "title": "Native dirty-branch patch leaves presentation time unchanged",
+        "subtitle": "Four fresh-process trials per configuration; lower is better.",
+        "headerMarkdown": "The source-equivalent native fix removes all managed hot-path callbacks, but presentation time changed only **+0.41%** and CPU **-0.94%**, both within run-to-run noise.",
+        "type": "bar",
+        "dataset": "nativeAtlasFollowup",
+        "sourceId": "benchmark_data",
+        "valueFormat": "number",
+        "encodings": {
+          "x": { "field": "configuration", "type": "nominal", "label": "Atlas implementation" },
+          "y": { "field": "presentationMs", "type": "quantitative", "label": "Average presentation milliseconds", "format": "number" },
+          "tooltip": [
+            { "field": "cpuCores", "type": "quantitative", "label": "Process CPU cores", "format": "number" },
+            { "field": "runFrameHz", "type": "quantitative", "label": "Emulated FPS", "format": "number" },
+            { "field": "presentationDelta", "type": "quantitative", "label": "Presentation vs stock", "format": "percent" },
+            { "field": "trials", "type": "quantitative", "label": "Trials", "format": "number" },
+            { "field": "managedHotCallbacks", "type": "quantitative", "label": "Managed hot callbacks", "format": "number" }
+          ]
+        },
+        "layout": "full"
       }
     ],
     "tables": [
@@ -162,15 +184,16 @@
         "id": "technical_summary",
         "type": "markdown",
         "sourceId": "benchmark_data",
-        "body": "## Technical Summary\n\nSuperZSNES v0.300 is CPU-limited in the legacy Unity tile **presentation** path, not in the SNES execution core. Stock sustained 59.98 emulated frames/s while consuming 2.99 CPU cores. The supported DKC CPU framebuffer reduced process CPU to 1.61 cores; its exact retained-background cache reduced it to 1.30 cores while preserving 60.01 emulated frames/s.\n\n**Recommendation:** ship the IL2CPP framebuffer renderer with retained backgrounds enabled. Keep the atlas Harmony experiment disabled. Retain the bounded scheduler fix as an optional correctness patch for real hitches."
+        "body": "## Technical Summary\n\nSuperZSNES v0.300 is CPU-limited in the legacy Unity tile **presentation** path, not in the SNES execution core. Stock sustained 59.98 emulated frames/s while consuming 2.99 CPU cores. The supported DKC CPU framebuffer reduced process CPU to 1.61 cores; its exact retained-background cache reduced it to 1.30 cores while preserving 60.01 emulated frames/s.\n\n**Recommendation:** ship the IL2CPP framebuffer renderer with retained backgrounds enabled. Keep both atlas experiments disabled: the managed gate adds hot-path overhead, while the source-equivalent native patch produced no measurable gain across four trials per configuration. Retain the bounded scheduler fix as an optional correctness patch for real hitches."
       },
       { "id": "headline_metrics", "type": "metric-strip", "cardIds": ["stock_cpu", "optimized_cpu", "cache_hit_rate", "optimized_fps"] },
       {
         "id": "key_findings",
         "type": "markdown",
         "sourceId": "benchmark_data",
-        "body": "## Key Findings\n\n- The framebuffer rewrite is the decisive intervention: **46.0% less process CPU** than stock.\n- Retained backgrounds add a further **19.5% CPU reduction** versus cache-off and cut the background stage **49.5%**.\n- The atlas dirty-flag bug is real—about **1.26 million** false page hits per trial—but a managed per-tile detour is the wrong fix and increased presentation work **37.1%**.\n- The accumulator bug is also real. Under the same deliberate stall, bounded recovery improved emulated cadence by **0.62–0.73 FPS** in the short paired windows."
+        "body": "## Key Findings\n\n- The framebuffer rewrite is the decisive intervention: **46.0% less process CPU** than stock.\n- Retained backgrounds add a further **19.5% CPU reduction** versus cache-off and cut the background stage **49.5%**.\n- The atlas dirty-flag bug is real—about **1.26 million** false page hits per trial—but the managed per-tile gate is the wrong fix and increased presentation work **37.1%**.\n- A six-site native patch then removed that managed overhead and reproduced the intended dirty-branch behavior, yet four trials per configuration measured **2.6249 ms stock versus 2.6356 ms fixed presentation (+0.41%)** and **1.2350 versus 1.2234 CPU cores (-0.94%)**. Both are within noise, so the native patch remains disabled.\n- The accumulator bug is also real. Under the same deliberate stall, bounded recovery improved emulated cadence by **0.62–0.73 FPS** in the short paired windows."
       },
+      { "id": "native_atlas_chart", "type": "chart", "chartId": "native_atlas_followup", "layout": "full" },
       { "id": "cpu_chart", "type": "chart", "chartId": "cpu_by_scenario", "layout": "full" },
       { "id": "renderer_chart", "type": "chart", "chartId": "renderer_stage_comparison", "layout": "full" },
       { "id": "hitch_chart", "type": "chart", "chartId": "hitch_recovery", "layout": "full" },
@@ -185,7 +208,7 @@
         "id": "methodology",
         "type": "markdown",
         "sourceId": "benchmark_data",
-        "body": "## Methodology and Validation\n\nThe harness verifies immutable executable, native assembly, and ROM SHA-256 values; refuses an existing disposable emulator process; writes only two plugin configs in that disposable copy; waits for plugin health; samples monotonic plugin counters plus Windows process CPU/memory; and stops only the exact process it launched. Invalid trials are preserved but excluded with a reason.\n\nThe scheduler experiment creates its stall request only after the measurement baseline is captured. Recovery never increases a batch beyond the stock cap of five, applies only to normal speed, retains a bounded backlog, and leaves fast-forward arithmetic untouched."
+        "body": "## Methodology and Validation\n\nThe harness verifies immutable executable, native assembly, and ROM SHA-256 values; refuses an existing disposable emulator process; writes only two plugin configs in that disposable copy; waits for plugin health; samples monotonic plugin counters plus Windows process CPU/memory; and stops only the exact process it launched. Invalid trials are preserved but excluded with a reason.\n\nThe native atlas follow-up used four fresh-process trials for stock and four for the native fix, with 12 seconds of warmup and the framebuffer disabled so the legacy atlas path remained active. The native plugin byte- and hash-gated all six x86 patch sites and introduced zero managed callbacks in the per-tile path.\n\nThe scheduler experiment creates its stall request only after the measurement baseline is captured. Recovery never increases a batch beyond the stock cap of five, applies only to normal speed, retains a bounded backlog, and leaves fast-forward arithmetic untouched."
       },
       {
         "id": "port_heading",
@@ -198,18 +221,18 @@
         "id": "limitations",
         "type": "markdown",
         "sourceId": "benchmark_data",
-        "body": "## Limitations and Robustness\n\n- Two trials cleanly separate the large renderer gains but cannot establish small differences between cache-on and cache-on-plus-suite.\n- The workload is one difficult DKC gameplay scene; fades, UI, Mode 7, and unsupported frames intentionally take the stock fallback and need separate workloads.\n- Process CPU is intentionally end-to-end and includes Unity, audio, emulation, presentation, and diagnostics.\n- Windows display scheduling varied between controlled hitch pairs, so the conclusion uses paired stock/fixed comparisons rather than treating host Update Hz as constant.\n- The framebuffer uses more endpoint memory than stock; this is an explicit CPU-for-memory trade."
+        "body": "## Limitations and Robustness\n\n- Two trials cleanly separate the large renderer gains but cannot establish small differences between cache-on and cache-on-plus-suite.\n- The native atlas follow-up improves that comparison to four trials per configuration, but its sub-1% movements are still smaller than run-to-run variance and should not be interpreted as a gain or regression.\n- The workload is one difficult DKC gameplay scene; fades, UI, Mode 7, and unsupported frames intentionally take the stock fallback and need separate workloads.\n- Process CPU is intentionally end-to-end and includes Unity, audio, emulation, presentation, and diagnostics.\n- Windows display scheduling varied between controlled hitch pairs, so the conclusion uses paired stock/fixed comparisons rather than treating host Update Hz as constant.\n- The framebuffer uses more endpoint memory than stock; this is an explicit CPU-for-memory trade."
       },
       {
         "id": "next_steps",
         "type": "markdown",
         "sourceId": "native_audit",
-        "body": "## Recommended Next Steps\n\n1. Use `SuperZSNESDKCFramebufferRendererIL2CPP` with `RetainedBackgrounds=true`.\n2. Keep `GateAtlasUploadsOnTileDirty=false`; revisit only as a native/preloader rewrite with no per-tile managed callback.\n3. Keep test stall settings at zero. Enable bounded backlog recovery only when the correctness fix is wanted.\n4. Prefer the emulator's own history/rewind-off settings; use the reversible guards only where settings cannot be persisted.\n5. Add a fade-heavy case, a stock-fallback sequence, Mode 7, and a long memory soak before packaging a binary release."
+        "body": "## Recommended Next Steps\n\n1. Use `SuperZSNESDKCFramebufferRendererIL2CPP` with `RetainedBackgrounds=true`.\n2. Keep both `GateAtlasUploadsOnTileDirty=false` and the native atlas patch disabled; the native implementation is technically correct but produced no measurable benefit.\n3. Keep test stall settings at zero. Enable bounded backlog recovery only when the correctness fix is wanted.\n4. Prefer the emulator's own history/rewind-off settings; use the reversible guards only where settings cannot be persisted.\n5. Add a fade-heavy case, a stock-fallback sequence, Mode 7, and a long memory soak before packaging a binary release."
       },
       {
         "id": "further_questions",
         "type": "markdown",
-        "body": "## Further Questions\n\n- Can the atlas assignment be moved inside the native dirty branch with an IL2CPP preloader or direct native patch and deliver the theoretical win without callback overhead?\n- What fraction of a full playthrough remains on stock fallback frames?\n- Does a 30-minute retained-framebuffer soak plateau in working set across multiple level transitions?\n- Would decoupling presentation from host Update improve visible recovery after a hitch, or merely duplicate the most recent emulated frame?"
+        "body": "## Further Questions\n\n- Would the native atlas correction matter in a deliberately VRAM-upload-heavy fade or transition workload, despite showing no gain in the measured gameplay scene?\n- What fraction of a full playthrough remains on stock fallback frames?\n- Does a 30-minute retained-framebuffer soak plateau in working set across multiple level transitions?\n- Would decoupling presentation from host Update improve visible recovery after a hitch, or merely duplicate the most recent emulated frame?"
       }
     ]
   },
@@ -247,12 +270,17 @@
         { "pair": 3, "pairLabel": "Pair 3", "scheduler": "Stock", "runFrameHz": 58.977148, "deltaVsStock": 0.0, "presentationHz": 58.533711, "recoveryBatches": 0, "stallMilliseconds": 500, "retainedBacklogFrameCharges": 0, "maxUpdateGapMs": 516.8857 },
         { "pair": 3, "pairLabel": "Pair 3", "scheduler": "Bounded recovery", "runFrameHz": 59.594604, "deltaVsStock": 0.617456, "presentationHz": 55.550526, "recoveryBatches": 4, "stallMilliseconds": 500, "retainedBacklogFrameCharges": 36, "maxUpdateGapMs": 517.4506 }
       ],
+      "nativeAtlasFollowup": [
+        { "configuration": "Stock atlas path", "presentationMs": 2.624863, "presentationDelta": 0.0, "cpuCores": 1.234997, "cpuDelta": 0.0, "runFrameHz": 59.997771, "trials": 4, "managedHotCallbacks": 0, "patchedSites": 0 },
+        { "configuration": "Native dirty-branch fix", "presentationMs": 2.635639, "presentationDelta": 0.004105, "cpuCores": 1.223376, "cpuDelta": -0.009410, "runFrameHz": 59.997007, "trials": 4, "managedHotCallbacks": 0, "patchedSites": 6 }
+      ],
       "portDecisions": [
         { "candidate": "DKC CPU framebuffer", "decision": "Accepted", "currentEvidence": "-46.0% process CPU", "reason": "Bypasses the dominant legacy Unity per-tile presentation path on supported Mode 1 frames." },
         { "candidate": "Exact retained backgrounds", "decision": "Accepted", "currentEvidence": "79.1% hits; -49.5% background ms", "reason": "Owns framebuffer planes and avoids shared Unity mesh-cache hazards." },
         { "candidate": "Scheduled-frame backlog accounting", "decision": "Ported, optional", "currentEvidence": "+0.62 to +0.73 emulated FPS after a 500 ms stall", "reason": "The native due-versus-executed accounting defect persists; bounded fix leaves fast-forward unchanged." },
         { "candidate": "History and rewind Update guards", "decision": "Ported, optional", "currentEvidence": "No steady-state gain expected", "reason": "Prevents known service spikes and restores the user's exact values after each Update." },
         { "candidate": "Atlas dirty-page Harmony gate", "decision": "Rejected", "currentEvidence": "1.26M false hits found; +37.1% presentation ms", "reason": "The bug is real, but a per-tile managed callback is the wrong implementation on IL2CPP." },
+        { "candidate": "Native atlas dirty-branch correction", "decision": "Verified, disabled", "currentEvidence": "4 trials/config; +0.41% presentation, -0.94% CPU", "reason": "The six-site native patch is source-equivalent and has zero managed hot callbacks, but produced no measurable gain." },
         { "candidate": "ReadMem cheat fast path", "decision": "Not ported", "currentEvidence": "Old A/B: +2.8% wall, +8.3% CPU/frame", "reason": "Negative evidence on the prior runtime and higher detour risk on the native hot path." },
         { "candidate": "Material/draw dictionary rewrites", "decision": "Not ported", "currentEvidence": "No prior benefit or visual risk", "reason": "Supported framebuffer frames bypass these legacy-renderer paths." },
         { "candidate": "Mesh, scratch pool, and 128-OBJ fixes", "decision": "Not ported", "currentEvidence": "Bypassed or sub-1% local effect", "reason": "They do not address the measured v0.300 bottleneck and expand native patch risk." }
@@ -271,13 +299,14 @@
         "description": "Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.",
         "url": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/mods/SuperZSNESPerformanceSuiteIL2CPP/run-v0300-benchmark.ps1",
         "executed_at": "2026-08-12T18:00:00Z",
-        "filters": ["Exact SuperZSNES v0.300 executable and GameAssembly hashes", "Verified 358x224 widescreen ROM", "Two valid ordinary trials per scenario", "One invalid hitch trial excluded because no stall occurred"],
+        "filters": ["Exact SuperZSNES v0.300 executable and GameAssembly hashes", "Verified 358x224 widescreen ROM", "Two valid ordinary trials per scenario", "Four valid native-atlas trials per configuration", "One invalid hitch trial excluded because no stall occurred"],
         "metric_definitions": {
           "cpuCores": "Process CPU seconds divided by monotonic wall seconds.",
           "runFrameHz": "Delta MasterExecutor.RunFrame calls divided by monotonic wall seconds.",
           "presentationHz": "Delta PPURenderer.GenerateBackgrounds calls divided by monotonic wall seconds.",
           "backgroundCacheHitRate": "Background cache hits divided by hits plus misses.",
-          "cpuDeltaVsStock": "Scenario mean CPU cores divided by stock mean CPU cores, minus one."
+          "cpuDeltaVsStock": "Scenario mean CPU cores divided by stock mean CPU cores, minus one.",
+          "nativeAtlasPresentationDelta": "Native-fix mean presentation milliseconds divided by the paired stock-configuration mean, minus one."
         }
       }
     },
