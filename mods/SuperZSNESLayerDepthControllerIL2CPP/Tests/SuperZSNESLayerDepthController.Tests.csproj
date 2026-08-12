@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\DepthMath.cs" Link="DepthMath.cs" />
+    <Compile Include="..\NativeTileDepthPatcher.cs" Link="NativeTileDepthPatcher.cs" />
+  </ItemGroup>
+</Project>

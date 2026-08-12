@@ -1028,3 +1028,66 @@ Both IL2CPP and Mono builds complete with zero warnings/errors. The v0.230
 verifier additionally checks the new title layout and proves that only Mode 5,
 not Mode 3 or active-display gameplay fallbacks, selects native-width stock
 rendering.
+
+## 2026-08-12 v0.300 controllable 3D layer depth
+
+The v0.300 interop and Hex-Rays output exposed a hidden
+`MainMenuManager.GFXModes.Gimmick3D` path in `PPURenderer.UpdateCameras`.
+It switches the main/sub cameras to perspective, uses a 50-degree field of
+view, and already supports mouse-drag rotation and wheel zoom. Scene data also
+contains 13 adjacent priority-plane gaps, 14 scales, and a neutral boundary.
+However, `SetupZPositions` finishes by overwriting every calculated position
+with `13-index` and every scale with one, so authored distances never reach the
+rendered geometry.
+
+`SuperZSNESLayerDepthControllerIL2CPP` v0.3.0 now forces Gimmick3D only during
+the stock background build, restores the prior display setting afterward, and
+reapplies a validated configurable profile after `SetupZPositions`. It exposes
+all 13 gaps, all 14 scales, a separation multiplier, neutral boundary, camera
+reset, and live gap controls. Perspective compensation uses
+`cameraDistance/(cameraDistance-planeZ)`, keeping the complete flat image
+edge-aligned at zero rotation while revealing parallax when the camera turns.
+
+DKC often uses only BG1/BG2 plus a few sprite priorities, so the priority split
+can still appear as two broad cards. A first v0.2 detail pass walked the stock
+renderer's managed IL2CPP mesh wrappers after every frame. It produced the
+intended extra slices in ordinary frames, but three isolated runs ended in a
+CoreCLR access violation near the same scene boundary. The stable controller-
+only control did not fail during the matched 45-second window. This is a strong
+correlation specific to the managed walker, not evidence that every scene
+transition crashes; the implementation was nevertheless quarantined because
+post-frame traversal of native-owned IL2CPP collections is not a safe hot path.
+
+The replacement v0.3 splitter patches two exact x86 `DrawLines` sites only after
+verifying the full `GameAssembly.dll` hash and original instruction bytes. It
+has no managed per-tile callbacks and rolls both sites back on unload. An
+initial native grouping by tile number survived the matched opening window but
+failed visual QA: a full-window WSLSnapit capture showed the Nintendo logo
+fragmented into many narrow depth strips. The retained design instead groups
+each tile by its authored three-bit SNES palette number within the existing BG
+and priority plane. Tile index and flip bits are ignored. Four explicit config
+rows map BG1..BG4 palette numbers 0..7 directly to depth offsets, so related
+palettes can share a plane instead of being assigned by a hash or modulo. This
+preserves larger coherent color regions while offering up to eight meaningful
+subdivisions per BG. The native path passed the initial timed opening run, but
+repeated named transition coverage is still required before it can be described
+as stable.
+
+The first direct-offset live run remained responsive for more than 100 seconds
+and repeatedly crossed the Cranky/phonograph fade into the Donkey/boombox scene
+with no new Unity crash report. Full-window WSLSnapit captures at 12 degrees of
+yaw showed coherent characters and large foliage regions, while also exposing
+thin gaps wherever one painted background alternates between palettes assigned
+different offsets. This validates the native lifecycle across those named
+opening boundaries only; it neither proves all transitions safe nor makes
+automatic palette grouping semantically exact. Per-scene offset profiles are
+the next correctness step for scenes whose artwork crosses palette boundaries.
+
+The accepted CPU framebuffer intentionally flattens BG/OBJ/window/color math,
+so real layer depth requires `PresentFramebuffer=false` and
+`ShadowRenderInterval=0`. The installer can make exactly those compatibility
+changes. This mode is therefore experimental/default-off and may expose native
+tilemap edges during cinematics. Production widescreen presentation was not
+changed. Windows DPI made raw `CopyFromScreen` captures invalid (quadrant or
+wrong-window images); the accepted visual path is a WSLSnapit full-window
+capture targeting the SUPERZSNES game window.
