@@ -944,3 +944,35 @@ effects (65,216 rows rather than 156,800 rows). Final IL2CPP DLL SHA-256 is
 It was installed into the closed production v0.300 copy without altering its
 existing widescreen configuration. Reviewed aggregates are in
 `docs/benchmarks/v0300/raster-partial-results.json`.
+
+## 2026-08-12 Native-width opening-screen margins
+
+The DKC opening cinematic uses a dedicated native-width PPU asset layout:
+Mode 1, BG1 map `$7C00`, BG2 map `$7800`, BG1 character bank `$2000`, and
+BG2 character bank `$6000`. Its 32-tile maps wrap into the 51-pixel widescreen
+extensions, exposing repeated and partially initialized art. The framebuffer
+renderer now identifies that exact four-register layout and composites opaque
+black outside native X `0..255`. The center 256 pixels, sprites, HDMA, palette
+animation, fades, and audio remain unchanged. Ordinary levels and all other
+PPU layouts continue rendering the full 358-pixel view.
+
+The following file-select scene uses a second native layout: BG maps
+`$7400/$7800/$7C00`, BG1/BG2 character-bank register `$04`, and BG3 character
+bank `$02`. It exhibited the same wrapped 32-tile art in both extensions. The
+same black-margin policy now covers that exact six-register signature as well.
+
+The title sequence has two more exact native layouts while animating and then
+settling its BG1 map: `$7400` with BG3 at `$7C00`, followed by BG1 at `$7C00`.
+Both use character bank zero. Those two source-verified signatures are now
+included, while the superficially similar game-over layout is excluded by its
+different `$210B` character-bank value.
+
+The remaining two-second artifact was not the title renderer itself. A rapid
+four-frame capture after loading the supplied state showed that the ROM had
+already selected gameplay PPU Mode 9 while its level camera record was still
+uninitialized. Offline parsing of the state file's raw 128 KiB WRAM block
+confirmed `$1B23=$0000` and `$1B25=$0000`; playable Jungle bounds later become
+`$0038..$13C8`. The renderer now keeps only the extensions black while Mode 9
+has that exact empty bound pair, then restores full widescreen on the first
+frame with valid bounds. Non-gameplay screens and high-world level ranges do
+not match this rule.

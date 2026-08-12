@@ -193,6 +193,48 @@ internal static class Program
         Require(!S(1, 0x11, 0, 0, 1, 0, 0x7C, 0x78), "scrolling BG1 must stay wide");
         Require(!S(1, 0x11, 0, 0, 0, 0, 0x7D, 0x78), "64-wide BG1 must stay wide");
         Require(!S(1, 0x11, 0, 1, 0, 0, 0x7C, 0x78), "color-math scene must stay wide");
+
+        MethodInfo introSignature = Required(type, "IsDkcIntroScreenSignature");
+        bool Intro(byte mode, byte bg1sc, byte bg2sc, byte bg12nba) =>
+            (bool)introSignature.Invoke(null, new object[] { mode, bg1sc, bg2sc, bg12nba });
+        Require(Intro(1, 0x7C, 0x78, 0x13), "DKC opening screen must be pillarboxed");
+        Require(!Intro(1, 0x7D, 0x78, 0x13), "wide BG1 layout must not match opening");
+        Require(!Intro(1, 0x7C, 0x78, 0x31), "different character banks must not match opening");
+        Require(!Intro(9, 0x7C, 0x78, 0x13), "gameplay mode must not match opening");
+
+        MethodInfo fileSelectSignature = Required(type, "IsDkcFileSelectScreenSignature");
+        bool FileSelect(byte mode, byte bg1sc, byte bg2sc, byte bg3sc,
+            byte bg12nba, byte bg34nba) => (bool)fileSelectSignature.Invoke(null,
+                new object[] { mode, bg1sc, bg2sc, bg3sc, bg12nba, bg34nba });
+        Require(FileSelect(1, 0x74, 0x78, 0x7C, 0x04, 0x02),
+            "DKC file-select screen must be pillarboxed");
+        Require(!FileSelect(1, 0x75, 0x78, 0x7C, 0x04, 0x02),
+            "wide BG1 file-select layout must not match");
+        Require(!FileSelect(1, 0x74, 0x78, 0x7C, 0x40, 0x02),
+            "different file-select character banks must not match");
+        Require(!FileSelect(9, 0x74, 0x78, 0x7C, 0x04, 0x02),
+            "gameplay mode must not match file select");
+
+        MethodInfo titleSignature = Required(type, "IsDkcTitleScreenSignature");
+        bool Title(byte mode, byte bg1sc, byte bg2sc, byte bg3sc,
+            byte bg12nba, byte bg34nba) => (bool)titleSignature.Invoke(null,
+                new object[] { mode, bg1sc, bg2sc, bg3sc, bg12nba, bg34nba });
+        Require(Title(1, 0x74, 0x00, 0x7C, 0x00, 0x00),
+            "animated DKC title layout must be pillarboxed");
+        Require(Title(1, 0x7C, 0x78, 0x00, 0x00, 0x00),
+            "settled DKC title layout must be pillarboxed");
+        Require(!Title(1, 0x7C, 0x78, 0x00, 0x01, 0x00),
+            "game-over character bank must not match title");
+        Require(!Title(9, 0x7C, 0x78, 0x00, 0x00, 0x00),
+            "gameplay mode must not match title");
+
+        MethodInfo loadingSignature = Required(type, "IsDkcLevelInitializationSignature");
+        bool Loading(byte mode, int lower, int upper) => (bool)loadingSignature.Invoke(null,
+            new object[] { mode, lower, upper });
+        Require(Loading(9, 0, 0), "uninitialized DKC level bounds must be pillarboxed");
+        Require(!Loading(9, 0x0038, 0x13C8), "valid widescreen bounds must stay wide");
+        Require(!Loading(9, 0x6938, 0x6BC8), "valid high-world bounds must stay wide");
+        Require(!Loading(1, 0, 0), "non-gameplay native screens use explicit signatures");
     }
 
     private static void TestRuntimeShape()

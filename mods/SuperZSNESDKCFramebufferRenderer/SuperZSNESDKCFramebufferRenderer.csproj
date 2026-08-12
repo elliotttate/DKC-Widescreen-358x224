@@ -7,7 +7,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>SuperZSNESDKCFramebufferRenderer</AssemblyName>
     <RootNamespace>SuperZSNESDKCFramebufferRenderer</RootNamespace>
-    <Version>0.4.9</Version>
+    <Version>0.4.13</Version>
     <Deterministic>true</Deterministic>
     <DebugType>portable</DebugType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

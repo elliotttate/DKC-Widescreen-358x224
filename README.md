@@ -7,6 +7,10 @@ The project has two complementary parts:
 - `rom/`: an Asar overlay for the USA v1.0 DKC disassembly. It expands streaming, camera/object ranges, banana formations, player endpoints, and grouped-object retry behavior.
 - `mods/`: BepInEx plugins and scripts for SuperZSNES v0.230, plus a separate BepInEx 6 IL2CPP port of the accepted framebuffer renderer for v0.300.
 
+## Easiest installation
+
+Download the latest package from [GitHub Releases](https://github.com/elliotttate/DKC-Widescreen-358x224/releases/latest), extract it, and run `DKC-Widescreen-Patcher.exe`. The patcher verifies a clean, headerless DKC USA v1.0 ROM, offers standard and MSU-1-compatible variants, writes a new ROM, and verifies the exact result. It never modifies the original ROM. The release also includes the SuperZSNES v0.300 IL2CPP renderer DLL and standalone BPS patches.
+
 The final renderer keeps the SNES core near 60 FPS while replacing SuperZSNES's expensive per-tile Unity presentation path for supported DKC Mode 1 frames. The accepted v0.4.2 retained-tile rewrite raised the difficult Millstone Mayhem scrolling case from 86-90 to 119.4-119.7 presentation updates/s, while eliminating every multi-frame batch in the controlled 1,800-frame test.
 
 ## What is intentionally absent

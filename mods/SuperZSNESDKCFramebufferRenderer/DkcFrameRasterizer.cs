@@ -168,7 +168,8 @@ namespace SuperZSNESDKCFramebufferRenderer
             if (!BuildLineState(ppu, out reason))
                 return false;
             LineStateMs += ElapsedMilliseconds(stageStart);
-            bool fixedNativePillarbox = ShouldPillarboxFixedNativeFrame();
+            bool fixedNativePillarbox = ShouldPillarboxFixedNativeFrame() ||
+                ShouldPillarboxDkcLevelInitialization(ppu);
             FixedNativePillarboxActive = fixedNativePillarbox;
 
 #if IL2CPP
@@ -280,14 +281,25 @@ namespace SuperZSNESDKCFramebufferRenderer
 
         private bool ShouldPillarboxFixedNativeFrame()
         {
+            bool fixedNative = true;
+            bool introScreen = true;
+            bool titleScreen = true;
+            bool fileSelectScreen = true;
             for (int y = 0; y < Lines; y++)
             {
                 LineState state = _line[y];
-                if (!IsFixedNativeFrameSignature(state.Bgmode, state.Tm, state.Ts,
-                    state.Cgadsub, state.ScrollX1, state.ScrollX2, state.Bg1sc, state.Bg2sc))
+                fixedNative &= IsFixedNativeFrameSignature(state.Bgmode, state.Tm, state.Ts,
+                    state.Cgadsub, state.ScrollX1, state.ScrollX2, state.Bg1sc, state.Bg2sc);
+                introScreen &= IsDkcIntroScreenSignature(state.Bgmode, state.Bg1sc,
+                    state.Bg2sc, state.Bg12nba);
+                titleScreen &= IsDkcTitleScreenSignature(state.Bgmode, state.Bg1sc,
+                    state.Bg2sc, state.Bg3sc, state.Bg12nba, state.Bg34nba);
+                fileSelectScreen &= IsDkcFileSelectScreenSignature(state.Bgmode,
+                    state.Bg1sc, state.Bg2sc, state.Bg3sc, state.Bg12nba, state.Bg34nba);
+                if (!fixedNative && !introScreen && !titleScreen && !fileSelectScreen)
                     return false;
             }
-            return true;
+            return fixedNative || introScreen || titleScreen || fileSelectScreen;
         }
 
         private static bool IsFixedNativeFrameSignature(byte bgmode, byte tm, byte ts,
@@ -296,6 +308,91 @@ namespace SuperZSNESDKCFramebufferRenderer
             return bgmode == 1 && (tm & 0x01) != 0 && ts == 0 && cgadsub == 0 &&
                    (scrollX1 & 0xFFFF) == 0 && (scrollX2 & 0xFFFF) == 0 &&
                    (bg1sc & 3) == 0 && (bg2sc & 3) == 0;
+        }
+
+        private static bool IsDkcIntroScreenSignature(byte bgmode, byte bg1sc,
+            byte bg2sc, byte bg12nba)
+        {
+            // DKC's opening cinematic is authored as a native 256-pixel scene.
+            // Its maps and character banks are loaded into a dedicated layout:
+            // BG1 $7C00, BG2 $7800, BG1 CHR $2000 and BG2 CHR $6000. The 32-tile
+            // maps wrap in the added margins, so presenting those pixels produces
+            // repeated, partially initialized art. Match the asset layout rather
+            // than a timer/fade value so only the opening is pillarboxed.
+            return bgmode == 1 && bg1sc == 0x7C && bg2sc == 0x78 && bg12nba == 0x13;
+        }
+
+        private static bool IsDkcFileSelectScreenSignature(byte bgmode, byte bg1sc,
+            byte bg2sc, byte bg3sc, byte bg12nba, byte bg34nba)
+        {
+            // The three native-width file-select planes use their own exact map
+            // and character-bank layout. As with the opening, their 32-tile maps
+            // are not authored to populate the widescreen extensions.
+            return bgmode == 1 && bg1sc == 0x74 && bg2sc == 0x78 && bg3sc == 0x7C &&
+                   bg12nba == 0x04 && bg34nba == 0x02;
+        }
+
+        private static bool IsDkcTitleScreenSignature(byte bgmode, byte bg1sc,
+            byte bg2sc, byte bg3sc, byte bg12nba, byte bg34nba)
+        {
+            if (bgmode != 1 || bg12nba != 0 || bg34nba != 0) return false;
+
+            // DKC uses two closely related layouts while assembling and showing
+            // its title: the animated phase maps BG1 at $7400, and the settled
+            // splash maps it at $7C00. Both use character bank zero and native
+            // 32-tile maps, so neither has authored data for the side margins.
+            bool animated = bg1sc == 0x74 && bg2sc == 0x00 && bg3sc == 0x7C;
+            bool settled = bg1sc == 0x7C && bg2sc == 0x78 && bg3sc == 0x00;
+            return animated || settled;
+        }
+
+        private bool ShouldPillarboxDkcLevelInitialization(SNESPPU ppu)
+        {
+            if (!TryReadDkcRamWord(ppu, 0x1B23, out int lowerBound) ||
+                !TryReadDkcRamWord(ppu, 0x1B25, out int upperBound))
+                return false;
+
+            for (int y = 0; y < Lines; y++)
+            {
+                if (!IsDkcLevelInitializationSignature(_line[y].Bgmode,
+                    lowerBound, upperBound))
+                    return false;
+            }
+            return true;
+        }
+
+        private static bool IsDkcLevelInitializationSignature(byte bgmode,
+            int lowerBound, int upperBound)
+        {
+            // A freshly loaded level has entered DKC's gameplay PPU mode before
+            // its camera record has been initialized. The native viewport is
+            // valid at this point, but the extension tilemap cells still contain
+            // stale data. Every playable room installs a non-empty bound range.
+            return bgmode == 9 && (lowerBound & 0xFFFF) == 0 &&
+                   (upperBound & 0xFFFF) == 0;
+        }
+
+        private static bool TryReadDkcRamWord(SNESPPU ppu, int address, out int value)
+        {
+            value = 0;
+            try
+            {
+                if (ppu?.masterExecutor?.CoreMemoryMap == null) return false;
+#if IL2CPP
+                Il2CppStructArray<byte> ram = ppu.masterExecutor.CoreMemoryMap.GetRam();
+#else
+                byte[] ram = ppu.masterExecutor.CoreMemoryMap.GetRam();
+#endif
+                if (ram == null || address < 0 || address + 1 >= ram.Length) return false;
+                value = ram[address] | (ram[address + 1] << 8);
+                return true;
+            }
+            catch
+            {
+                // Fail open to the existing full-width renderer if runtime
+                // memory access ever changes in a future emulator build.
+                return false;
+            }
         }
 
         private void PrepareBackgroundPlanes(byte[] vram, int width, int height, int leftExtension)

@@ -95,6 +95,12 @@ character base, and mode, only scanlines whose X/Y scroll changed are rebuilt.
 Any other state or memory change still takes the exact full rebuild path.
 `rasterPartialRebuilds` and `rasterPartialRows` expose the accepted fast path.
 
+v0.4.13 (IL2CPP v0.1.8) detects DKC's native-width opening, title, and
+file-select asset layouts and paints only their out-of-range side extensions
+black, preventing their 32-tile maps from wrapping into the widescreen margins.
+It applies the same treatment during the short Mode 9 level-loader interval
+where DKC's camera bounds are still `$0000/$0000`.
+
 ## Deluxe MSU-1 ROM identity in v0.4.5
 
 v0.4.5 adds the reproducible widescreen + Deluxe MSU-1 ROM hash to the same

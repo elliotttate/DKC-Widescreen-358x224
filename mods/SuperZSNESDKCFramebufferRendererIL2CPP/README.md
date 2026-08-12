@@ -64,6 +64,21 @@ v0.1.4 adds the locked 27-track Restoration MSU-1 ROM hash to the canonical
 allowlist. Rendering behavior is unchanged; the additional source-built ROM
 differs only in its music hooks and uses the same widescreen graphics patch.
 
+v0.1.5 detects DKC's exact native-width opening-screen tilemap/character-bank
+layout and paints the 51-pixel extensions black. This prevents wrapped intro
+art while leaving the native center, HDMA, sprites, fades, and all gameplay
+widescreen rendering unchanged.
+
+v0.1.6 adds the following file-select screen's separate exact three-map and
+character-bank layout to the same native-width treatment.
+
+v0.1.7 adds both source-verified title-splash layouts. A different character
+bank keeps the similar game-over screen outside this rule.
+
+v0.1.8 also masks only the extensions during the short Mode 9 level-loader
+state where DKC's camera bounds are still `$0000/$0000`. Full widescreen
+returns immediately when the level installs its real bounds.
+
 Install into a closed disposable copy and explicitly arm presentation:
 
 ```powershell

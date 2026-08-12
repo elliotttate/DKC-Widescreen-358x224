@@ -2,6 +2,13 @@
 
 The repository preserves accepted work, diagnostic tooling, and rejected experiments so results remain reproducible. Runtime patches are version-checked and leave `Assembly-CSharp.dll` unchanged on disk.
 
+## Release tooling
+
+| Project | Status | Purpose |
+| --- | --- | --- |
+| `tools/DKCWidescreenPatcher` | Recommended | One-click Windows GUI that validates a clean DKC USA v1.0 ROM, applies an embedded BPS variant, verifies the exact output, and never overwrites the original. |
+| `scripts/build-release.ps1` | Maintainer tool | Generates standard/Deluxe/Restoration BPS patches from checksum-locked builds, embeds them, independently reapplies all three, rebuilds the IL2CPP renderer, and assembles the GitHub release ZIP. |
+
 ## Recommended runtime components
 
 ### SuperZSNES v0.300 IL2CPP

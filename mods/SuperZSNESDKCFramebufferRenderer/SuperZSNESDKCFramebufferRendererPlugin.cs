@@ -15,7 +15,7 @@ namespace SuperZSNESDKCFramebufferRenderer
     {
         public const string PluginGuid = "dev.local.superzsnes.dkcframebuffer";
         public const string PluginName = "SuperZSNES DKC Framebuffer Renderer";
-        public const string PluginVersion = "0.4.9";
+        public const string PluginVersion = "0.4.13";
 
         private Harmony _harmony;
         private ConfigEntry<bool> _enabled;
