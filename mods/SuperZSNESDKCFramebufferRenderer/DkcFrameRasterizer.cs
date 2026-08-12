@@ -116,7 +116,10 @@ namespace SuperZSNESDKCFramebufferRenderer
         {
             "B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D", // widescreen
             "FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5", // widescreen + Deluxe MSU-1
-            "4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5"  // widescreen + Restoration MSU-1
+            "4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5", // widescreen + Restoration MSU-1
+            "52272D471CF52B9F18FBA900DE3A5EC2E0D0B337061CCBB4DC2C8F945DCA6CFA", // 16:9 widescreen
+            "C858CBFBD14C8C0F1D3435541242B948A6737E325CB2FAC5F914FE725FE2B1C1", // 16:9 + Deluxe MSU-1
+            "E25B79726C1A552F4AFE150AE2A224A01385FA693F1C5C014C07C84A5DC94144"  // 16:9 + Restoration MSU-1
         };
 
         private static readonly int[] BgLow = { 7, 6, 1 };
@@ -137,7 +140,11 @@ namespace SuperZSNESDKCFramebufferRenderer
                 return false;
             }
             string filename = MainMenuManager.Instance?.GetLoadedGameFilename() ?? string.Empty;
-            if (filename.IndexOf("DKC_Widescreen_358x224", StringComparison.OrdinalIgnoreCase) < 0)
+            int profileWidth;
+            int profileLeftExtension;
+            int profileGuardTiles;
+            if (!TryGetWidescreenProfile(filename, out profileWidth, out profileLeftExtension,
+                    out profileGuardTiles))
             {
                 reason = "not-canonical-dkc-widescreen-rom";
                 return false;
@@ -147,7 +154,8 @@ namespace SuperZSNESDKCFramebufferRenderer
                 reason = "canonical-rom-hash-mismatch-or-path-unavailable";
                 return false;
             }
-            if (width != 358 || height != Lines || destination == null || destination.Length != width * height)
+            if (width != profileWidth || leftExtension != profileLeftExtension ||
+                height != Lines || destination == null || destination.Length != width * height)
             {
                 reason = "unsupported-framebuffer-geometry";
                 return false;
@@ -1112,6 +1120,30 @@ namespace SuperZSNESDKCFramebufferRenderer
                 _verifiedRomPath = path;
                 return _verifiedRom;
             }
+        }
+
+        internal static bool TryGetWidescreenProfile(string loadedFilename, out int width,
+            out int leftExtension, out int guardTiles)
+        {
+            string filename = loadedFilename ?? string.Empty;
+            if (filename.IndexOf("DKC_Widescreen_398x224", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                width = 398;
+                leftExtension = 71;
+                guardTiles = 9;
+                return true;
+            }
+            if (filename.IndexOf("DKC_Widescreen_358x224", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                width = 358;
+                leftExtension = 51;
+                guardTiles = 7;
+                return true;
+            }
+            width = 0;
+            leftExtension = 0;
+            guardTiles = 0;
+            return false;
         }
 
         private bool BuildLineState(SNESPPU ppu, out string reason)

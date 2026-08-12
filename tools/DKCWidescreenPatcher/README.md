@@ -8,6 +8,7 @@ SHA-256, and writes a new ROM without modifying the original.
 The release build embeds three legal delta patches:
 
 - standard 358x224 widescreen with original SPC music;
+- optional near-exact 16:9 398x224 widescreen with original SPC music;
 - widescreen with the 60-track Deluxe MSU-1 hooks;
 - widescreen with the traditional 27-track Restoration MSU-1 hooks.
 

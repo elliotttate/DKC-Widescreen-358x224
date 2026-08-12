@@ -1,13 +1,41 @@
-; Donkey Kong Country gameplay widescreen prototype for SuperZSNES.
+; Donkey Kong Country gameplay widescreen patch for SuperZSNES.
 ;
-; SuperZSNES renders seven extra 8-pixel columns on each side (368x224),
-; then the 358x224 output window crops five pixels per side. The ROM keeps
-; DKC's original 128-pixel camera target while expanding the streamed map,
-; camera bounds, object activation window, and sprite culling symmetrically.
+; The default profile renders seven extra 8-pixel columns per side (368x224)
+; and crops five guard pixels per side to 358x224. The optional 16:9 profile
+; renders nine columns per side (400x224) and crops one guard pixel per side
+; to 398x224. Both profiles retain DKC's original 128-pixel camera target and
+; expand streaming, bounds, activation, sprite culling, bananas, and endpoint
+; movement symmetrically.
 
+if defined("Define_DKC1_Widescreen16x9")
+!DKC1_WideMargin = $0048             ; 72 pixels / 9 tiles per side
+!DKC1_WideInitialBackstep = $0190    ; 400 pixels / 50 columns
+!DKC1_WideInitialColumnCount = $0032
+!DKC1_WideAlternateBackstep = $0198  ; one extra 8-pixel column
+!DKC1_WideAlternateColumnCount = $0033
+else
 !DKC1_WideMargin = $0038             ; 56 pixels / 7 tiles per side
-!DKC1_WideInitialBackstep = $0170    ; 368 pixels / 46 columns; preserves the final camera position
-!DKC1_WideRightEdge = $0138          ; 256 + 56 pixels
+!DKC1_WideInitialBackstep = $0170    ; 368 pixels / 46 columns
+!DKC1_WideInitialColumnCount = $002E
+!DKC1_WideAlternateBackstep = $0178  ; one extra 8-pixel column
+!DKC1_WideAlternateColumnCount = $002F
+endif
+
+; Asar performs textual define expansion, so this base name deliberately does
+; not end in "Span" (which would collide with the derived *Span defines).
+!DKC1_WideTotalExtension = (!DKC1_WideMargin*2)
+!DKC1_WideRightEdge = $0100+!DKC1_WideMargin
+!DKC1_WideSpecialUpper = $0700-!DKC1_WideMargin
+!DKC1_WideRowSecondBias = $0090-!DKC1_WideMargin
+!DKC1_WideSpriteCull1Left = $0030+!DKC1_WideMargin
+!DKC1_WideSpriteCull1Span = $0160+!DKC1_WideTotalExtension
+!DKC1_WideSpriteCull2Left = $0058+!DKC1_WideMargin
+!DKC1_WideSpriteCull2Span = $01B0+!DKC1_WideTotalExtension
+!DKC1_WideObjectLeftSafety = $0020+!DKC1_WideMargin
+!DKC1_WideObjectActivationSpan = $0140+!DKC1_WideTotalExtension
+!DKC1_WideObjectRightPrefetch = $0120+!DKC1_WideMargin
+!DKC1_WidePlayerLeftProbe = !DKC1_WideMargin-$0012
+!DKC1_WidePlayerRightProbe = $00EE+!DKC1_WideMargin
 !DKC1_Wide_EnableCameraPatches = !TRUE
 !DKC1_Wide_EnableInitialFillPatches = !TRUE
 !DKC1_Wide_EnableMovingTilemapHooks = !TRUE
@@ -44,22 +72,22 @@ endif
 ; Initial tilemap fill
 
 if !DKC1_Wide_EnableInitialFillPatches == !TRUE
-; Standard path: fill the full 368-pixel internal render width. The loop must
+; Standard path: fill the complete internal render width. The loop must
 ; advance by exactly the same distance as the initial camera backstep, or level
 ; setup leaves the real camera shifted and exposes columns that were never
-; initialized. The helper uses +368 during this loop, so the 46 uploads cover
-; world X=0 through X=360 and finish back at the original camera position.
+; initialized. The helper uses the full-width right edge during this loop, so
+; every 8-pixel column is seeded and the final camera position is preserved.
 org $809EC5
 	dw !DKC1_WideInitialBackstep
 org $809ED7
-	dw $002E
+	dw !DKC1_WideInitialColumnCount
 
 ; Alternate path retains its original one extra column while preserving the
-; same final-camera invariant: 47 * 8 = $0178.
+; same final-camera invariant with one additional 8-pixel column.
 org $80C56F
-	dw $0178
+	dw !DKC1_WideAlternateBackstep
 org $80C57E
-	dw $002F
+	dw !DKC1_WideAlternateColumnCount
 endif
 
 ; ---------------------------------------------------------------------------
@@ -92,7 +120,7 @@ org $818E06
 ; pan that overwrites every visible row after the wide horizontal initializer,
 ; leaving both extended margins stale.  In wide levels, run each builder twice
 ; with overlapping horizontal biases so the 64-entry WRAM row ring is populated
-; across the entire 368-pixel renderer sample.  The upload routine already DMAs
+; across the entire renderer sample. The upload routine already DMAs
 ; both 32-entry halves of that ring to the 64x32 BG map.
 org $81890E
 	JML.l DKC1_Wide_RowBuildStandard
@@ -107,58 +135,58 @@ endif
 ; Main sprite draw culling
 
 if !DKC1_Wide_EnableSpriteCullingPatches == !TRUE
-; Original ranges were [-48,303] and [-88,343]. Add 56 pixels to both sides.
+; Original ranges were [-48,303] and [-88,343]. Add the profile margin to
+; both sides while keeping the same outer safety region.
 org $BBA8DE
-	dw $0068
+	dw !DKC1_WideSpriteCull1Left
 org $BBA8E1
-	dw $01D0
+	dw !DKC1_WideSpriteCull1Span
 org $BBA90E
-	dw $0090
+	dw !DKC1_WideSpriteCull2Left
 org $BBA911
-	dw $0220
+	dw !DKC1_WideSpriteCull2Span
 endif
 
 ; ---------------------------------------------------------------------------
 ; Level object activation/spawn margins in bank $BD.
 
 if !DKC1_Wide_EnableObjectActivationPatches == !TRUE
-; cameraX-$20 becomes cameraX-$58 (32-pixel safety margin outside the new
-; left edge), and each $140-wide activation span becomes $1B0.
-org $BDF5AF : dw $0058
-org $BDF5FD : dw $0058
-org $BDF706 : dw $0058
-org $BDF758 : dw $0058
-org $BDF793 : dw $0058
-org $BDF88F : dw $0058
-org $BDF8DA : dw $0058
-org $BDF9A7 : dw $0058
-org $BDF9ED : dw $0058
-org $BDFA36 : dw $0058
-org $BDFAE0 : dw $0058
-org $BDFB12 : dw $0058
-org $BDFBAA : dw $0058
-org $BDFCD1 : dw $0058
-org $BDFD05 : dw $0058
-org $BDFE96 : dw $0058
-org $BDFF2A : dw $0058
-org $BDFFB2 : dw $0058
+; Preserve the stock 32-pixel safety margin outside each widened edge.
+org $BDF5AF : dw !DKC1_WideObjectLeftSafety
+org $BDF5FD : dw !DKC1_WideObjectLeftSafety
+org $BDF706 : dw !DKC1_WideObjectLeftSafety
+org $BDF758 : dw !DKC1_WideObjectLeftSafety
+org $BDF793 : dw !DKC1_WideObjectLeftSafety
+org $BDF88F : dw !DKC1_WideObjectLeftSafety
+org $BDF8DA : dw !DKC1_WideObjectLeftSafety
+org $BDF9A7 : dw !DKC1_WideObjectLeftSafety
+org $BDF9ED : dw !DKC1_WideObjectLeftSafety
+org $BDFA36 : dw !DKC1_WideObjectLeftSafety
+org $BDFAE0 : dw !DKC1_WideObjectLeftSafety
+org $BDFB12 : dw !DKC1_WideObjectLeftSafety
+org $BDFBAA : dw !DKC1_WideObjectLeftSafety
+org $BDFCD1 : dw !DKC1_WideObjectLeftSafety
+org $BDFD05 : dw !DKC1_WideObjectLeftSafety
+org $BDFE96 : dw !DKC1_WideObjectLeftSafety
+org $BDFF2A : dw !DKC1_WideObjectLeftSafety
+org $BDFFB2 : dw !DKC1_WideObjectLeftSafety
 
-org $BDF606 : dw $01B0
-org $BDF711 : dw $01B0
-org $BDF79E : dw $01B0
-org $BDF89D : dw $01B0
-org $BDF8E3 : dw $01B0
-org $BDF9B8 : dw $01B0
-org $BDF9F6 : dw $01B0
-org $BDFA3F : dw $01B0
-org $BDFAE9 : dw $01B0
-org $BDFB1F : dw $01B0
-org $BDFCDA : dw $01B0
-org $BDFD0E : dw $01B0
+org $BDF606 : dw !DKC1_WideObjectActivationSpan
+org $BDF711 : dw !DKC1_WideObjectActivationSpan
+org $BDF79E : dw !DKC1_WideObjectActivationSpan
+org $BDF89D : dw !DKC1_WideObjectActivationSpan
+org $BDF8E3 : dw !DKC1_WideObjectActivationSpan
+org $BDF9B8 : dw !DKC1_WideObjectActivationSpan
+org $BDF9F6 : dw !DKC1_WideObjectActivationSpan
+org $BDFA3F : dw !DKC1_WideObjectActivationSpan
+org $BDFAE9 : dw !DKC1_WideObjectActivationSpan
+org $BDFB1F : dw !DKC1_WideObjectActivationSpan
+org $BDFCDA : dw !DKC1_WideObjectActivationSpan
+org $BDFD0E : dw !DKC1_WideObjectActivationSpan
 
 ; Two special right-side prefetch tests use cameraX+$120.
-org $BDF596 : dw $0158
-org $BDFB8F : dw $0158
+org $BDF596 : dw !DKC1_WideObjectRightPrefetch
+org $BDFB8F : dw !DKC1_WideObjectRightPrefetch
 endif
 
 if !DKC1_Wide_EnableType5ChildRetry == !TRUE
@@ -202,16 +230,15 @@ endif
 if !DKC1_Wide_EnableBananaFormationCoverage == !TRUE
 ; Formation enumeration and clipping are private to the bank-$B8 banana
 ; renderer, so the general object/sprite widening does not affect them.  The
-; final screen-X correction below moves every emitted banana left by $38; add
-; the full $70 pixels of internal width here so candidates fill the added
-; right side before that correction.  The effective post-correction clip is
-; $0177-$0038=$013F, one tile beyond the 312-pixel wide right sample edge.
+; final screen-X correction below moves every emitted banana left by the
+; selected margin. Add the complete internal width here so candidates fill
+; both extensions before that correction.
 org $B8B91B
-	ADC.w #$0170
+	ADC.w #!DKC1_WideInitialBackstep
 org $B8B942
-	ADC.w #$017F
+	ADC.w #!DKC1_WideInitialBackstep+$000F
 org $B8BA11
-	LDA.w #$0177
+	LDA.w #!DKC1_WideInitialBackstep+$0007
 endif
 
 if !DKC1_Wide_EnableBananaFormationCameraFix == !TRUE
@@ -243,7 +270,7 @@ endif
 if !DKC1_Wide_EnableSynchronizedBananas == !TRUE
 ; DKC normally offsets the spin phase of each banana in a formation. The OAM
 ; anchors remain aligned, but poses with transparent top/bottom rows can look
-; vertically displaced after the 358x224 image is scaled to a PC display.
+; vertically displaced after the widescreen image is scaled to a PC display.
 ; $5C already holds the animated phase shared by the formation. Replace the
 ; later per-item phase calculation with that shared value, while preserving
 ; the original tile-bit mask and the following $2180 write at $B8BA88.
@@ -259,10 +286,9 @@ endif
 org $CA6C61
 
 DKC1_Wide_GetStreamX:
-	; The normal initializer starts at widenedCameraX-368 and advances 46 times.
-	; Adding 312 cancels the widened +56 minimum as well as the temporary
-	; backstep, seeding world X=0..360 while the real camera still returns to
-	; its original position after 46 * 8 pixels.
+	; The normal initializer starts at widenedCameraX minus the selected full
+	; width. Adding the selected right edge cancels both the widened minimum and
+	; temporary backstep, seeding every column while preserving the real camera.
 	LDA.w $1A5B
 	CMP.w #$0001
 	BNE.b .CheckWideMode
@@ -276,8 +302,8 @@ DKC1_Wide_GetStreamX:
 .CheckWideMode:
 	; The alternate initializer uses $1A5B=0, an explicit +8 step, and a
 	; temporary Layer1 X outside the forced special-init upper bound. Its
-	; original extra column makes the matching full-width backstep/target $0178
-	; (47 columns). Do not use the sign bit as the discriminator: long levels
+	; original extra column uses the matching alternate backstep/target. Do not
+	; use the sign bit as the discriminator: long levels
 	; such as Barrel Cannon Canyon legitimately cross $7FFF, and an initializer
 	; can cross it too ($7FE9,$7FF1,$7FF9,$8001...). Comparing unsigned against
 	; the current upper bound accepts all of those init positions while normal
@@ -292,7 +318,7 @@ DKC1_Wide_GetStreamX:
 	CMP.w $1A5E
 	BEQ.b .CheckBounds
 	CLC
-	ADC.w #$0178
+	ADC.w #!DKC1_WideAlternateBackstep
 	RTL
 .CheckBounds:
 	; The boot/title code reuses these tile routines. Recompute the mode from
@@ -301,7 +327,7 @@ DKC1_Wide_GetStreamX:
 	LDA.w $1B25
 	SEC
 	SBC.w $1B23
-	CMP.w #$0070
+	CMP.w #!DKC1_WideTotalExtension
 	BCS.b .Wide
 .Original:
 	LDA.w $0A75
@@ -347,7 +373,7 @@ DKC1_Wide_RowBuildStandard:
 	LDA.w $1B25
 	SEC
 	SBC.w $1B23
-	CMP.w #$0070
+	CMP.w #!DKC1_WideTotalExtension
 	BCS.b .Wide
 	JML.l $81891A
 .Wide:
@@ -360,7 +386,7 @@ DKC1_Wide_RowBuildStandard:
 	PLA
 	PHA
 	CLC
-	ADC.w #$0058
+	ADC.w #!DKC1_WideRowSecondBias
 	STA.w !RAM_DKC1_Global_Layer1XPosLo
 	JSL.l $81891A
 	PLA
@@ -378,7 +404,7 @@ DKC1_Wide_RowBuildAlternate:
 	LDA.w $1B25
 	SEC
 	SBC.w $1B23
-	CMP.w #$0070
+	CMP.w #!DKC1_WideTotalExtension
 	BCS.b .Wide
 	JML.l $818CFB
 .Wide:
@@ -391,7 +417,7 @@ DKC1_Wide_RowBuildAlternate:
 	PLA
 	PHA
 	CLC
-	ADC.w #$0058
+	ADC.w #!DKC1_WideRowSecondBias
 	STA.w !RAM_DKC1_Global_Layer1XPosLo
 	JSL.l $818CFB
 	PLA
@@ -401,7 +427,7 @@ DKC1_Wide_RowBuildAlternate:
 DKC1_Wide_InitSpecialBounds:
 	LDA.w #!DKC1_WideMargin
 	STA.w $1B23
-	LDA.w #$06C8                     ; $0700 - 56
+	LDA.w #!DKC1_WideSpecialUpper
 	STA.w $1B25
 	RTL
 
@@ -412,7 +438,7 @@ DKC1_Wide_AdjustCameraBounds:
 	TYA
 	SEC
 	SBC.b $76
-	CMP.w #$0070                     ; do not invert bounds in narrow rooms
+	CMP.w #!DKC1_WideTotalExtension  ; do not invert bounds in narrow rooms
 	BCC.b .KeepOriginal
 	LDA.b $76
 	CLC
@@ -440,13 +466,13 @@ DKC1_Wide_AdjustBananaScreenX:
 	LDA.l $7E1B25
 	SEC
 	SBC.l $7E1B23
-	CMP.w #$0070
+	CMP.w #!DKC1_WideTotalExtension
 	BCC.b .Narrow
 	PLA
 	SEC
 	SBC.w #!DKC1_WideMargin
 	; Stock converts the sign bit to the packed OAM X-high bit. Mirror bit 8
-	; into that sign bit for positive wide-screen coordinates $0100-$0177.
+	; into that sign bit for positive wide-screen coordinates above $00FF.
 	; The real 16-bit coordinate remains available to the low-byte OAM write.
 	BIT.w #$0100
 	BEQ.b .WideXReady
@@ -463,7 +489,7 @@ DKC1_Wide_GetBananaCollisionX:
 	LDA.l $7E1B25
 	SEC
 	SBC.l $7E1B23
-	CMP.w #$0070
+	CMP.w #!DKC1_WideTotalExtension
 	BCC.b .Narrow
 	PLA
 	SEC
@@ -479,11 +505,11 @@ DKC1_Wide_GetPlayerLeftBoundaryProbe:
 	LDA.l $7E1B25
 	SEC
 	SBC.l $7E1B23
-	CMP.w #$0070
+	CMP.w #!DKC1_WideTotalExtension
 	BCC.b .Narrow
 	LDA.l $7E0B19,x
 	CLC
-	ADC.w #$0026                    ; x - ($12-$38): visible left limit -38
+	ADC.w #!DKC1_WidePlayerLeftProbe
 	RTL
 .Narrow:
 	LDA.l $7E0B19,x
@@ -495,11 +521,11 @@ DKC1_Wide_GetPlayerRightBoundaryProbe:
 	LDA.l $7E1B25
 	SEC
 	SBC.l $7E1B23
-	CMP.w #$0070
+	CMP.w #!DKC1_WideTotalExtension
 	BCC.b .Narrow
 	LDA.l $7E0B19,x
 	SEC
-	SBC.w #$0126                    ; $EE+$38: visible right limit 294
+	SBC.w #!DKC1_WidePlayerRightProbe
 	RTL
 .Narrow:
 	LDA.l $7E0B19,x
@@ -520,7 +546,7 @@ DKC1_Wide_Type5GroupSpawn:
 	LDA.w $1B25
 	SEC
 	SBC.w $1B23
-	CMP.w #$0070
+	CMP.w #!DKC1_WideTotalExtension
 	BCC.b .AlreadyActive
 
 	; Recover the first child pointer and apply the same widened range tests as
@@ -533,7 +559,7 @@ DKC1_Wide_Type5GroupSpawn:
 	STY.b $78
 	LDA.w !RAM_DKC1_Global_Layer1XPosLo
 	CLC
-	ADC.w #$0158
+	ADC.w #!DKC1_WideObjectRightPrefetch
 	CMP.w $0002,y
 	BCC.b .AlreadyActive
 
@@ -549,7 +575,7 @@ DKC1_Wide_Type5GroupSpawn:
 .CheckLeftEdge:
 	LDA.w !RAM_DKC1_Global_Layer1XPosLo
 	SEC
-	SBC.w #$0058
+	SBC.w #!DKC1_WideObjectLeftSafety
 	BPL.b .CompareLastChild
 	CMP.w #$FC00
 	BCC.b .CompareLastChild

@@ -21,6 +21,26 @@ This directory contains only the source overlay required to build the widescreen
 
 The expected output SHA-256 is `B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D`.
 
+## Optional 16:9 profile
+
+Add `-Aspect16x9` to any standard or MSU-1 build command to produce a
+398x224 framebuffer, the closest whole-pixel width to 16:9 at 224 lines. The
+ROM streams and culls against a 400-pixel internal guard, cropped by one pixel
+on each side by the framebuffer renderer:
+
+```powershell
+./rom/build.ps1 `
+  -DisassemblyRoot '<dkc-disassembly-root>' `
+  -RomPath '<your-clean-rom>' `
+  -Aspect16x9
+```
+
+Expected SHA-256 values are:
+
+- Standard: `52272D471CF52B9F18FBA900DE3A5EC2E0D0B337061CCBB4DC2C8F945DCA6CFA`
+- Deluxe MSU-1: `C858CBFBD14C8C0F1D3435541242B948A6737E325CB2FAC5F914FE725FE2B1C1`
+- Restoration MSU-1: `E25B79726C1A552F4AFE150AE2A224A01385FA693F1C5C014C07C84A5DC94144`
+
 ## Deluxe MSU-1 music build
 
 The optional build below combines the same widescreen patch with the 60-track
@@ -55,8 +75,8 @@ optional track 25.
 
 The overlay changes asset extraction/build automation plus these game behaviors:
 
-- symmetric 56-pixel camera and render margins;
-- complete initial and moving tilemap streaming for the 368-pixel internal guard width;
+- symmetric 56-pixel camera/render margins for 358x224, or 72-pixel margins for 398x224;
+- complete initial and moving tilemap streaming for the 368- or 400-pixel internal guard width;
 - widened sprite/object activation and culling;
 - banana formation coverage, positioning, collision, and 9-bit OAM X handling;
 - restored player endpoint ranges at widened terminal cameras;

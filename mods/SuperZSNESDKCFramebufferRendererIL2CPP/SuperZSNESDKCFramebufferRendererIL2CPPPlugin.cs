@@ -15,7 +15,7 @@ namespace SuperZSNESDKCFramebufferRenderer
     {
         public const string PluginGuid = "dev.local.superzsnes.dkcframebuffer.il2cpp";
         public const string PluginName = "SuperZSNES DKC Framebuffer Renderer IL2CPP";
-        public const string PluginVersion = "0.1.8";
+        public const string PluginVersion = "0.1.9";
 
         private Harmony _harmony;
         private ConfigEntry<bool> _enabled;
@@ -33,6 +33,8 @@ namespace SuperZSNESDKCFramebufferRenderer
             ConfigEntry<int> height = Config.Bind("Geometry", "Height", 224, "Raw SNES framebuffer height.");
             ConfigEntry<int> leftExtension = Config.Bind("Geometry", "LeftExtension", 51,
                 "Native pixels represented left of stock X=0 after cropping the 368-pixel guard.");
+            ConfigEntry<bool> autoDetectGeometry = Config.Bind("Geometry", "AutoDetectRomGeometry", true,
+                "Select 358x224 or 398x224 geometry and matching fallback margins from the verified ROM filename.");
             ConfigEntry<bool> retained = Config.Bind("Renderer", "RetainedBackgrounds", true,
                 "Reuse plugin-owned background planes until exact relevant state changes.");
             Config.Save();
@@ -50,7 +52,7 @@ namespace SuperZSNESDKCFramebufferRenderer
                 RendererPatches.CaptureRequestPath = _captureRequestPath;
                 RendererLayout layout = RendererLayout.Resolve();
                 FramebufferController.Initialize(Log, present, shadowInterval, width, height,
-                    leftExtension, retained, directory);
+                    leftExtension, autoDetectGeometry, retained, directory);
                 _harmony = new Harmony(PluginGuid);
                 _harmony.Patch(layout.GenerateBackgrounds,
                     prefix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.GenerateBackgroundsPrefix))

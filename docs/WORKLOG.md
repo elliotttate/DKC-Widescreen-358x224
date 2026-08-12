@@ -976,3 +976,30 @@ confirmed `$1B23=$0000` and `$1B25=$0000`; playable Jungle bounds later become
 has that exact empty bound pair, then restores full widescreen on the first
 frame with valid bounds. Non-gameplay screens and high-world level ranges do
 not match this rule.
+
+## 2026-08-12 optional 398x224 (16:9) profile
+
+The ROM overlay was converted from fixed 56-pixel constants to two compile-time
+profiles. The established 358x224 build remains the default and reproduces its
+published SHA-256 byte-for-byte. `-Aspect16x9` selects a 398x224 output—the
+nearest whole-pixel width to 16:9 at 224 lines—with symmetric 72-pixel camera,
+object, banana, player-boundary, and streaming extensions. Its tile renderer
+uses a 400-pixel internal guard and crops one guard pixel per side. Initial
+streaming expands to 50 columns; the alternate initialization path uses 51.
+
+All three 398x224 music modes were built twice and locked to SHA-256 values in
+`rom/build.ps1`. The release patcher now embeds and verifies six independent
+BPS outputs. Renderer v0.4.14 / IL2CPP v0.1.9 recognizes only the exact
+`DKC_Widescreen_358x224` or `DKC_Widescreen_398x224` filename profile plus one
+of the six canonical hashes. It automatically selects 358/51 or 398/71 output
+geometry. During stock-renderer fallback calls only, it temporarily supplies
+the matching 7- or 9-tile SuperZSNES margin and restores the user's settings in
+the Harmony postfix.
+
+Offline renderer tests cover both geometry mappings and fail-closed behavior;
+the full v0.230 test suite and source validator pass. A live v0.300 IL2CPP test
+loaded the 398x224 Deluxe ROM and an established Jungle state. The renderer
+reported `398x224`, left extension 71, fallback margin 9, and produced a raw
+398x224 PNG continuous across both widened edges. A reciprocal launch of the
+published 358x224 Deluxe ROM reported 358/51/7, confirming automatic profile
+selection did not replace the default geometry.

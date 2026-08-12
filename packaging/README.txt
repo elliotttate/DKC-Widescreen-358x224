@@ -1,12 +1,13 @@
-DONKEY KONG COUNTRY — 358x224 WIDESCREEN
-========================================
+DONKEY KONG COUNTRY — WIDESCREEN
+=================================
 
 QUICK START
 
 1. Run DKC-Widescreen-Patcher.exe.
 2. Select a clean, headerless Donkey Kong Country USA v1.0 ROM.
    Required MD5: 30c5f292ff4cbbfcc00fd8fa96c2de3b
-3. Choose the standard patch, or an MSU-1 compatibility mode.
+3. Choose the 358x224 profile (recommended) or the optional 398x224 16:9
+   profile, with original music or an MSU-1 compatibility mode.
 4. Click "Create widescreen ROM". Your original ROM is never modified.
 
 The BPS patches are also included for users who prefer Floating IPS or another
@@ -14,8 +15,8 @@ BPS-compatible patcher.
 
 SUPERZSNES v0.300 SETUP
 
-The ROM hack and emulator renderer work together. To display the true 358x224
-view in SuperZSNES v0.300:
+The ROM hack and emulator renderer work together. The renderer automatically
+detects 358x224 and 398x224 ROMs in SuperZSNES v0.300:
 
 1. Install the 32-bit BepInEx 6 IL2CPP build supported by SuperZSNES v0.300.
 2. Close SuperZSNES.
@@ -23,8 +24,9 @@ view in SuperZSNES v0.300:
    SuperZSNES_v0.300\BepInEx\plugins\SuperZSNESDKCFramebufferRendererIL2CPP\
 4. Launch SuperZSNES and open the patched ROM.
 
-The plugin automatically falls back to the stock renderer on unsupported
-frames. The standard patch retains the original SNES music.
+The plugin automatically selects the matching geometry and stock fallback
+margin, then falls back safely on unsupported frames. Standard patches retain
+the original SNES music.
 
 MSU-1 MODES
 
