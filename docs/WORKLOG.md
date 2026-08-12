@@ -633,3 +633,22 @@ The Snow Barrel Blast world map exposed unrelated cave/mountain fragments in bot
 The exact reproduction is preserved as `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst-snow-map-wrap-repro`. The accepted output keeps the authored central 256 pixels unchanged and removes both wrapped sections; runtime diagnostics reported `fixedNativePillarboxActive=true` for 600/600 supported map frames. The saved Millstone gameplay oracle remained byte-identical to v0.4.2, SHA-256 `6C69F18BCC6B0F7ACB78E68F85B70118BDC894284AD40AD0B89C91F5D115F8A6`, with the gate false.
 
 Production build and the expanded pillarbox/signature verifier pass with zero warnings/errors. Tested v0.4.3 DLL SHA-256 is `26088E224B973BC145CCC657F5AFDE327033E7EF02A37F9C4D202B880340E49F`.
+
+## 2026-08-11 Slip-Slide Ride rope-position investigation
+
+The exact user state is `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst1`, frame 551552, in Slip-Slide Ride (`level $0051`, entrance `$006D`). It initially appeared that the nearby blue rope was misplaced or nonfunctional. Two independent facts explain the observation without requiring a rope-coordinate patch.
+
+First, the state was saved with DKC's internal pause bit set: `$7E0579=$00C1`, including bit `$0040`. `CODE_80992F` still reads controllers while this bit is set, but skips gameplay updates, so the rope, Kongs, camera, and objects remain frozen. One Start frame changes the value to `$0081` and resumes normal simulation.
+
+Second, the rope's authored, simulated, rendered, and collision coordinates agree. The nearby object is the sole rope record in this section: `SlipSlideRide_Main.bin+$0038` / `DATA_BDD638`, `dw $0001,$02E0,$63E0,DATA_B5BE91`. At the saved frame its active ID `$30` actor is at `$02DD,$63E0`, three pixels left of its `$02E0` horizontal oscillation anchor. With Layer1 X `$0229`, the actor is at native screen X `$00B4`; its OAM art anchor is X `$00B1`, the expected three-pixel sprite-art offset. The framebuffer places it at output X about 228 after adding the 51-pixel left extension. The background uses the same native-to-output mapping.
+
+A reversible stock-ROM comparison loaded this same state, applied the identical `0=START;1-30=NONE` input, and compared it with the widescreen ROM at frame 551583. Both produce rope actor X/Y `$02E2/$63E0`. OAM entries 23-33 are byte-identical in both captures: X 182, Y 231 through 71 in 16-pixel steps, tile `$60`, attributes `$36`, large-size pair 2. The complete OAM snapshots differ only in six bytes belonging to widened banana coverage; no rope byte differs. Captures:
+
+- stock: `<superzsnes>\BepInEx\plugins\DKCWidescreenDebugger\Sessions\20260811-214936\capture-f00551583-20260811-223245-769`;
+- widescreen: `<superzsnes>\BepInEx\plugins\DKCWidescreenDebugger\Sessions\20260811-214936\capture-f00551583-20260811-223259-949`.
+
+The object table also confirms there is no omitted second rope nearby: the preceding and following equivalent `DATA_B5BE91` ropes are authored at X `$0100` and `$0520`, while this rope is at `$02E0`. The widened viewport merely reveals more of the surrounding cave; it does not relocate this rope.
+
+The exact route was tested deterministically. From the state, `0=START;1-8=RIGHT+B;9-420=UP` attaches Diddy to the rope (Kong state `$0025`) and the blue rope carries the Kongs upward automatically; another 420 Up frames continues the ascent. `0-59=RIGHT+B;60-180=RIGHT+Y` then jumps off and advances the level. This verifies the visible rope and the grabbable/collision rope are the same actor.
+
+No ROM or renderer patch was made for this checkpoint. Moving the rope would make it diverge from the original game and its collision path. Treat any later rope-position report as a separate state-specific case, especially for purple ropes or multi-rope sequences, and repeat the authored/live/OAM/collision comparison before changing coordinates.
