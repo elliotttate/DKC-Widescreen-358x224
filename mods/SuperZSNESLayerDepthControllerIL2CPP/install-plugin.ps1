@@ -29,12 +29,13 @@ PlaneGaps = 1,1,1,1,1,1,1,1,1,1,1,1,1
 PlaneScales = 1,1,1,1,1,1,1,1,1,1,1,1,1,1
 PerspectiveCompensation = true
 
-[DetailSplit]
-BackgroundPaletteSublayers = false
-BG1PaletteOffsets = -0.03,-0.03,-0.01,-0.01,0.01,0.01,0.03,0.03
-BG2PaletteOffsets = -0.03,-0.03,-0.01,-0.01,0.01,0.01,0.03,0.03
-BG3PaletteOffsets = -0.03,-0.03,-0.01,-0.01,0.01,0.01,0.03,0.03
-BG4PaletteOffsets = 0,0,0,0,0,0,0,0
+[ConnectedComponents]
+Enabled = true
+DepthBands = 7
+Spacing = 0.08
+MinimumTiles = 2
+MaximumAutoTiles = 64
+RefreshIntervalFrames = 4
 
 [Controls]
 GapStep = 0.1

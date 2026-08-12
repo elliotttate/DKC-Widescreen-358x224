@@ -39,29 +39,22 @@ internal static class Program
             Near(DepthMath.SublayerCompensation(3f, 0.33f, 30f), 1.01f,
                 "palette sublayer compensation");
 
-            int baseIndex = NativeTileDepthPatcher.CalculatePaletteIndex(0x1234, 1);
-            Require(baseIndex == NativeTileDepthPatcher.CalculatePaletteIndex(0xD234, 1),
-                "tile flips do not change native palette index");
-            Require(baseIndex == NativeTileDepthPatcher.CalculatePaletteIndex(0x1235, 1),
-                "tile number does not change native palette index");
-            Require(baseIndex != NativeTileDepthPatcher.CalculatePaletteIndex(0x1634, 1),
-                "palette number changes native palette index");
-            float[] paletteOffsets = new float[NativeTileDepthPatcher.PaletteOffsetCount];
-            for (int i = 0; i < paletteOffsets.Length; i++) paletteOffsets[i] = i / 100f;
-            Near(NativeTileDepthPatcher.CalculateOffset(0x1234, 1, paletteOffsets),
-                paletteOffsets[baseIndex], "native palette offset table lookup");
+            Require(NativeTileDepthPatcher.CalculateDepthIndex(1, 0x1234) == 0x11234,
+                "native depth table uses BG and absolute tilemap address");
+            Require(NativeTileDepthPatcher.CalculateDepthIndex(3, 0x11234) == 0x31234,
+                "native tilemap address wraps to 16 bits");
             byte[] scaleStub = NativeTileDepthPatcher.BuildScaleStub(
-                0x200000, 0x100006, new IntPtr(0x300000));
+                0x200000, 0x100006, new IntPtr(0x300000), new IntPtr(0x400000));
             byte[] zStub = NativeTileDepthPatcher.BuildZStub(
                 0x200100, 0x100009, new IntPtr(0x300010));
             Require(scaleStub.Length < 192 && scaleStub[0] == 0xF3,
                 "scale stub shape");
             Require(ContainsSequence(scaleStub,
-                new byte[] { 0xC1, 0xE8, 0x0A, 0x83, 0xE0, 0x07 }),
-                "scale stub extracts SNES palette bits");
+                new byte[] { 0x0F, 0xB7, 0x45, 0xFC }),
+                "scale stub reads the absolute tilemap descriptor address");
             Require(ContainsSequence(scaleStub,
-                new byte[] { 0x8B, 0x55, 0x10, 0xC1, 0xE2, 0x03, 0x01, 0xD0 }),
-                "scale stub indexes BG palette table");
+                new byte[] { 0x8B, 0x55, 0x10, 0xC1, 0xE2, 0x10, 0x01, 0xD0 }),
+                "scale stub indexes BG plus tilemap-address table");
             Require(ContainsSequence(scaleStub,
                 new byte[] { 0xF3, 0x0F, 0x10, 0x04, 0x85 }),
                 "scale stub loads direct configured offset");
@@ -70,9 +63,38 @@ internal static class Program
             Require(zStub.Length == 13 && zStub[0] == 0xF3 && zStub[8] == 0xE9,
                 "Z stub shape");
 
+            TileShape opaqueA = new TileShape(0x1000, 1, 1, 1, 1, 1, true);
+            TileShape opaqueB = new TileShape(0x1002, 2, 1, 1, 1, 1, true);
+            ComponentBuildResult joined = ConnectedComponentModel.Build(
+                new[] { opaqueA, opaqueB }, 2, 1, 0, 7, 0.1f, 1, wrap: false);
+            Require(joined.Components.Count == 1,
+                "opaque edge contact stays on one connected depth plane");
+            ComponentBuildResult separated = ConnectedComponentModel.Build(
+                new[] { opaqueA, new TileShape(0x1002, 2, 0, 0, 0, 0, true) },
+                2, 1, 0, 7, 0.1f, 1, wrap: false);
+            Require(separated.Components.Count == 2,
+                "transparent boundary permits separate depth planes");
+            Require(ConnectedComponentModel.Touches(0x0004, 0x0002),
+                "one-pixel diagonal edge contact is conservatively joined");
+            ComponentBuildResult animationA = ConnectedComponentModel.Build(
+                new[] { opaqueA }, 1, 1, 0, 7, 0.1f, 1, wrap: false);
+            ComponentBuildResult animationB = ConnectedComponentModel.Build(
+                new[] { new TileShape(0x1000, 99, 3, 3, 3, 3, true) },
+                1, 1, 0, 7, 0.1f, 1, wrap: false);
+            Near(animationA.Components[0].Depth, animationB.Components[0].Depth,
+                "animation graphics retain address-stable automatic depth");
+            string overrideId = separated.Components[0].Id;
+            var overrides = new System.Collections.Generic.Dictionary<string, float>
+                { [overrideId] = 0.625f };
+            ComponentBuildResult overridden = ConnectedComponentModel.Build(
+                new[] { opaqueA, new TileShape(0x1002, 2, 0, 0, 0, 0, true) },
+                2, 1, 0, 7, 0.1f, 1, 64, overrides, false);
+            ComponentInfo overriddenInfo = overridden.Components.Find(c => c.Id == overrideId);
+            Near(overriddenInfo.Depth, 0.625f, "authored component depth override");
+
             string roundTrip = DepthMath.ToCsv(new[] { 1f, 0.25f, 2.5f });
             Require(roundTrip == "1,0.25,2.5", "invariant CSV formatting");
-            Console.WriteLine("PASS: profile parsing, plane geometry, perspective compensation, palette sublayers, native stubs, and CSV persistence.");
+            Console.WriteLine("PASS: plane geometry, connected-component safety, authored overrides, native address-table stubs, and CSV persistence.");
             return 0;
         }
         catch (Exception exception)

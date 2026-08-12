@@ -1091,3 +1091,55 @@ tilemap edges during cinematics. Production widescreen presentation was not
 changed. Windows DPI made raw `CopyFromScreen` captures invalid (quadrant or
 wrong-window images); the accepted visual path is a WSLSnapit full-window
 capture targeting the SUPERZSNES game window.
+
+## 2026-08-12 connected-component depth planes
+
+The palette-based v0.3 detail split failed visual QA in the Jungle scene. At
+nonzero yaw it placed adjacent tiles from one continuous tree, canopy, ground,
+and painted foliage mass on different depths, producing the internal seams
+marked in the user's full-window capture. Palette identity is not an object
+boundary in DKC, so per-level palette offsets cannot make that classifier
+generally safe. The palette splitter is retired rather than tuned further.
+
+Version 0.4 replaces the 32-entry palette table with a 4x65536 native table
+indexed by background number and the absolute tilemap descriptor VRAM address.
+The exact verified `DrawLines` hook retains that address in its stack frame, so
+the render-time cost is one native indexed float load with no managed per-tile
+callback. The managed mapper decodes the referenced 2bpp/4bpp tile opacity and
+unions neighboring tilemap cells only when their opaque edge pixels touch. A
+one-pixel edge expansion conservatively joins diagonal contacts. 16x16
+descriptors are atomic and decode all four constituent character tiles.
+
+Automatic shallow depths apply only to compact components between configurable
+minimum/maximum tile counts. Large connected scenery stays on the original
+SNES priority plane, preventing a streaming background from becoming an
+unstable giant sublayer. Component IDs derive from descriptor and edge content
+rather than screen position. `components-current.json` inventories the current
+scene, and `profiles/level-XXXX.json` can pin an ID to an explicit depth or
+merge multiple IDs by assigning the same value. The mapper fails closed to an
+all-zero offset table outside canonical widescreen DKC filenames, Mode 1, or
+when dynamic-font/mid-frame BG-layout state is present.
+
+Offline tests cover connected/disconnected/diagonal edge behavior, authored
+overrides, the 4x65536 index, and the exact native stub instruction shape. The
+build has zero warnings/errors. Live visual, transition, streaming, and timing
+QA are still required before promoting this experimental mode.
+
+The initial synchronous live build was rejected before commit: animated Mode 1
+intro frames triggered hundreds of full component rebuilds, and the performance
+probe recorded repeated roughly 40-50 ms main-thread Updates. The retained
+implementation snapshots the newest state every four frames, coalesces pending
+work onto one background worker, and publishes only completed mappings from the
+main thread. Component JSON is written only on the first build, level change,
+or every 60 rebuilds. Automatic depth bands derive from the component's minimum
+tilemap address, so ordinary animation art changes retain the same depth.
+
+In a 40-second live v0.300 run at 12 degrees yaw, average Update time was
+2.2895 ms, average stock presentation was 2.7281 ms, and the repeated 40-50 ms
+mapper stalls were absent. The only later slow-Update samples were isolated
+10-13 ms calls; the startup maxima were retained separately by the probe. F6
+was tested in both directions: disabling cleared the native component table and
+returning to active rebuilt it. A full-window capture remained coherent, and
+the current component report showed large continuous BG masses pinned to zero
+with compact disconnected BG2/BG3 shapes assigned shallow offsets. This is
+encouraging live evidence, not yet broad per-level visual coverage.

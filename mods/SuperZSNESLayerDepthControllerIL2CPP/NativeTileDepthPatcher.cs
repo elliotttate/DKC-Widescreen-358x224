@@ -12,6 +12,9 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             "0A5582B26EF2596FFA504AC6C1282E145EFA093B49EFD22974D4F2C74561271A";
         internal const int ScaleHookRva = 0x383674;
         internal const int ZHookRva = 0x383790;
+        internal const int BackgroundCount = 4;
+        internal const int AddressCount = 65536;
+        internal const int DepthTableCount = BackgroundCount * AddressCount;
         internal static readonly byte[] ScaleHookBytes =
             Bytes(0xF3, 0x0F, 0x10, 0x5C, 0xB0, 0x10);
         internal static readonly byte[] ZHookBytes =
@@ -22,45 +25,33 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         private const uint PageReadWrite = 0x04;
         private const uint PageExecuteRead = 0x20;
         private const uint PageExecuteReadWrite = 0x40;
-        internal const int PaletteCount = 8;
-        internal const int BackgroundCount = 4;
-        internal const int PaletteOffsetCount = PaletteCount * BackgroundCount;
-        private const int DataPaletteOffsets = 0;
-        private const int DataCameraBase = PaletteOffsetCount * 4;
-        private const int DataCurrentZ = DataCameraBase + 4;
-        private const int ScaleStubOffset = 256;
-        private const int ZStubOffset = 512;
+        private const int DataCameraBase = 0;
+        private const int DataCurrentZ = 4;
+        private const int ScaleStubOffset = 64;
+        private const int ZStubOffset = 256;
 
         private readonly Action<string> _log;
         private readonly List<PatchRecord> _records = new List<PatchRecord>();
         private IntPtr _moduleBase;
         private IntPtr _dataBase;
+        private IntPtr _depthTableBase;
         private IntPtr _trampolineBase;
 
         internal bool Applied { get; private set; }
         internal string ModuleBaseHex => HexAddress(_moduleBase);
         internal string TrampolineBaseHex => HexAddress(_trampolineBase);
+        internal string DepthTableBaseHex => HexAddress(_depthTableBase);
 
         internal NativeTileDepthPatcher(Action<string> log)
         {
             _log = log ?? (_ => { });
         }
 
-        internal void Apply(string gameAssemblyPath, float[] paletteOffsets)
+        internal void Apply(string gameAssemblyPath)
         {
             if (Applied) throw new InvalidOperationException("Native tile-depth patch is active.");
             if (IntPtr.Size != 4)
                 throw new PlatformNotSupportedException("The verified patch supports x86 v0.300 only.");
-            if (paletteOffsets == null || paletteOffsets.Length != PaletteOffsetCount)
-                throw new ArgumentException("Exactly 32 BG palette offsets are required.",
-                    nameof(paletteOffsets));
-            for (int i = 0; i < paletteOffsets.Length; i++)
-            {
-                float value = paletteOffsets[i];
-                if (float.IsNaN(value) || float.IsInfinity(value) || value < -1f || value > 1f)
-                    throw new ArgumentOutOfRangeException(nameof(paletteOffsets),
-                        "Palette offset " + i + " is outside -1..1.");
-            }
             string hash = ComputeSha256(gameAssemblyPath);
             if (!string.Equals(hash, ExpectedGameAssemblySha256,
                     StringComparison.OrdinalIgnoreCase))
@@ -74,23 +65,24 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
 
             _dataBase = VirtualAlloc(IntPtr.Zero, (UIntPtr)4096,
                 MemCommitReserve, PageReadWrite);
+            _depthTableBase = VirtualAlloc(IntPtr.Zero,
+                (UIntPtr)(DepthTableCount * sizeof(float)), MemCommitReserve, PageReadWrite);
             _trampolineBase = VirtualAlloc(IntPtr.Zero, (UIntPtr)4096,
                 MemCommitReserve, PageReadWrite);
-            if (_dataBase == IntPtr.Zero || _trampolineBase == IntPtr.Zero)
+            if (_dataBase == IntPtr.Zero || _depthTableBase == IntPtr.Zero ||
+                _trampolineBase == IntPtr.Zero)
                 throw new InvalidOperationException("VirtualAlloc failed: " + Marshal.GetLastWin32Error());
 
             try
             {
-                for (int i = 0; i < paletteOffsets.Length; i++)
-                    WriteData(DataPaletteOffsets + i * 4,
-                        BitConverter.GetBytes(paletteOffsets[i]));
                 WriteData(DataCameraBase, BitConverter.GetBytes(30f));
                 WriteData(DataCurrentZ, BitConverter.GetBytes(0f));
+                UpdateDepthTable(new float[DepthTableCount]);
 
                 byte[] scaleStub = BuildScaleStub(
                     Add(_trampolineBase, ScaleStubOffset).ToInt64(),
                     Add(_moduleBase, ScaleHookRva + ScaleHookBytes.Length).ToInt64(),
-                    _dataBase);
+                    _dataBase, _depthTableBase);
                 byte[] zStub = BuildZStub(
                     Add(_trampolineBase, ZStubOffset).ToInt64(),
                     Add(_moduleBase, ZHookRva + ZHookBytes.Length).ToInt64(),
@@ -112,7 +104,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                         Add(_trampolineBase, ScaleStubOffset).ToInt64(), ScaleHookBytes.Length),
                     "scale hook");
                 Applied = true;
-                _log("Native BG palette-depth split applied at two verified DrawLines sites.");
+                _log("Native connected-component depth table applied at two verified DrawLines sites.");
             }
             catch
             {
@@ -122,40 +114,38 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             }
         }
 
-        internal static int CalculatePaletteIndex(int tileEntry, int background)
+        internal void UpdateDepthTable(float[] values)
+        {
+            if (_depthTableBase == IntPtr.Zero)
+                throw new InvalidOperationException("Native depth table is not allocated.");
+            if (values == null || values.Length != DepthTableCount)
+                throw new ArgumentException("Exactly " + DepthTableCount +
+                    " native depth values are required.", nameof(values));
+            Marshal.Copy(values, 0, _depthTableBase, values.Length);
+        }
+
+        internal static int CalculateDepthIndex(int background, int tilemapAddress)
         {
             if (background < 0 || background >= BackgroundCount)
                 throw new ArgumentOutOfRangeException(nameof(background));
-            uint palette = (uint)((tileEntry >> 10) & 7);
-            return background * PaletteCount + (int)palette;
-        }
-
-        internal static float CalculateOffset(int tileEntry, int background,
-            float[] paletteOffsets)
-        {
-            if (paletteOffsets == null || paletteOffsets.Length != PaletteOffsetCount)
-                throw new ArgumentException("Exactly 32 BG palette offsets are required.",
-                    nameof(paletteOffsets));
-            return paletteOffsets[CalculatePaletteIndex(tileEntry, background)];
+            return background * AddressCount + (tilemapAddress & 0xFFFF);
         }
 
         internal static byte[] BuildScaleStub(long stubAddress, long returnAddress,
-            IntPtr dataBase)
+            IntPtr dataBase, IntPtr depthTableBase)
         {
-            uint offsets = Address32(Add(dataBase, DataPaletteOffsets));
+            uint table = Address32(depthTableBase);
             uint camera = Address32(Add(dataBase, DataCameraBase));
             uint currentZ = Address32(Add(dataBase, DataCurrentZ));
             var bytes = new List<byte>(128);
             Add(bytes, ScaleHookBytes);                                  // original scale load
             Add(bytes, 0x50, 0x52);                                      // push eax; push edx
-            Add(bytes, 0x8B, 0xC3);                                      // mov eax,ebx
-            Add(bytes, 0xC1, 0xE8, 0x0A);                                // shr eax,10
-            Add(bytes, 0x83, 0xE0, 0x07);                                // and eax,7 (palette)
-            Add(bytes, 0x8B, 0x55, 0x10);                                // mov edx,[ebp+10h] (BG)
-            Add(bytes, 0xC1, 0xE2, 0x03);                                // shl edx,3
+            Add(bytes, 0x0F, 0xB7, 0x45, 0xFC);                          // movzx eax,word ptr [ebp-4] (map address)
+            Add(bytes, 0x8B, 0x55, 0x10);                                // mov edx,[ebp+10h] (BG index)
+            Add(bytes, 0xC1, 0xE2, 0x10);                                // shl edx,16
             Add(bytes, 0x01, 0xD0);                                      // add eax,edx
-            Add(bytes, 0xF3, 0x0F, 0x10, 0x04, 0x85);                    // movss xmm0,[eax*4+offsets]
-            Add(bytes, BitConverter.GetBytes(offsets));
+            Add(bytes, 0xF3, 0x0F, 0x10, 0x04, 0x85);                    // movss xmm0,[eax*4+table]
+            Add(bytes, BitConverter.GetBytes(table));
             Add(bytes, 0x5A);                                            // pop edx (priority)
             Add(bytes, 0xF3, 0x0F, 0x10, 0x4C, 0x91, 0x10);              // movss xmm1,[ecx+edx*4+10h]
             Add(bytes, 0xF3, 0x0F, 0x59, 0xCB);                          // mulss xmm1,xmm3
@@ -242,9 +232,12 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         {
             if (_trampolineBase != IntPtr.Zero)
                 VirtualFree(_trampolineBase, UIntPtr.Zero, MemRelease);
+            if (_depthTableBase != IntPtr.Zero)
+                VirtualFree(_depthTableBase, UIntPtr.Zero, MemRelease);
             if (_dataBase != IntPtr.Zero)
                 VirtualFree(_dataBase, UIntPtr.Zero, MemRelease);
             _trampolineBase = IntPtr.Zero;
+            _depthTableBase = IntPtr.Zero;
             _dataBase = IntPtr.Zero;
         }
 
@@ -290,8 +283,8 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         }
 
         private static uint Address32(IntPtr address) => unchecked((uint)address.ToInt32());
-        private static string HexAddress(IntPtr address) =>
-            "0x" + unchecked((uint)address.ToInt32()).ToString("X8");
+        private static string HexAddress(IntPtr address) => address == IntPtr.Zero
+            ? string.Empty : "0x" + unchecked((uint)address.ToInt32()).ToString("X8");
         private static IntPtr Add(IntPtr address, int offset) =>
             new IntPtr(address.ToInt64() + offset);
         private static byte[] Bytes(params byte[] values) => values;

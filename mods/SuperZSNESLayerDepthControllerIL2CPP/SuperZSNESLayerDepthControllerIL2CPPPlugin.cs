@@ -16,9 +16,10 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
     {
         public const string PluginGuid = "dev.local.superzsnes.layerdepth.il2cpp";
         public const string PluginName = "SuperZSNES Layer Depth Controller IL2CPP";
-        public const string PluginVersion = "0.3.0";
+        public const string PluginVersion = "0.4.0";
         private Harmony _harmony;
         private NativeTileDepthPatcher _nativeTileDepth;
+        private ConnectedComponentDepthMapper _componentMapper;
 
         public override void Load()
         {
@@ -47,23 +48,24 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             ConfigEntry<bool> perspectiveCompensation = Config.Bind("Depth",
                 "PerspectiveCompensation", true,
                 "Scale planes so they remain edge-aligned when viewed straight on.");
-            ConfigEntry<bool> paletteSublayers = Config.Bind("DetailSplit",
-                "BackgroundPaletteSublayers", false,
-                "Apply the exact x86 native BG palette-depth splitter. Experimental and hash-gated.");
-            const string defaultPaletteOffsets =
-                "-0.03,-0.03,-0.01,-0.01,0.01,0.01,0.03,0.03";
-            ConfigEntry<string> bg1PaletteOffsets = Config.Bind("DetailSplit",
-                "BG1PaletteOffsets", defaultPaletteOffsets,
-                "Eight world-space depth offsets for BG1 palettes 0..7 (-1..1).");
-            ConfigEntry<string> bg2PaletteOffsets = Config.Bind("DetailSplit",
-                "BG2PaletteOffsets", defaultPaletteOffsets,
-                "Eight world-space depth offsets for BG2 palettes 0..7 (-1..1).");
-            ConfigEntry<string> bg3PaletteOffsets = Config.Bind("DetailSplit",
-                "BG3PaletteOffsets", defaultPaletteOffsets,
-                "Eight world-space depth offsets for BG3 palettes 0..7 (-1..1).");
-            ConfigEntry<string> bg4PaletteOffsets = Config.Bind("DetailSplit",
-                "BG4PaletteOffsets", "0,0,0,0,0,0,0,0",
-                "Eight world-space depth offsets for BG4 palettes 0..7 (-1..1).");
+            ConfigEntry<bool> connectedComponents = Config.Bind("ConnectedComponents",
+                "Enabled", false,
+                "Split DKC backgrounds only at transparent boundaries between connected opaque tile groups.");
+            ConfigEntry<int> componentDepthBands = Config.Bind("ConnectedComponents",
+                "DepthBands", 7,
+                "Number of stable automatic component depth bands (1..31).");
+            ConfigEntry<float> componentSpacing = Config.Bind("ConnectedComponents",
+                "Spacing", 0.08f,
+                "World-space distance between adjacent automatic component depth bands (0..1).");
+            ConfigEntry<int> minimumComponentTiles = Config.Bind("ConnectedComponents",
+                "MinimumTiles", 2,
+                "Components smaller than this remain on their stock plane unless a profile overrides them.");
+            ConfigEntry<int> maximumAutoComponentTiles = Config.Bind("ConnectedComponents",
+                "MaximumAutoTiles", 64,
+                "Larger connected scenery remains on its stock plane unless a profile overrides it.");
+            ConfigEntry<int> componentRefreshInterval = Config.Bind("ConnectedComponents",
+                "RefreshIntervalFrames", 4,
+                "Capture the newest streamed tile state this often; classification runs coalesced on one worker.");
             Config.Save();
 
             if (!enabled.Value)
@@ -76,21 +78,25 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             {
                 DepthController.Initialize(Log, Config, active, separation, neutral, gaps,
                     scales, step, cameraPitch, cameraYaw, cameraZoom,
-                    perspectiveCompensation, paletteSublayers,
-                    bg1PaletteOffsets, bg2PaletteOffsets,
-                    bg3PaletteOffsets, bg4PaletteOffsets);
-                if (paletteSublayers.Value)
+                    perspectiveCompensation, connectedComponents);
+                if (connectedComponents.Value)
                 {
-                    float[] paletteTable = BuildPaletteOffsetTable(
-                        bg1PaletteOffsets.Value, bg2PaletteOffsets.Value,
-                        bg3PaletteOffsets.Value, bg4PaletteOffsets.Value);
                     _nativeTileDepth = new NativeTileDepthPatcher(
                         message => Log.LogWarning(message));
                     _nativeTileDepth.Apply(Path.Combine(Paths.GameRootPath,
-                        "GameAssembly.dll"), paletteTable);
+                        "GameAssembly.dll"));
+                    string statusDirectory = Path.Combine(Paths.PluginPath,
+                        "SuperZSNESLayerDepthControllerIL2CPP");
+                    _componentMapper = new ConnectedComponentDepthMapper(_nativeTileDepth,
+                        Log, componentDepthBands, componentSpacing,
+                        minimumComponentTiles, maximumAutoComponentTiles,
+                        componentRefreshInterval,
+                        statusDirectory);
+                    DepthController.SetComponentMapper(_componentMapper);
                     DepthController.SetNativeDetailStatus(true,
                         _nativeTileDepth.ModuleBaseHex,
-                        _nativeTileDepth.TrampolineBaseHex);
+                        _nativeTileDepth.TrampolineBaseHex,
+                        _nativeTileDepth.DepthTableBaseHex);
                 }
                 _harmony = new Harmony(PluginGuid);
                 PatchRequired(typeof(PPURenderer), "GenerateBackgrounds", Type.EmptyTypes,
@@ -120,24 +126,6 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             DepthController.RestoreDisplayMode();
             DepthController.WriteStatus("unloaded");
             return true;
-        }
-
-        private static float[] BuildPaletteOffsetTable(params string[] rows)
-        {
-            if (rows == null || rows.Length != NativeTileDepthPatcher.BackgroundCount)
-                throw new ArgumentException("Exactly four BG palette rows are required.");
-            float[] table = new float[NativeTileDepthPatcher.PaletteOffsetCount];
-            for (int background = 0; background < rows.Length; background++)
-            {
-                if (!DepthMath.TryParseCsv(rows[background],
-                        NativeTileDepthPatcher.PaletteCount, -1f, 1f,
-                        out float[] parsed, out string error))
-                    throw new InvalidDataException("BG" + (background + 1) +
-                        " palette offsets: " + error);
-                Array.Copy(parsed, 0, table,
-                    background * NativeTileDepthPatcher.PaletteCount, parsed.Length);
-            }
-            return table;
         }
 
         private void PatchRequired(Type type, string name, Type[] parameters,
@@ -195,8 +183,8 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         private static ConfigEntry<float> _initialYaw;
         private static ConfigEntry<float> _initialZoom;
         private static ConfigEntry<bool> _perspectiveCompensation;
-        private static ConfigEntry<bool> _paletteSublayers;
-        private static ConfigEntry<string>[] _paletteOffsets;
+        private static ConfigEntry<bool> _connectedComponents;
+        private static ConnectedComponentDepthMapper _componentMapper;
         private static bool _active;
         private static bool _displayModeOverridden;
         private static MainMenuManager.GFXModes _savedDisplayMode;
@@ -209,6 +197,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         private static bool _nativeDetailApplied;
         private static string _nativeModuleBase = string.Empty;
         private static string _nativeTrampolineBase = string.Empty;
+        private static string _nativeDepthTableBase = string.Empty;
         private static readonly string StatusDirectory = Path.Combine(
             Paths.PluginPath, "SuperZSNESLayerDepthControllerIL2CPP");
 
@@ -219,11 +208,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             ConfigEntry<float> initialPitch, ConfigEntry<float> initialYaw,
             ConfigEntry<float> initialZoom,
             ConfigEntry<bool> perspectiveCompensation,
-            ConfigEntry<bool> paletteSublayers,
-            ConfigEntry<string> bg1PaletteOffsets,
-            ConfigEntry<string> bg2PaletteOffsets,
-            ConfigEntry<string> bg3PaletteOffsets,
-            ConfigEntry<string> bg4PaletteOffsets)
+            ConfigEntry<bool> connectedComponents)
         {
             _log = log;
             _config = config;
@@ -237,9 +222,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             _initialYaw = initialYaw;
             _initialZoom = initialZoom;
             _perspectiveCompensation = perspectiveCompensation;
-            _paletteSublayers = paletteSublayers;
-            _paletteOffsets = new[] { bg1PaletteOffsets, bg2PaletteOffsets,
-                bg3PaletteOffsets, bg4PaletteOffsets };
+            _connectedComponents = connectedComponents;
             _active = active.Value;
             Directory.CreateDirectory(StatusDirectory);
             MethodInfo backgrounds = AccessTools.Method(typeof(PPURenderer),
@@ -255,7 +238,13 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             MainMenuManager manager = MainMenuManager.Instance;
             MainMenuManager.MainMenuSettings settings = manager?.mainMenuSettings;
             originalMode = settings == null ? MainMenuManager.GFXModes.None : settings.gfxMode;
-            if (!_active || settings == null) return;
+            if (!_active || settings == null)
+            {
+                _componentMapper?.Clear();
+                return;
+            }
+
+            _componentMapper?.Refresh(renderer);
 
             if (!_displayModeOverridden)
             {
@@ -320,12 +309,18 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 WriteStatus("applied");
         }
 
+        internal static void SetComponentMapper(ConnectedComponentDepthMapper mapper)
+        {
+            _componentMapper = mapper;
+        }
+
         internal static void SetNativeDetailStatus(bool applied, string moduleBase,
-            string trampolineBase)
+            string trampolineBase, string depthTableBase)
         {
             _nativeDetailApplied = applied;
             _nativeModuleBase = moduleBase ?? string.Empty;
             _nativeTrampolineBase = trampolineBase ?? string.Empty;
+            _nativeDepthTableBase = depthTableBase ?? string.Empty;
         }
 
         private static float GetCameraDistance(PPURenderer renderer)
@@ -347,7 +342,11 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 _active = !_active;
                 _activeSetting.Value = _active;
                 _config.Save();
-                if (!_active) RestoreDisplayMode();
+                if (!_active)
+                {
+                    RestoreDisplayMode();
+                    _componentMapper?.Clear();
+                }
                 else _cameraInitialized = false;
                 _log?.LogWarning("Layer depth 3D " + (_active ? "enabled" : "disabled"));
                 WriteStatus(_active ? "enabled" : "disabled");
@@ -428,7 +427,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 string gaps = _gapsText?.Value ?? string.Empty;
                 string scales = _scalesText?.Value ?? string.Empty;
                 string json = "{" +
-                    "\"version\":\"0.3.0\"," +
+                    "\"version\":\"0.4.0\"," +
                     "\"state\":\"" + Escape(state) + "\"," +
                     "\"active\":" + (_active ? "true" : "false") + "," +
                     "\"appliedFrames\":" + _appliedFrames + "," +
@@ -442,18 +441,23 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                         (_framebufferPatchDetected ? "true" : "false") + "," +
                     "\"perspectiveCompensation\":" +
                         ((_perspectiveCompensation?.Value ?? false) ? "true" : "false") + "," +
-                    "\"paletteSublayers\":" +
-                        ((_paletteSublayers?.Value ?? false) ? "true" : "false") + "," +
-                    "\"bgPaletteOffsets\":[\"" +
-                        Escape(_paletteOffsets?[0]?.Value ?? string.Empty) + "\",\"" +
-                        Escape(_paletteOffsets?[1]?.Value ?? string.Empty) + "\",\"" +
-                        Escape(_paletteOffsets?[2]?.Value ?? string.Empty) + "\",\"" +
-                        Escape(_paletteOffsets?[3]?.Value ?? string.Empty) + "\"]," +
+                    "\"connectedComponents\":" +
+                        ((_connectedComponents?.Value ?? false) ? "true" : "false") + "," +
+                    "\"componentRebuilds\":" + (_componentMapper?.Rebuilds ?? 0) + "," +
+                    "\"componentProbes\":" + (_componentMapper?.ProbeCount ?? 0) + "," +
+                    "\"componentTableUpdates\":" + (_componentMapper?.TableUpdates ?? 0) + "," +
+                    "\"componentBuildPending\":" +
+                        ((_componentMapper?.BuildPending ?? false) ? "true" : "false") + "," +
+                    "\"componentCount\":" + (_componentMapper?.ComponentCount ?? 0) + "," +
+                    "\"componentLevel\":\"" +
+                        Escape(_componentMapper?.LastLevelHex ?? string.Empty) + "\"," +
                     "\"nativeDetailApplied\":" +
                         (_nativeDetailApplied ? "true" : "false") + "," +
                     "\"nativeModuleBase\":\"" + Escape(_nativeModuleBase) + "\"," +
                     "\"nativeTrampolineBase\":\"" +
                         Escape(_nativeTrampolineBase) + "\"," +
+                    "\"nativeDepthTableBase\":\"" +
+                        Escape(_nativeDepthTableBase) + "\"," +
                     "\"framebufferCompatibility\":\"Set PresentFramebuffer=false and ShadowRenderInterval=0\"," +
                     "\"lastError\":\"" + Escape(_lastError) + "\"}";
                 File.WriteAllText(Path.Combine(StatusDirectory, "status.json"), json);

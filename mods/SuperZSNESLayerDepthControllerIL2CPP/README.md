@@ -17,19 +17,26 @@ is why the editor's distance controls have no effect. This plugin patches after
 the method and reapplies a validated profile to the actual renderer arrays.
 
 DKC commonly places most scenery in only two SNES BG tilemaps, so priority
-planes alone can still look like two large cards. Version 0.3 has an optional,
-exact-hash-gated native splitter that places the eight SNES palette groups
-within each BG/priority plane on shallow sublayers. Palette identity is authored
-in every tilemap entry, so neighboring tiles that form one colored region stay
-together. Tile number and flip bits do not affect the group.
+planes alone can still look like two large cards. Version 0.4 has an optional,
+exact-hash-gated native splitter that classifies connected opaque tilemap
+components. Neighboring cells remain on the same depth plane whenever opaque
+edge pixels touch, including a conservative one-pixel diagonal tolerance.
+This is the key safety property: a continuous tree, ground strip, or painted
+background cannot be cut merely because it changes palette or tile number.
+
+Classification runs only after relevant tilemap/graphics state changes. The
+hot native DrawLines path performs one lookup by `(BG, tilemap VRAM address)`;
+there is no managed callback per rendered tile. Large connected scenery stays
+on its stock plane by default, while compact disconnected components receive
+stable shallow depth bands.
 
 Two earlier automatic grouping experiments were rejected. A managed IL2CPP
 mesh walker survived ordinary frames but produced three correlated CoreCLR
 access violations near the same scene boundary; that evidence does not imply
 that every transition crashes. A native per-tile-number split survived the same
 timed opening test but visibly shredded coherent logo art into narrow strips.
-Neither implementation is used by v0.3. The palette splitter has no managed
-per-tile callbacks and restores both native patch sites on unload.
+Neither implementation is used by v0.4. The old palette splitter is retired.
+The connected-component splitter restores both native patch sites on unload.
 
 `PerspectiveCompensation=true` scales each plane according to its camera
 distance. At zero pitch/yaw all cards remain aligned like the original flat
@@ -64,23 +71,42 @@ gaps. `PlaneScales` contains backdrop followed by P0..P12; leave all values at
 The detailed split is controlled independently:
 
 ```ini
-[DetailSplit]
-BackgroundPaletteSublayers = true
-BG1PaletteOffsets = -0.03,-0.03,-0.01,-0.01,0.01,0.01,0.03,0.03
-BG2PaletteOffsets = -0.03,-0.03,-0.01,-0.01,0.01,0.01,0.03,0.03
-BG3PaletteOffsets = -0.03,-0.03,-0.01,-0.01,0.01,0.01,0.03,0.03
-BG4PaletteOffsets = 0,0,0,0,0,0,0,0
+[ConnectedComponents]
+Enabled = true
+DepthBands = 7
+Spacing = 0.08
+MinimumTiles = 2
+MaximumAutoTiles = 64
+RefreshIntervalFrames = 4
 ```
 
-Each row maps palette numbers 0..7 directly to world-space Z offsets within
-that BG's existing priority plane. Equal values deliberately collapse related
-palettes onto the same sublayer; larger differences pull them farther apart.
-Set every value to zero to disable the secondary split while retaining the SNES
-priority planes. Palette grouping is deterministic but is not object
-recognition: two unrelated objects using the same BG and palette stay on the
-same sublayer, while one object deliberately using multiple palettes may split.
-Authored per-scene depth maps would be required to identify concepts such as
-"tree canopy" or "ground" explicitly.
+`DepthBands` and `Spacing` control the automatic shallow offsets.
+`MinimumTiles` suppresses single-tile noise. `MaximumAutoTiles` leaves large,
+continuously connected scenery anchored to its original priority plane.
+`RefreshIntervalFrames` controls a coalesced snapshot cadence. Classification
+runs on one background worker, retains only the newest queued snapshot, and
+publishes a native table only when the address-to-depth mapping changes.
+Automatic bands use the component's minimum tilemap address, so palette or
+animation-frame changes do not randomly move an otherwise unchanged object.
+
+After a supported scene is rendered, the plugin writes
+`components-current.json` next to `status.json`. It lists every component's
+stable ID, BG, cell count, bounds, addresses, and current depth. Optional
+per-level overrides live in `profiles/level-XXXX.json`:
+
+```json
+{
+  "version": 1,
+  "componentDepths": {
+    "BG1-A1234-0123456789ABCDEF": 0.12,
+    "BG2-A5678-FEDCBA9876543210": -0.08
+  }
+}
+```
+
+Equal override values deliberately merge separate components visually. A zero
+value pins a component back to its stock priority plane. Overrides are clamped
+to -4..4 and reload when the profile file changes.
 
 ## Widescreen renderer compatibility
 
@@ -122,7 +148,7 @@ Both commands require a closed emulator. The plugin itself defaults disabled.
 - Mouse drag / mouse wheel: built-in SuperZSNES perspective rotate/zoom.
 
 Changes made by the gap hotkeys are saved to the BepInEx config. Current state,
-selected gap, profile, compatibility warning, and applied-frame count are in
+selected gap, component inventory/profile state, compatibility warning, and applied-frame count are in
 `BepInEx/plugins/SuperZSNESLayerDepthControllerIL2CPP/status.json`.
 
 ## Visual verification and limits
@@ -134,8 +160,10 @@ different foreground window. WSLSnapit `take_screenshot` targeting the
 
 This remains an experimental presentation mode. Native-width cinematics can
 expose stock tilemap edges because real per-layer 3D requires turning off the
-accepted flat CPU framebuffer. The native palette splitter has passed its
-offline patch/rollback verification and an initial timed opening run, but it
+accepted flat CPU framebuffer. The native connected-component splitter has
+passed its offline model, patch-window, stub, and rollback verification, but it
 still needs repeated, named transition coverage before it can be called stable.
+It deliberately does not infer semantic objects inside one fully connected
+painted mass; that requires authored masks or reconstructed clean plates.
 Use F6 to return to flat stock rendering, or re-enable `PresentFramebuffer` for
 the fast, pixel-exact widescreen mode.
