@@ -4,6 +4,8 @@ A BepInEx 5 plugin built specifically for the managed emulator core in SuperZSNE
 
 It also includes a full stdio MCP server so an LLM can drive the same debugger without operating the in-game overlay. See [`mcp_server/README.md`](mcp_server/README.md) for configuration and the 32-tool surface, including a tool that returns a live PNG or JPEG screenshot as an MCP image.
 
+Screenshot targets distinguish the raw main plane, raw subscreen plane, full composed transfer surface, and whole Unity window. Since v0.1.4, `composed` reads the live widescreen transfer texture after main/subscreen color math instead of silently falling back to `main`; the fixed 256x224 `Texture2D` returned by `GetFinalComposedTexture` is still supported as a fallback. This distinction is required when diagnosing palette and shimmer effects.
+
 ## Install
 
 The ready-to-use package includes the 32-bit BepInEx build required by `SUPERZSNES.exe`.

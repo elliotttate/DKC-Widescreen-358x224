@@ -229,18 +229,38 @@ namespace DKCWidescreenDebugger
             }
             else
             {
-                if (target != "main" && target != "composed")
-                    throw new ArgumentException("Screenshot target must be main, composed, or window.");
+                if (target != "main" && target != "sub" && target != "composed")
+                    throw new ArgumentException("Screenshot target must be main, sub, composed, or window.");
                 var method = target == "composed" ? "GetFinalComposedTexture" : "GetMainScreenRenderTexture";
-                var renderTexture = Reflect.TryCall(renderer, method) as RenderTexture;
-                if ((renderTexture == null || !renderTexture.IsCreated()) && target == "composed")
+                // The live transfer texture is the full widescreen result after
+                // main/subscreen color math. GetFinalComposedTexture creates a
+                // separate fixed 256x224 diagnostic texture, so use it only as
+                // a fallback when the live transfer surface is unavailable.
+                var requestedTexture = target == "composed"
+                    ? Reflect.Get(renderer, "transferScreenRenderTexture") ?? Reflect.TryCall(renderer, method)
+                    : target == "sub"
+                        ? Reflect.Get(renderer, "subScreenRenderTexture")
+                        : Reflect.TryCall(renderer, method);
+                var composedTexture = requestedTexture as Texture2D;
+                var renderTexture = requestedTexture as RenderTexture;
+                if (composedTexture != null)
                 {
-                    target = "main";
-                    renderTexture = Reflect.TryCall(renderer, "GetMainScreenRenderTexture") as RenderTexture;
+                    width = composedTexture.width;
+                    height = composedTexture.height;
+                    try { data = EncodeTexture(composedTexture, format, quality); }
+                    finally { UnityEngine.Object.Destroy(composedTexture); }
                 }
-                if (renderTexture == null || !renderTexture.IsCreated())
-                    throw new InvalidOperationException("The requested emulator render texture is not available yet. Load a ROM and render at least one frame.");
-                data = ReadRenderTexture(renderTexture, format, quality, out width, out height);
+                else
+                {
+                    if ((renderTexture == null || !renderTexture.IsCreated()) && target == "composed")
+                    {
+                        target = "main";
+                        renderTexture = Reflect.TryCall(renderer, "GetMainScreenRenderTexture") as RenderTexture;
+                    }
+                    if (renderTexture == null || !renderTexture.IsCreated())
+                        throw new InvalidOperationException("The requested emulator render texture is not available yet. Load a ROM and render at least one frame.");
+                    data = ReadRenderTexture(renderTexture, format, quality, out width, out height);
+                }
             }
 
             var frame = Reflect.IntCall(master, "GetFrameNo", -1);
@@ -281,11 +301,20 @@ namespace DKCWidescreenDebugger
         {
             try
             {
-                var target = Reflect.TryCall(renderer, method) as RenderTexture;
-                if (target == null || !target.IsCreated()) return;
+                var requestedTexture = Reflect.TryCall(renderer, method);
+                var composedTexture = requestedTexture as Texture2D;
+                if (composedTexture != null)
+                {
+                    try { File.WriteAllBytes(Path.Combine(folder, file), composedTexture.EncodeToPNG()); }
+                    finally { UnityEngine.Object.Destroy(composedTexture); }
+                    return;
+                }
+
+                var renderTexture = requestedTexture as RenderTexture;
+                if (renderTexture == null || !renderTexture.IsCreated()) return;
                 int width;
                 int height;
-                File.WriteAllBytes(Path.Combine(folder, file), ReadRenderTexture(target, "png", 100, out width, out height));
+                File.WriteAllBytes(Path.Combine(folder, file), ReadRenderTexture(renderTexture, "png", 100, out width, out height));
             }
             catch (Exception ex)
             {

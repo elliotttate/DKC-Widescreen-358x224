@@ -62,3 +62,13 @@ The installed v0.4.2 DLL used for that result has SHA-256 `BDD6029BBC138B234E02F
 ## Fixed native-width maps in v0.4.3
 
 DKC's world maps use fixed, non-scrolling 32x32 BG1/BG2 tilemaps. Sampling the normal 51-pixel widescreen margins wraps those 256-pixel maps and exposes unrelated map sections on both sides. v0.4.3 recognizes the exact fixed Mode 1 signature across all 224 lines and renders black pillarbox margins while keeping the authored central 256 pixels unchanged. Scrolling scenes, 64-wide tilemaps, color-math scenes, and normal Mode 1 gameplay remain on the full 358-pixel path.
+
+## Slip-Slide Ride color math in v0.4.4
+
+Slip-Slide Ride uses BG3 as a subscreen-only animated ice-shimmer plane (`TM=$13`, `TS=$04`, `CGWSEL=$02`, `CGADSUB=$33`). The earlier CPU compositor used CGRAM color 0 when no subscreen layer covered a pixel and added 5-bit channels directly. SuperZSNES instead represents an empty subscreen pixel as opaque black and runs selected main/subscreen addition through the final shader's sRGB-to-linear, 1.9-power blend, and sRGB encoding. The old CPU behavior left large purple halo shapes visible across the foreground.
+
+v0.4.4 matches the legacy behavior. Its per-pixel path uses a precomputed 16x32x32 byte lookup table, so no power functions run while rendering. Exact channel combinations captured from the legacy main, sub, and composed surfaces are verifier fixtures. At the reproduction checkpoint, the corrected retained renderer averaged about 2.09 ms per supported frame after warmup, including about 1.63 ms for composition, and the animated white/cyan glints remained visible without the purple foreground overlay.
+
+The verified v0.4.4 DLL has SHA-256 `A99B13F43025DDD9A3D1693BCB98EC0EED56A7D91938E655394D67D11A427184`.
+
+`F10`/`capture.request` now also writes BG1, BG2, BG3, and main-background-only PNGs beside the final candidate. These planes are diagnostic outputs; the final candidate remains the authoritative CPU-renderer image.

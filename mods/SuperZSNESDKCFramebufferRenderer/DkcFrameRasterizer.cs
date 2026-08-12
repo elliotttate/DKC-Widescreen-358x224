@@ -59,6 +59,50 @@ namespace SuperZSNESDKCFramebufferRenderer
         internal string LastRasterEffect { get; private set; } = string.Empty;
         internal string LineDiagnosticsJson { get; private set; } = "[]";
 
+        internal Color32[] CreateBackgroundDiagnosticPixels(int bg, int width, int height)
+        {
+            if (bg < 0 || bg >= _background.Length || width <= 0 || height <= 0 ||
+                height > Lines || _background[bg].Pixels == null)
+                return null;
+            Color32[] pixels = new Color32[width * height];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    LayerPixel pixel = ReadPreparedBackgroundPixel(bg, x, y);
+                    pixels[(height - 1 - y) * width + x] = pixel.Opaque
+                        ? ToColor32(_palette[y * PaletteEntries + pixel.PaletteIndex], _line[y].Inidisp)
+                        : new Color32(0, 0, 0, 0);
+                }
+            }
+            return pixels;
+        }
+
+        internal Color32[] CreateMainBackgroundDiagnosticPixels(int width, int height, int leftExtension)
+        {
+            if (width <= 0 || height <= 0 || height > Lines) return null;
+            Color32[] pixels = new Color32[width * height];
+            for (int y = 0; y < height; y++)
+            {
+                LineState state = _line[y];
+                for (int x = 0; x < width; x++)
+                {
+                    int nativeX = x - leftExtension;
+                    LayerPixel main = Backdrop(y);
+                    for (int bg = 0; bg < 3; bg++)
+                    {
+                        LayerPixel pixel = ReadPreparedBackgroundPixel(bg, x, y);
+                        if (pixel.Opaque && (state.Tm & (1 << bg)) != 0 &&
+                            LayerVisible(state, bg, nativeX, true) && pixel.Priority > main.Priority)
+                            main = pixel;
+                    }
+                    pixels[(height - 1 - y) * width + x] = ToColor32(
+                        _palette[y * PaletteEntries + main.PaletteIndex], state.Inidisp);
+                }
+            }
+            return pixels;
+        }
+
         private const string CanonicalRomSha256 = "B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D";
 
         private static readonly int[] BgLow = { 7, 6, 1 };
@@ -138,7 +182,10 @@ namespace SuperZSNESDKCFramebufferRenderer
                         continue;
                     }
                     LayerPixel main = Backdrop(y);
-                    LayerPixel sub = Backdrop(y);
+                    // The legacy compositor represents an empty subscreen as
+                    // opaque black, not CGRAM color 0. A real BG/OBJ pixel
+                    // replaces this sentinel and supplies the color operand.
+                    LayerPixel sub = new LayerPixel(0, 0, 5, false, false);
 
                     for (int bg = 0; bg < 3; bg++)
                     {
@@ -163,7 +210,7 @@ namespace SuperZSNESDKCFramebufferRenderer
 
                     ushort mainColor = _palette[y * PaletteEntries + main.PaletteIndex];
                     ushort subColor = (state.Cgwsel & 2) != 0
-                        ? _palette[y * PaletteEntries + sub.PaletteIndex]
+                        ? (sub.Opaque ? _palette[y * PaletteEntries + sub.PaletteIndex] : (ushort)0)
                         : state.FixedColor;
                     bool colorWindow = EvaluateWindow(state, 5, nativeX);
                     // CGWSEL 7-6 clips the main result to black; 5-4 controls
@@ -177,14 +224,29 @@ namespace SuperZSNESDKCFramebufferRenderer
                     bool mathAllowed = ApplyRegionMode(mathMode, colorWindow, true);
                     int mathBit = main.Source == 5 ? 5 : main.Source;
                     bool selected = (state.Cgadsub & (1 << mathBit)) != 0;
+                    Color32 outputColor = default;
+                    bool colorReady = false;
                     if (main.Source != 4 || main.ObjMathEligible)
                     {
                         if (mathAllowed && selected)
-                            mainColor = Blend(mainColor, subColor, (state.Cgadsub & 0x80) != 0,
-                                (state.Cgadsub & 0x40) != 0);
+                        {
+                            bool subtract = (state.Cgadsub & 0x80) != 0;
+                            bool half = (state.Cgadsub & 0x40) != 0;
+                            if (!subtract && !half)
+                            {
+                                outputColor = BlendLegacyAdd(mainColor, subColor, state.Inidisp);
+                                colorReady = true;
+                            }
+                            else
+                            {
+                                mainColor = Blend(mainColor, subColor, subtract, half);
+                            }
+                        }
                     }
 
-                    destination[(height - 1 - y) * width + x] = ToColor32(mainColor, state.Inidisp);
+                    destination[(height - 1 - y) * width + x] = colorReady
+                        ? outputColor
+                        : ToColor32(mainColor, state.Inidisp);
                 }
             });
             CompositeMs += ElapsedMilliseconds(stageStart);
@@ -1140,6 +1202,61 @@ namespace SuperZSNESDKCFramebufferRenderer
             }
             int sum = main + sub;
             return half ? Math.Min(31, sum >> 1) : Math.Min(31, sum);
+        }
+
+        private static readonly byte[] LegacyAddLut = BuildLegacyAddLut();
+
+        private static Color32 BlendLegacyAdd(ushort main, ushort sub, byte inidisp)
+        {
+            if ((inidisp & 0x80) != 0) return new Color32(0, 0, 0, 255);
+            int brightness = inidisp & 15;
+            byte r = LegacyAddChannel(main & 31, sub & 31, brightness);
+            byte g = LegacyAddChannel((main >> 5) & 31, (sub >> 5) & 31, brightness);
+            byte b = LegacyAddChannel((main >> 10) & 31, (sub >> 10) & 31, brightness);
+            return new Color32(r, g, b, 255);
+        }
+
+        private static byte LegacyAddChannel(int main, int sub, int brightness)
+        {
+            return LegacyAddLut[(brightness << 10) | (main << 5) | sub];
+        }
+
+        private static byte[] BuildLegacyAddLut()
+        {
+            byte[] result = new byte[16 * 32 * 32];
+            const double shaderGamma = 1.9;
+            const double shaderInverseGamma = 1.0 / shaderGamma;
+            for (int brightness = 0; brightness < 16; brightness++)
+            for (int main = 0; main < 32; main++)
+            for (int sub = 0; sub < 32; sub++)
+            {
+                double mainSrgb = ExpandStockChannel(main, brightness) / 255.0;
+                double subSrgb = ExpandStockChannel(sub, brightness) / 255.0;
+                double mainLinear = SrgbToLinear(mainSrgb);
+                double subLinear = SrgbToLinear(subSrgb);
+                double shaped = Math.Pow(mainLinear, shaderInverseGamma) +
+                                Math.Pow(subLinear, shaderInverseGamma);
+                double linear = Math.Min(1.0, Math.Pow(shaped, shaderGamma));
+                int encoded = (int)Math.Round(LinearToSrgb(linear) * 255.0,
+                    MidpointRounding.AwayFromZero);
+                result[(brightness << 10) | (main << 5) | sub] =
+                    (byte)Math.Max(0, Math.Min(255, encoded));
+            }
+            return result;
+        }
+
+        private static double SrgbToLinear(double value)
+        {
+            return value <= 0.04045
+                ? value / 12.92
+                : Math.Pow((value + 0.055) / 1.055, 2.4);
+        }
+
+        private static double LinearToSrgb(double value)
+        {
+            return value <= 0.0031308
+                ? value * 12.92
+                : 1.055 * Math.Pow(value, 1.0 / 2.4) - 0.055;
         }
 
         private static Color32 ToColor32(ushort color, byte inidisp)

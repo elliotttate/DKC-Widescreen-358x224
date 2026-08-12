@@ -246,6 +246,43 @@ namespace SuperZSNESDKCFramebufferRenderer
             string stamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff");
             string path = Path.Combine(_directory, "candidate-" + stamp + ".png");
             File.WriteAllBytes(path, _texture.EncodeToPNG());
+            for (int bg = 0; bg < 3; bg++)
+            {
+                Color32[] layerPixels = _rasterizer?.CreateBackgroundDiagnosticPixels(
+                    bg, _texture.width, _texture.height);
+                if (layerPixels == null) continue;
+                Texture2D layer = new Texture2D(_texture.width, _texture.height,
+                    TextureFormat.RGBA32, false, false);
+                try
+                {
+                    layer.SetPixels32(layerPixels);
+                    layer.Apply(false, false);
+                    File.WriteAllBytes(Path.Combine(_directory,
+                        "candidate-" + stamp + "-bg" + (bg + 1) + ".png"), layer.EncodeToPNG());
+                }
+                finally
+                {
+                    UnityEngine.Object.Destroy(layer);
+                }
+            }
+            Color32[] mainBackgroundPixels = _rasterizer?.CreateMainBackgroundDiagnosticPixels(
+                _texture.width, _texture.height, _leftExtension.Value);
+            if (mainBackgroundPixels != null)
+            {
+                Texture2D mainBackground = new Texture2D(_texture.width, _texture.height,
+                    TextureFormat.RGBA32, false, false);
+                try
+                {
+                    mainBackground.SetPixels32(mainBackgroundPixels);
+                    mainBackground.Apply(false, false);
+                    File.WriteAllBytes(Path.Combine(_directory,
+                        "candidate-" + stamp + "-main-backgrounds.png"), mainBackground.EncodeToPNG());
+                }
+                finally
+                {
+                    UnityEngine.Object.Destroy(mainBackground);
+                }
+            }
             _lastCapture = path;
             _log.LogInfo("Wrote framebuffer candidate: " + path);
             WriteStatus("captured", path);
@@ -258,7 +295,7 @@ namespace SuperZSNESDKCFramebufferRenderer
             long stageFrames = _rasterizer?.StageFrames ?? 0;
             double stageDivisor = stageFrames == 0 ? 1 : stageFrames;
             string json = "{" +
-                          "\"version\":\"0.4.3\"," +
+                          "\"version\":\"0.4.4\"," +
                           "\"state\":\"" + Escape(state) + "\"," +
                           "\"present\":" + ((_present != null && _present.Value) ? "true" : "false") + "," +
                           "\"retainedBackgrounds\":" + ((_retainedBackgrounds != null && _retainedBackgrounds.Value) ? "true" : "false") + "," +

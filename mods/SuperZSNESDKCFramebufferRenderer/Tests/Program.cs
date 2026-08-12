@@ -15,13 +15,14 @@ internal static class Program
             TestPlanar(rasterizer);
             TestTileMap(rasterizer);
             TestColorMath(rasterizer);
+            TestLegacyShaderAdd(rasterizer);
             TestRegionModes(rasterizer);
             TestStockPaletteExpansion(rasterizer);
             TestCachePrimitives(rasterizer);
             TestDecodedTileAtlas(rasterizer);
             TestFixedNativePillarbox(rasterizer);
             TestRuntimeShape();
-            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, color math, window regions, retained-cache primitives, fixed-native pillarbox, and v0.230 patch targets.");
+            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache primitives, fixed-native pillarbox, and v0.230 patch targets.");
             return 0;
         }
         catch (Exception exception)
@@ -76,6 +77,21 @@ internal static class Program
         Require((ushort)blend.Invoke(null, new object[] { (ushort)20, (ushort)10, false, true }) == 15, "half");
         Require((ushort)blend.Invoke(null, new object[] { (ushort)31, (ushort)31, false, true }) == 31,
             "half-add divides before saturation");
+    }
+
+    private static void TestLegacyShaderAdd(Type type)
+    {
+        MethodInfo add = Required(type, "LegacyAddChannel");
+        int A(int main, int sub, int brightness) =>
+            (byte)add.Invoke(null, new object[] { main, sub, brightness });
+        // Stable channel combinations from the Slip-Slide Ride frame-573672
+        // legacy main/sub/final oracle.
+        Require(A(2, 1, 15) == 31, "legacy shader add 16+8");
+        Require(A(5, 1, 15) == 53, "legacy shader add 40+8");
+        Require(A(6, 1, 15) == 61, "legacy shader add 48+8");
+        Require(A(9, 1, 15) == 84, "legacy shader add 72+8");
+        Require(A(31, 31, 15) == 255, "legacy shader add saturation");
+        Require(A(31, 31, 0) == 0, "legacy shader add zero brightness");
     }
 
     private static void TestRegionModes(Type type)

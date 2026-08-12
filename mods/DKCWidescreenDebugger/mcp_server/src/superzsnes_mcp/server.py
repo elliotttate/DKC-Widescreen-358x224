@@ -93,11 +93,11 @@ def zsnes_capture(reason: str = "mcp") -> dict[str, Any]:
 
 @mcp.tool()
 def zsnes_screenshot(
-    target: Literal["main", "composed", "window"] = "main",
+    target: Literal["main", "sub", "composed", "window"] = "main",
     format: Literal["png", "jpeg"] = "png",
     quality: int = 85,
 ) -> Image:
-    """Grab a live MCP image. JPEG is smaller and supports quality 1-100; PNG is lossless. composed falls back to main."""
+    """Grab a live MCP image. main/sub are raw PPU planes; composed is the full color-math result."""
     result = client.call("screenshot", target=target, format=format, quality=quality)
     image_format = "jpeg" if result["mimeType"] == "image/jpeg" else "png"
     return Image(data=base64.b64decode(result["base64"]), format=image_format)

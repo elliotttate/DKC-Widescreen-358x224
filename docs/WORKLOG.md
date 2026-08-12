@@ -652,3 +652,23 @@ The object table also confirms there is no omitted second rope nearby: the prece
 The exact route was tested deterministically. From the state, `0=START;1-8=RIGHT+B;9-420=UP` attaches Diddy to the rope (Kong state `$0025`) and the blue rope carries the Kongs upward automatically; another 420 Up frames continues the ascent. `0-59=RIGHT+B;60-180=RIGHT+Y` then jumps off and advances the level. This verifies the visible rope and the grabbable/collision rope are the same actor.
 
 No ROM or renderer patch was made for this checkpoint. Moving the rope would make it diverge from the original game and its collision path. Treat any later rope-position report as a separate state-specific case, especially for purple ropes or multi-rope sequences, and repeat the authored/live/OAM/collision comparison before changing coordinates.
+
+## 2026-08-12 Slip-Slide Ride shimmer compositor fix
+
+The user state `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst1` reproduces a foreground ice-shimmer error in the CPU framebuffer renderer. At exact save-state frame 573672, the PPU is uniform Mode 1 with `TM=$13` (BG1/BG2/OBJ main), `TS=$04` (BG3 subscreen), `CGWSEL=$02` (subscreen color operand), and `CGADSUB=$33` (add color math on BG1/BG2/OBJ/backdrop). The bad CPU image displayed large purple BG3 halo shapes across the foreground. Disabling the CPU presenter restored the correct white/cyan glints.
+
+Layer-isolated evidence proved the tilemaps were not corrupt. CPU BG1/BG2 main-priority output matched the legacy main plane structurally, and CPU BG3 contained the intended animated glint art. The divergence appeared only after main/subscreen composition. The pre-fix final candidate is `<superzsnes>\BepInEx\plugins\SuperZSNESDKCFramebufferRenderer\candidate-20260812-144406-627.png`; its diagnostic planes share the same timestamp.
+
+The screenshot tooling itself contained a misleading fallback: `PPURenderer.GetFinalComposedTexture()` returns a `Texture2D`, but `DKCWidescreenDebugger` accepted only `RenderTexture`, so `target=composed` silently returned the raw main plane. `DKCWidescreenDebugger` v0.1.4 now captures the live private `transferScreenRenderTexture` for the full 796x448 widescreen composite, accepts the private subscreen render texture as `target=sub`, and correctly encodes/destroys a returned `Texture2D` fallback. At frame 573672 the exact background-only oracle surfaces are:
+
+- main: session `20260812-105619`, `screenshot-main-f00573672-20260812-105634-629.png`;
+- sub: `screenshot-sub-f00573672-20260812-105634-670.png`;
+- composed: `screenshot-composed-f00573672-20260812-105634-721.png`.
+
+Those surfaces reveal two legacy-compositor rules the CPU path lacked. An empty subscreen location is opaque black, not CGRAM color 0. A selected additive pixel is blended by the final shader after sRGB-to-linear conversion: each linear channel is raised to `1/1.9`, main and sub are summed, the result is raised to `1.9`, clamped, and encoded to sRGB. Across the captured additive pixels, this model differs from the GPU oracle by at most one 8-bit value per channel. Representative exact readbacks include main/sub/final channel values `16+8 -> 31`, `40+8 -> 53`, `48+8 -> 61`, and `72+8 -> 84`.
+
+`SuperZSNESDKCFramebufferRenderer` v0.4.4 implements both rules. The gamma-aware add is a precomputed 16-brightness x 32-main x 32-sub lookup table (16 KiB), avoiding power functions in the per-pixel loop. The existing SNES 5-bit subtract/half path remains unchanged. Captures now include BG1/BG2/BG3 and main-background-only diagnostic PNGs, with the configured left extension used for window coordinates.
+
+The full verifier builds with zero warnings/errors and includes the captured shader-add fixtures. At the reproduction checkpoint, live retained rendering reported approximately 2.09 ms per supported frame after warmup: 0.18 ms line state, 0.16 ms backgrounds, 0.09 ms sprites, and 1.63 ms composition. The accepted frame is `<superzsnes>\BepInEx\plugins\SuperZSNESDKCFramebufferRenderer\candidate-20260812-150241-223.png`; the corresponding live composed screenshot is debugger session `20260812-110219`, `screenshot-composed-f00573672-20260812-110243-041.png`. A 120-frame neutral animation pass retained the glints without the purple overlay or renderer fallback.
+
+Final shareable build hashes are framebuffer renderer v0.4.4 `A99B13F43025DDD9A3D1693BCB98EC0EED56A7D91938E655394D67D11A427184` and repo-built widescreen debugger v0.1.4 `E572DFFA798CD845E22A6D82A37983BCA83A694C380171BFB23AFFAC4234D302`. `Assembly-CSharp.dll` remains pristine at `33ED627F3A29B5DB82ED8F5CFFC8306CCBACAA2743E1408C976666DC06131DED`.
