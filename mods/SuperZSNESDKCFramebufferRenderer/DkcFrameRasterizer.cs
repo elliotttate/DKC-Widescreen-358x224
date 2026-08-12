@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+#if IL2CPP
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+#endif
 using UnityEngine;
 
 namespace SuperZSNESDKCFramebufferRenderer
@@ -29,6 +32,10 @@ namespace SuperZSNESDKCFramebufferRenderer
         private byte[] _spriteOwner;
         private readonly byte[] _registers = new byte[64];
         private readonly byte[] _workingCgram = new byte[512];
+#if IL2CPP
+        private readonly byte[] _vramSnapshot = new byte[65536];
+        private readonly byte[] _oamSnapshot = new byte[544];
+#endif
         private string _verifiedRomPath;
         private bool _verifiedRom;
         private readonly bool _enableRetainedBackgrounds;
@@ -103,7 +110,11 @@ namespace SuperZSNESDKCFramebufferRenderer
             return pixels;
         }
 
-        private const string CanonicalRomSha256 = "B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D";
+        private static readonly string[] CanonicalRomSha256 =
+        {
+            "B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D", // widescreen
+            "FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5"  // widescreen + Deluxe MSU-1
+        };
 
         private static readonly int[] BgLow = { 7, 6, 1 };
         private static readonly int[] BgHigh = { 10, 9, 4 };
@@ -157,7 +168,11 @@ namespace SuperZSNESDKCFramebufferRenderer
             bool fixedNativePillarbox = ShouldPillarboxFixedNativeFrame();
             FixedNativePillarboxActive = fixedNativePillarbox;
 
+#if IL2CPP
+            byte[] vram = SnapshotBytes(ppu.GetPPUMemory(), _vramSnapshot);
+#else
             byte[] vram = ppu.GetPPUMemory();
+#endif
             stageStart = Stopwatch.GetTimestamp();
             PrepareBackgroundPlanes(vram, width, height, leftExtension);
             BackgroundMs += ElapsedMilliseconds(stageStart);
@@ -166,7 +181,12 @@ namespace SuperZSNESDKCFramebufferRenderer
             EnsureSpriteBuffers(width, height);
             Array.Clear(_sprites, 0, _sprites.Length);
             for (int i = 0; i < _spriteOwner.Length; i++) _spriteOwner[i] = byte.MaxValue;
-            RasterizeSprites(ppu, width, height, leftExtension);
+#if IL2CPP
+            SnapshotBytes(ppu.GetStartFrameOAMMemory(), _oamSnapshot);
+            RasterizeSprites(ppu, vram, _oamSnapshot, width, height, leftExtension);
+#else
+            RasterizeSprites(ppu, vram, ppu.GetStartFrameOAMMemory(), width, height, leftExtension);
+#endif
             SpriteMs += ElapsedMilliseconds(stageStart);
 
             stageStart = Stopwatch.GetTimestamp();
@@ -860,7 +880,8 @@ namespace SuperZSNESDKCFramebufferRenderer
             using (FileStream stream = File.OpenRead(path))
             {
                 string actual = BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", string.Empty);
-                _verifiedRom = string.Equals(actual, CanonicalRomSha256, StringComparison.OrdinalIgnoreCase);
+                _verifiedRom = Array.Exists(CanonicalRomSha256,
+                    expected => string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase));
                 _verifiedRomPath = path;
                 return _verifiedRom;
             }
@@ -869,7 +890,11 @@ namespace SuperZSNESDKCFramebufferRenderer
         private bool BuildLineState(SNESPPU ppu, out string reason)
         {
             reason = string.Empty;
+#if IL2CPP
+            Il2CppStructArray<byte> start = ppu._ppuStartFrame;
+#else
             byte[] start = ppu._ppuStartFrame;
+#endif
             if (start == null || start.Length < 64 || ppu.GetCGMemoryStartFrame() == null ||
                 ppu.GetCGMemoryStartFrame().Length != 512 || ppu.GetPPUMemory() == null ||
                 ppu.GetPPUMemory().Length != 65536 || ppu.GetStartFrameOAMMemory() == null ||
@@ -881,8 +906,13 @@ namespace SuperZSNESDKCFramebufferRenderer
                 reason = "missing-start-frame-state";
                 return false;
             }
+#if IL2CPP
+            CopyBytes(start, _registers, 64);
+            CopyBytes(ppu.GetCGMemoryStartFrame(), _workingCgram, 512);
+#else
             Array.Copy(start, _registers, 64);
             Array.Copy(ppu.GetCGMemoryStartFrame(), _workingCgram, 512);
+#endif
 
             int sx1 = ppu._startScrollXBG1, sy1 = ppu._startScrollYBG1;
             int sx2 = ppu._startScrollXBG2, sy2 = ppu._startScrollYBG2;
@@ -1040,10 +1070,9 @@ namespace SuperZSNESDKCFramebufferRenderer
             return new LayerPixel((byte)paletteIndex, (byte)priority, (byte)bg, false, true);
         }
 
-        private void RasterizeSprites(SNESPPU ppu, int width, int height, int leftExtension)
+        private void RasterizeSprites(SNESPPU ppu, byte[] vram, byte[] oam,
+            int width, int height, int leftExtension)
         {
-            byte[] oam = ppu.GetStartFrameOAMMemory();
-            byte[] vram = ppu.GetPPUMemory();
             int priorityAddress = ppu.GetOAMPriority();
             int start = (priorityAddress & 0x8000) != 0 ? (priorityAddress & 0xFE) >> 1 : 0;
             for (int order = 0; order < 128; order++)
@@ -1101,6 +1130,21 @@ namespace SuperZSNESDKCFramebufferRenderer
                 }
             }
         }
+
+#if IL2CPP
+        private static byte[] SnapshotBytes(Il2CppStructArray<byte> source, byte[] destination)
+        {
+            if (source == null || destination == null || source.Length != destination.Length)
+                throw new InvalidOperationException("IL2CPP PPU buffer has an unexpected length.");
+            CopyBytes(source, destination, destination.Length);
+            return destination;
+        }
+
+        private static void CopyBytes(Il2CppStructArray<byte> source, byte[] destination, int length)
+        {
+            for (int i = 0; i < length; i++) destination[i] = source[i];
+        }
+#endif
 
         private void EnsureSpriteBuffers(int width, int height)
         {

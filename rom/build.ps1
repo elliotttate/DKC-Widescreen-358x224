@@ -1,14 +1,21 @@
 param(
     [Parameter(Mandatory=$true)][string]$DisassemblyRoot,
     [Parameter(Mandatory=$true)][string]$RomPath,
-    [string]$OutputPath = (Join-Path $PSScriptRoot '..\artifacts\DKC_Widescreen_358x224.sfc'),
+    [string]$OutputPath,
+    [switch]$EnableMsu1Deluxe,
     [switch]$SkipExtraction
 )
 
 $ErrorActionPreference = 'Stop'
 $expectedUpstream = 'c2080f40469c716923f550706509a0d354229841'
 $expectedRomMd5 = '30C5F292FF4CBBFCC00FD8FA96C2DE3B'
-$expectedOutputSha256 = 'B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D'
+$expectedWidescreenSha256 = 'B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D'
+$expectedMsu1DeluxeSha256 = 'FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5'
+
+if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+    $artifactName = if ($EnableMsu1Deluxe) { 'DKC_Widescreen_358x224_MSU1_Deluxe.sfc' } else { 'DKC_Widescreen_358x224.sfc' }
+    $OutputPath = Join-Path $PSScriptRoot "..\artifacts\$artifactName"
+}
 
 $DisassemblyRoot = (Resolve-Path $DisassemblyRoot).Path
 $RomPath = (Resolve-Path $RomPath).Path
@@ -49,7 +56,7 @@ if (-not $SkipExtraction) {
 $asar = Join-Path $DisassemblyRoot 'Global\asar.exe'
 $assemble = Join-Path $DisassemblyRoot 'Global\AssembleFile.asm'
 $working = Join-Path $gameRoot 'DKC_Widescreen_358x224 (Hack).sfc'
-$romId = 'HACK_DKC_Widescreen_358x224'
+$romId = if ($EnableMsu1Deluxe) { 'HACK_DKC_Widescreen_358x224_MSU1Deluxe' } else { 'HACK_DKC_Widescreen_358x224' }
 
 Push-Location $gameRoot
 try {
@@ -61,7 +68,11 @@ try {
     if ($LASTEXITCODE) { throw 'SPC700 engine assembly failed.' }
     & $asar --define GameID='DKC1' --define ROMID=$romId --define FileType=1 $assemble $working
     if ($LASTEXITCODE) { throw 'Main ROM assembly failed.' }
-    & $asar --define GameID='DKC1' --define ROMID=$romId --define FileType=2 $assemble $working
+    if ($EnableMsu1Deluxe) {
+        & $asar --fix-checksum=on --define GameID='DKC1' --define ROMID=$romId --define FileType=2 $assemble $working
+    } else {
+        & $asar --define GameID='DKC1' --define ROMID=$romId --define FileType=2 $assemble $working
+    }
     if ($LASTEXITCODE) { throw 'Widescreen patch/finalization failed.' }
 } finally { Pop-Location }
 
@@ -69,7 +80,12 @@ $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 New-Item -ItemType Directory -Path (Split-Path $OutputPath -Parent) -Force | Out-Null
 Copy-Item -LiteralPath $working -Destination $OutputPath -Force
 $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $OutputPath).Hash
-if ($sha -ne $expectedOutputSha256) {
+$expectedOutputSha256 = if ($EnableMsu1Deluxe) { $expectedMsu1DeluxeSha256 } else { $expectedWidescreenSha256 }
+if ($expectedOutputSha256 -and $sha -ne $expectedOutputSha256) {
     throw "Build completed but hash differs. Expected $expectedOutputSha256, got $sha."
 }
-Write-Host "Built and verified: $OutputPath" -ForegroundColor Green
+if ($expectedOutputSha256) {
+    Write-Host "Built and verified: $OutputPath" -ForegroundColor Green
+} else {
+    Write-Host "Built (hash not yet locked): $OutputPath ($sha)" -ForegroundColor Yellow
+}

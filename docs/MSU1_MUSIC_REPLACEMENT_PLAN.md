@@ -1,5 +1,27 @@
 # External music replacement plan
 
+## Implemented Deluxe 60-track build
+
+The full DKC Deluxe path described below is now implemented as an optional,
+reproducible USA v1.0 overlay. `rom/build.ps1 -EnableMsu1Deluxe` produces ROM
+SHA-256 `FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5`
+without changing the standard widescreen output. The port relocates the public
+Rev. 2 patch's entrance capture, SPC music mute, music-select hook, and NMI poll
+to their asserted byte-equivalent v1.0 sites. Its code and tables occupy the
+otherwise unused `$FB:F800-$FB:FB2F` region.
+
+`rom/setup-msu1-deluxe.ps1` validates all 60 PCM headers, frame alignment, and
+loop points, creates the empty same-basename `.msu` marker, and hard-links the
+pack under the ROM basename expected by SuperZSNES. The inspected JUD6MENT pack
+contained exactly tracks 1-60, all valid, totaling about 1.44 GiB. Its optional
+alternate track 25 is opt-in; the main pack version remains the default.
+
+A clean, unmodified SuperZSNES v0.300 IL2CPP build accepted the calculated ROM
+checksum, detected MSU-1 without a manifest, and logged the expected transition
+through track 11 (splash), 10 (title), Deluxe map variant 59, and 1 (level),
+including the corresponding PCM loads, volumes, play flags, and loop addresses.
+No BepInEx loader or runtime patch was present in that first v0.300 test.
+
 ## Conclusion
 
 Use an MSU-1 ROM integration, not a BepInEx MP3 player, for the production implementation.

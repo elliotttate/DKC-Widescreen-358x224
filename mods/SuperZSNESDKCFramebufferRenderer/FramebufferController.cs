@@ -34,7 +34,9 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static string _lastCapture = string.Empty;
         private static PPURenderer _lastRenderer;
         private static bool _activeDisplayVramWrite;
+#if !IL2CPP
         private static readonly FieldInfo TransferMaterialUsed = AccessTools.Field(typeof(MainScreenBlit), "_transferMaterialUsed");
+#endif
 
         internal static void Initialize(ManualLogSource log, ConfigEntry<bool> present,
             ConfigEntry<int> shadowInterval, ConfigEntry<int> width, ConfigEntry<int> height,
@@ -131,7 +133,11 @@ namespace SuperZSNESDKCFramebufferRenderer
             if (_present == null || !_present.Value || !_frameReady || _texture == null)
                 return false;
 
+#if IL2CPP
+            Material transfer = blitter._transferMaterialUsed;
+#else
             Material transfer = TransferMaterialUsed?.GetValue(blitter) as Material;
+#endif
             if (transfer == null)
                 return false;
 
@@ -147,7 +153,11 @@ namespace SuperZSNESDKCFramebufferRenderer
             }
             float pixelAspect = use87 ? 1f : 1.1666666f;
             transfer.SetVector("_ScreenScale", new Vector4(scale / pixelAspect, 1f, 0f, 0f));
+#if IL2CPP
+            transfer.SetVector("_PixelScale", new Vector4(_texture.width, _texture.height,
+#else
             transfer.SetVector("_PixelScale", new Vector4(398f, 224f,
+#endif
                 MainMenuManager.Instance.mainMenuSettings.scanlineStrength * 2f));
             Texture pixelTexture = MainMenuManager.Instance.mainMenuSettings.gfxMode == MainMenuManager.GFXModes.Scanlines
                 ? blitter.scanline : blitter.white;
@@ -295,7 +305,11 @@ namespace SuperZSNESDKCFramebufferRenderer
             long stageFrames = _rasterizer?.StageFrames ?? 0;
             double stageDivisor = stageFrames == 0 ? 1 : stageFrames;
             string json = "{" +
-                          "\"version\":\"0.4.4\"," +
+#if IL2CPP
+                          "\"version\":\"0.1.0-il2cpp\"," +
+#else
+                          "\"version\":\"0.4.5\"," +
+#endif
                           "\"state\":\"" + Escape(state) + "\"," +
                           "\"present\":" + ((_present != null && _present.Value) ? "true" : "false") + "," +
                           "\"retainedBackgrounds\":" + ((_retainedBackgrounds != null && _retainedBackgrounds.Value) ? "true" : "false") + "," +

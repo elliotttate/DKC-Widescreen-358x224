@@ -71,4 +71,15 @@ v0.4.4 matches the legacy behavior. Its per-pixel path uses a precomputed 16x32x
 
 The verified v0.4.4 DLL has SHA-256 `A99B13F43025DDD9A3D1693BCB98EC0EED56A7D91938E655394D67D11A427184`.
 
+## Deluxe MSU-1 ROM identity in v0.4.5
+
+v0.4.5 adds the reproducible widescreen + Deluxe MSU-1 ROM hash to the same
+fail-closed identity allowlist as the standard widescreen ROM. Rendering code
+and pixel output are otherwise unchanged. This matters only on the legacy
+SuperZSNES v0.230/BepInEx path; clean SuperZSNES v0.300 is IL2CPP-based and was
+first baseline-tested without this or any other BepInEx plugin. Widescreen
+presentation on v0.300 now uses the separate
+`SuperZSNESDKCFramebufferRendererIL2CPP` project; this Mono DLL is not
+compatible with that runtime.
+
 `F10`/`capture.request` now also writes BG1, BG2, BG3, and main-background-only PNGs beside the final candidate. These planes are diagnostic outputs; the final candidate remains the authoritative CPU-renderer image.

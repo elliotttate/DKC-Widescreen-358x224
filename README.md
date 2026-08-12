@@ -5,7 +5,7 @@ Source, diagnostics, regression automation, and SuperZSNES runtime mods for a tr
 The project has two complementary parts:
 
 - `rom/`: an Asar overlay for the USA v1.0 DKC disassembly. It expands streaming, camera/object ranges, banana formations, player endpoints, and grouped-object retry behavior.
-- `mods/`: BepInEx plugins and scripts for SuperZSNES v0.230, including the accepted CPU framebuffer renderer, frame pacing fixes, automation, capture, and diagnostic tooling.
+- `mods/`: BepInEx plugins and scripts for SuperZSNES v0.230, plus a separate BepInEx 6 IL2CPP port of the accepted framebuffer renderer for v0.300.
 
 The final renderer keeps the SNES core near 60 FPS while replacing SuperZSNES's expensive per-tile Unity presentation path for supported DKC Mode 1 frames. The accepted v0.4.2 retained-tile rewrite raised the difficult Millstone Mayhem scrolling case from 86-90 to 119.4-119.7 presentation updates/s, while eliminating every multi-frame batch in the controlled 1,800-frame test.
 
@@ -41,6 +41,8 @@ Prerequisites:
 
 The same paths can be supplied through `BEPINEX_ROOT`, `SUPERZSNES_ROOT`, and `SUPERZSNES_MANAGED_DIR`. Build output remains under each project's ignored `bin/` directory.
 
+For SuperZSNES v0.300, use [the separate IL2CPP renderer project](mods/SuperZSNESDKCFramebufferRendererIL2CPP/README.md). It pins the 32-bit BepInEx IL2CPP build that supports v0.300 metadata version 39. Do not install the v0.230 performance/debug plugins into v0.300; its native performance is already substantially better and those Mono-targeted patches are not ABI-compatible.
+
 ## Validate the source-only tree
 
 ```powershell
@@ -54,13 +56,17 @@ The check rejects copyrighted/runtime binaries, save data, captures, local absol
 - DKC USA v1.0, headerless MD5 `30c5f292ff4cbbfcc00fd8fa96c2de3b`
 - Yoshifanatic1 DKC1 disassembly commit `c2080f40469c716923f550706509a0d354229841`
 - SuperZSNES v0.230 `Assembly-CSharp.dll` SHA-256 `33ED627F3A29B5DB82ED8F5CFFC8306CCBACAA2743E1408C976666DC06131DED`
+- SuperZSNES v0.300 x86 IL2CPP executable SHA-256 `B83358E453C9378A37AA0E43D22886AD49EE426F1ECF381B4F84A3A49F54FDD6`
+- SuperZSNES v0.300 `GameAssembly.dll` SHA-256 `0A5582B26EF2596FFA504AC6C1282E145EFA093B49EFD22974D4F2C74561271A`
 - Final widescreen ROM SHA-256 `B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D`
+- Optional widescreen + Deluxe MSU-1 ROM SHA-256 `FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5`
 
 ## Documentation
 
 - [Project status and safety matrix](PROJECTS.md)
 - [ROM build instructions](rom/README.md)
 - [Technical worklog](docs/WORKLOG.md)
+- [MSU-1 music design and Deluxe integration](docs/MSU1_MUSIC_REPLACEMENT_PLAN.md)
 - Per-plugin READMEs under `mods/`
 
 ## License and trademarks

@@ -684,3 +684,90 @@ An existing DKC MSU-1 v4 patch confirms the design and establishes the one-based
 A one-song-only pack must not use the historical global SPC mute, but the disassembly exposes a safer selective method. `CODE_B990CE` can still upload the selected song/sample environment and then omit only its final SPC `$FE` start command when the configured replacement ID has a valid MSU track. All other IDs execute stock playback, and a missing PCM falls back to the stock `$FE` path. `CODE_B990E7` should stop both engines on transitions. This retains SPC sound effects and avoids supplying PCM copies of the other 26 songs. A small MSU-ready state machine is still required for portable busy handling.
 
 The complete design, track table, SuperZSNES contract, v1.0 port notes, asset rules, and acceptance matrix are in `docs/MSU1_MUSIC_REPLACEMENT_PLAN.md`. No ROM, emulator configuration, runtime plugin, or audio asset was changed during this investigation.
+
+## 2026-08-12 DKC Deluxe MSU-1 port and clean SuperZSNES v0.300 test
+
+The matching Deluxe inputs were supplied separately: a 60-file JUD6MENT PCM
+pack and the public `dkc_msu.asm`/IPS patch. Every main-pack PCM from 1 through
+60 has a valid `MSU1` header, signed-stereo frame alignment, and an in-range
+loop sample. The files total about 1.44 GiB. The optional alternate Gang-Plank
+Galleon track 25 was found but intentionally not selected by default.
+
+The supplied Deluxe patch targets DKC USA Rev. 2 and was not applied directly.
+Its behavior was ported into `Custom/Patches/MSU1_Deluxe.asm` with asserted USA
+v1.0 equivalents: entrance capture `$80:829B`, SPC music-control bytes
+`$CA:A9E5`, music selection `$CA:B1CD`, and NMI polling `$C0:A971`. Code and the
+loop/replacement tables live at `$FB:F800-$FB:FB2F`, separate from the bank-$CA
+widescreen helpers. The standard build remains byte-identical at SHA-256
+`B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D`.
+The checksum-fixed Deluxe build is
+`FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5`;
+its header complement/checksum are `$A5D9/$5A26`, XOR to `$FFFF`, and the full
+ROM byte sum is `$5A26`.
+
+`rom/setup-msu1-deluxe.ps1` packages legally obtained audio without copying its
+payload: it validates all tracks, creates a same-basename empty `.msu` marker,
+and creates 60 hard links named for the ROM. Existing mismatched ROMs/tracks
+fail closed rather than being overwritten.
+
+The first runtime test deliberately switched to a clean SuperZSNES v0.300
+IL2CPP distribution with no BepInEx loader or plugins. Its native `Player.log`
+reported a valid ROM checksum, `Loading MSU1 without manifest`, then loaded and
+played track 11 for the splash, track 10 for the title, Deluxe map variant 59,
+and track 1 for gameplay with the expected volume/play/loop commands. This
+proves both the v1.0 cue hooks and same-basename audio packaging are functioning
+before evaluating whether any legacy v0.230 renderer/performance mods are still
+needed. The v0.300 process was left running for interactive play.
+
+## 2026-08-12 SuperZSNES v0.300 IL2CPP widescreen renderer port
+
+SuperZSNES v0.300 is a 32-bit Unity 6000.3.6f1 IL2CPP application rather than
+the v0.230 Mono build. Its clean native execution fixed the earlier performance
+problem but retained the legacy wide-compositor defect: the ROM's seven-tile
+BG/OBJ margin was active while Unity's main/sub/window camera composition split
+layers into mismatched vertical regions.
+
+BepInEx `Unity.IL2CPP-win-x86` build `6.0.0-be.783+c58c42d` is the pinned
+loader. v0.300 uses IL2CPP metadata version 39; be.783 generated 111 interop
+assemblies successfully, while later tested builds with a reverted Cpp2IL did
+not accept that metadata. The verified BepInEx archive SHA-256 is
+`AEA68423FE7539DEAC6102B4CF9F5EE4205519EB92533FE904500F74B0D3DAAE`.
+
+`mods/SuperZSNESDKCFramebufferRendererIL2CPP` is a separate net6.0 BepInEx 6
+plugin. It shares the accepted rasterizer/controller source with the v0.230
+project but snapshots IL2CPP native-backed VRAM, CGRAM, and OAM arrays into
+reused managed buffers before parallel rasterization. The plugin hooks the same
+three semantic seams retained by v0.300: `PPURenderer.GenerateBackgrounds`,
+`MainScreenBlit.OnRenderImage`, and `SNESPPU.WriteIO`. It is the only legacy mod
+ported at this stage; no v0.230 performance or debugger patch was installed.
+
+The production plugin and the disposable test copy both use SHA-256
+`7EF16F9963A4236E69F2CAA4A7A7F14691FD7C0EFA5A752FEE7A787EE55442CC`.
+Both the new net6.0 project and the shared net472 v0.230 project build with zero
+warnings/errors. The installed v0.300 session generated its interop assemblies,
+loaded exactly one plugin, retained MSU-1 playback, and produced seam-free
+358x224 full-screen output. Unsupported modes/transitions and active-display
+VRAM writes continue to fail closed to the stock renderer.
+
+In a 20-second moving attract-mode sample in the disposable copy, the plugin
+presented 1,223 supported frames in 20.028 seconds (about 61.07 Hz). The process
+used about 1.24 CPU cores. The CPU framebuffer averaged 4.75 ms after warmup,
+with retained-background stage averages near 0.82 ms and composition near
+1.22 ms. This confirms the port does not reintroduce the v0.230 throughput
+bottleneck. The installed v0.300 game was left running for user testing; the
+BepInEx console is disabled for the next launch while disk logging remains on.
+
+A matching retained-background A/B used two fresh launches of the disposable
+v0.300 copy, the same ROM, an eight-second startup period, and a further
+25-second observation. With caching disabled, 1,200 supported frames averaged
+2.5847 ms in the background stage and 7.7664 ms for the complete rasterizer.
+With caching enabled, 900 supported frames averaged 1.4862 ms and 6.9705 ms;
+2,090 of 2,700 per-layer decisions were hits (77.41%). That is a 42.5%
+reduction in background-stage time and a 10.3% reduction in complete
+rasterizer time in this short startup workload. Approximate cumulative process
+CPU also fell from 94.31 to 80.67 CPU-seconds over equal wall-clock runs, though
+that process-wide number includes startup and concurrent-system noise. The
+retained-background optimization therefore remains valuable on v0.300. The old
+v0.230 Mono scheduler, audio, material, and mesh transpilers remain unported
+and uninstalled; their target IL and runtime costs must be audited again against
+the v0.300 IL2CPP decompilation before considering them.

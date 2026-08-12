@@ -6,6 +6,7 @@ The repository preserves accepted work, diagnostic tooling, and rejected experim
 
 | Project | Status | Purpose |
 | --- | --- | --- |
+| `SuperZSNESDKCFramebufferRendererIL2CPP` | Recommended for v0.300 only | BepInEx 6/x86 IL2CPP port of the accepted DKC framebuffer compositor. |
 | `SuperZSNESDKCFramebufferRenderer` | Recommended | Supported DKC Mode 1 CPU framebuffer and presentation path; the major performance fix. |
 | `SuperZSNESFramePacingFix` | Recommended | Charges only frames actually scheduled and preserves bounded normal-speed backlog. |
 | `SuperZSNESPerformanceGuard` | Recommended | Disables history/rewind spikes, caps presentation at 120, and limits PPU surfaces to 2x. |
@@ -48,3 +49,5 @@ These projects are retained as evidence and default to disabled or fail-closed b
 | `SuperZSNESVariableMaterialBatching` | Visual failure; v0.1.1 hard-quarantines enabled mode. |
 
 Read the individual README and [technical worklog](docs/WORKLOG.md) before changing any default-off switch.
+
+The remaining projects in this matrix target the v0.230 Mono build unless their README explicitly says otherwise. Do not copy the old performance/automation DLLs into v0.300.

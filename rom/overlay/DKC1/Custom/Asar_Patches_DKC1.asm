@@ -26,6 +26,9 @@ macro DKC1_ApplyPatchesPostAssembly()
 	if defined("Define_DKC1_WidescreenHack")
 		incsrc "Patches/Widescreen_358x224.asm"
 	endif
+	if defined("Define_DKC1_MSU1Deluxe")
+		incsrc "Patches/MSU1_Deluxe.asm"
+	endif
 endmacro
 
 ;---------------------------------------------------------------------------
