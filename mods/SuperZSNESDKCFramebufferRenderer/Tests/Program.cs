@@ -22,9 +22,10 @@ internal static class Program
             TestDecodedTileAtlas(rasterizer);
             TestRasterPartialModel(rasterizer);
             TestFixedNativePillarbox(rasterizer);
+            TestGeometryProfiles(rasterizer);
             TestFallbackTelemetry(plugin);
             TestRuntimeShape();
-            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache and raster-partial equivalence, fixed-native pillarbox, fallback telemetry, and v0.230 patch targets.");
+            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache and raster-partial equivalence, fixed-native pillarbox, 358/398 geometry profiles, fallback telemetry, and v0.230 patch targets.");
             return 0;
         }
         catch (Exception exception)
@@ -235,6 +236,25 @@ internal static class Program
         Require(!Loading(9, 0x0038, 0x13C8), "valid widescreen bounds must stay wide");
         Require(!Loading(9, 0x6938, 0x6BC8), "valid high-world bounds must stay wide");
         Require(!Loading(1, 0, 0), "non-gameplay native screens use explicit signatures");
+    }
+
+    private static void TestGeometryProfiles(Type type)
+    {
+        MethodInfo profile = Required(type, "TryGetWidescreenProfile");
+        object[] wide358 = { @"C:\Games\DKC_Widescreen_358x224_MSU1_Deluxe.sfc", 0, 0, 0 };
+        Require((bool)profile.Invoke(null, wide358), "358 profile detection");
+        Require((int)wide358[1] == 358 && (int)wide358[2] == 51 && (int)wide358[3] == 7,
+            "358 profile geometry");
+
+        object[] wide398 = { @"C:\Games\DKC_Widescreen_398x224_MSU1_Restoration.sfc", 0, 0, 0 };
+        Require((bool)profile.Invoke(null, wide398), "398 profile detection");
+        Require((int)wide398[1] == 398 && (int)wide398[2] == 71 && (int)wide398[3] == 9,
+            "398 profile geometry");
+
+        object[] unknown = { @"C:\Games\Donkey Kong Country (USA).sfc", 1, 1, 1 };
+        Require(!(bool)profile.Invoke(null, unknown), "unknown ROM must fail closed");
+        Require((int)unknown[1] == 0 && (int)unknown[2] == 0 && (int)unknown[3] == 0,
+            "unknown profile output must be cleared");
     }
 
     private static void TestRuntimeShape()

@@ -29,7 +29,19 @@ namespace DkcWidescreenPatcher
             new PatchVariant("msu1-restoration", "Widescreen + Restoration MSU-1 hooks",
                 "For traditional 27-track DKC restoration packs. Audio is not included.",
                 "DKC_Widescreen_358x224_MSU1_Restoration.sfc",
-                "4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5")
+                "4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5"),
+            new PatchVariant("16x9-standard", "16:9 widescreen 398x224",
+                "The optional near-exact 16:9 gameplay patch with original SPC music.",
+                "DKC_Widescreen_398x224.sfc",
+                "52272D471CF52B9F18FBA900DE3A5EC2E0D0B337061CCBB4DC2C8F945DCA6CFA"),
+            new PatchVariant("16x9-msu1-deluxe", "16:9 + Deluxe MSU-1 hooks",
+                "The 398x224 profile for the 60-track Deluxe pack. Audio is not included.",
+                "DKC_Widescreen_398x224_MSU1_Deluxe.sfc",
+                "C858CBFBD14C8C0F1D3435541242B948A6737E325CB2FAC5F914FE725FE2B1C1"),
+            new PatchVariant("16x9-msu1-restoration", "16:9 + Restoration MSU-1 hooks",
+                "The 398x224 profile for traditional 27-track packs. Audio is not included.",
+                "DKC_Widescreen_398x224_MSU1_Restoration.sfc",
+                "E25B79726C1A552F4AFE150AE2A224A01385FA693F1C5C014C07C84A5DC94144")
         };
 
         [STAThread]
@@ -54,7 +66,7 @@ namespace DkcWidescreenPatcher
                 {
                     byte[] source = File.ReadAllBytes(args[1]);
                     byte[] target = File.ReadAllBytes(args[2]);
-                    string metadata = args.Length >= 5 ? args[4] : "DKC Widescreen 358x224";
+                    string metadata = args.Length >= 5 ? args[4] : "DKC Widescreen";
                     File.WriteAllBytes(args[3], BpsPatch.Create(source, target, metadata));
                     return 0;
                 }
@@ -165,7 +177,7 @@ namespace DkcWidescreenPatcher
 
         internal MainForm()
         {
-            Text = "DKC Widescreen 358x224 Patcher";
+            Text = "DKC Widescreen Patcher";
             ClientSize = new Size(680, 410);
             MinimumSize = new Size(696, 449);
             StartPosition = FormStartPosition.CenterScreen;
@@ -175,7 +187,7 @@ namespace DkcWidescreenPatcher
 
             var title = new Label
             {
-                Text = "Donkey Kong Country — 358x224 widescreen",
+                Text = "Donkey Kong Country — widescreen",
                 Font = new Font("Segoe UI Semibold", 17F),
                 ForeColor = Color.FromArgb(27, 45, 61),
                 AutoSize = true,

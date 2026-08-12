@@ -15,7 +15,7 @@ namespace SuperZSNESDKCFramebufferRenderer
     {
         public const string PluginGuid = "dev.local.superzsnes.dkcframebuffer";
         public const string PluginName = "SuperZSNES DKC Framebuffer Renderer";
-        public const string PluginVersion = "0.4.13";
+        public const string PluginVersion = "0.4.14";
 
         private Harmony _harmony;
         private ConfigEntry<bool> _enabled;
@@ -24,6 +24,7 @@ namespace SuperZSNESDKCFramebufferRenderer
         private ConfigEntry<int> _width;
         private ConfigEntry<int> _height;
         private ConfigEntry<int> _leftExtension;
+        private ConfigEntry<bool> _autoDetectGeometry;
         private ConfigEntry<bool> _retainedBackgrounds;
         private ConfigEntry<KeyCode> _captureKey;
         private string _captureRequestPath;
@@ -40,6 +41,8 @@ namespace SuperZSNESDKCFramebufferRenderer
             _height = Config.Bind("Geometry", "Height", 224, "Raw SNES framebuffer height.");
             _leftExtension = Config.Bind("Geometry", "LeftExtension", 51,
                 "Native pixels represented to the left of stock screen X=0. The 368-pixel renderer guard is cropped to 358 by default.");
+            _autoDetectGeometry = Config.Bind("Geometry", "AutoDetectRomGeometry", true,
+                "Select 358x224 or 398x224 geometry and the matching stock-renderer fallback margin from the verified ROM filename.");
             _retainedBackgrounds = Config.Bind("Renderer", "RetainedBackgrounds", true,
                 "Reuse plugin-owned background planes until their exact state or relevant VRAM changes. Disable only for oracle A/B testing.");
             _captureKey = Config.Bind("Diagnostics", "CaptureKey", KeyCode.F10,
@@ -56,7 +59,7 @@ namespace SuperZSNESDKCFramebufferRenderer
                 _captureRequestPath = Path.Combine(StatusDirectory(), "capture.request");
                 var layout = RendererLayout.Resolve();
                 FramebufferController.Initialize(Logger, _present, _shadowInterval, _width, _height,
-                    _leftExtension, _retainedBackgrounds, StatusDirectory());
+                    _leftExtension, _autoDetectGeometry, _retainedBackgrounds, StatusDirectory());
                 _harmony = new Harmony(PluginGuid);
                 _harmony.Patch(layout.GenerateBackgrounds,
                     prefix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.GenerateBackgroundsPrefix))

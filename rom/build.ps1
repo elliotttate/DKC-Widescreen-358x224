@@ -2,6 +2,7 @@ param(
     [Parameter(Mandatory=$true)][string]$DisassemblyRoot,
     [Parameter(Mandatory=$true)][string]$RomPath,
     [string]$OutputPath,
+    [switch]$Aspect16x9,
     [switch]$EnableMsu1Deluxe,
     [switch]$EnableMsu1Restoration,
     [switch]$SkipExtraction
@@ -13,18 +14,22 @@ $expectedRomMd5 = '30C5F292FF4CBBFCC00FD8FA96C2DE3B'
 $expectedWidescreenSha256 = 'B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D'
 $expectedMsu1DeluxeSha256 = 'FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5'
 $expectedMsu1RestorationSha256 = '4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5'
+$expected16x9Sha256 = '52272D471CF52B9F18FBA900DE3A5EC2E0D0B337061CCBB4DC2C8F945DCA6CFA'
+$expected16x9Msu1DeluxeSha256 = 'C858CBFBD14C8C0F1D3435541242B948A6737E325CB2FAC5F914FE725FE2B1C1'
+$expected16x9Msu1RestorationSha256 = 'E25B79726C1A552F4AFE150AE2A224A01385FA693F1C5C014C07C84A5DC94144'
 
 if ($EnableMsu1Deluxe -and $EnableMsu1Restoration) {
     throw 'Choose only one MSU-1 music mode.'
 }
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
+    $dimensions = if ($Aspect16x9) { '398x224' } else { '358x224' }
     $artifactName = if ($EnableMsu1Deluxe) {
-        'DKC_Widescreen_358x224_MSU1_Deluxe.sfc'
+        "DKC_Widescreen_${dimensions}_MSU1_Deluxe.sfc"
     } elseif ($EnableMsu1Restoration) {
-        'DKC_Widescreen_358x224_MSU1_Restoration.sfc'
+        "DKC_Widescreen_${dimensions}_MSU1_Restoration.sfc"
     } else {
-        'DKC_Widescreen_358x224.sfc'
+        "DKC_Widescreen_${dimensions}.sfc"
     }
     $OutputPath = Join-Path $PSScriptRoot "..\artifacts\$artifactName"
 }
@@ -67,8 +72,15 @@ if (-not $SkipExtraction) {
 
 $asar = Join-Path $DisassemblyRoot 'Global\asar.exe'
 $assemble = Join-Path $DisassemblyRoot 'Global\AssembleFile.asm'
-$working = Join-Path $gameRoot 'DKC_Widescreen_358x224 (Hack).sfc'
-$romId = if ($EnableMsu1Deluxe) {
+$dimensions = if ($Aspect16x9) { '398x224' } else { '358x224' }
+$working = Join-Path $gameRoot "DKC_Widescreen_${dimensions} (Hack).sfc"
+$romId = if ($Aspect16x9 -and $EnableMsu1Deluxe) {
+    'HACK_DKC_Widescreen_398x224_MSU1Deluxe'
+} elseif ($Aspect16x9 -and $EnableMsu1Restoration) {
+    'HACK_DKC_Widescreen_398x224_MSU1Restoration'
+} elseif ($Aspect16x9) {
+    'HACK_DKC_Widescreen_398x224'
+} elseif ($EnableMsu1Deluxe) {
     'HACK_DKC_Widescreen_358x224_MSU1Deluxe'
 } elseif ($EnableMsu1Restoration) {
     'HACK_DKC_Widescreen_358x224_MSU1Restoration'
@@ -98,7 +110,13 @@ $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 New-Item -ItemType Directory -Path (Split-Path $OutputPath -Parent) -Force | Out-Null
 Copy-Item -LiteralPath $working -Destination $OutputPath -Force
 $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $OutputPath).Hash
-$expectedOutputSha256 = if ($EnableMsu1Deluxe) {
+$expectedOutputSha256 = if ($Aspect16x9 -and $EnableMsu1Deluxe) {
+    $expected16x9Msu1DeluxeSha256
+} elseif ($Aspect16x9 -and $EnableMsu1Restoration) {
+    $expected16x9Msu1RestorationSha256
+} elseif ($Aspect16x9) {
+    $expected16x9Sha256
+} elseif ($EnableMsu1Deluxe) {
     $expectedMsu1DeluxeSha256
 } elseif ($EnableMsu1Restoration) {
     $expectedMsu1RestorationSha256

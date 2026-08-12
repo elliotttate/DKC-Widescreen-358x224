@@ -1,6 +1,6 @@
 # SuperZSNES v0.300 IL2CPP DKC framebuffer renderer
 
-This is the IL2CPP/BepInEx 6 port of the accepted v0.230 CPU framebuffer renderer. It replaces only the broken legacy wide compositor; it does not include the old performance, automation, tracing, or inspection plugins.
+This is the IL2CPP/BepInEx 6 port of the accepted v0.230 CPU framebuffer renderer. It replaces only the broken legacy wide compositor; it does not include the old performance, automation, tracing, or inspection plugins. The same DLL auto-detects verified 358x224 and optional 398x224 ROM profiles.
 
 The supported runtime is the 32-bit Windows IL2CPP build of SuperZSNES v0.300 with BepInEx `Unity.IL2CPP-win-x86` build `6.0.0-be.783+c58c42d`. That build is intentionally pinned because its Cpp2IL version accepts this game's metadata version 39.
 
@@ -75,7 +75,7 @@ character-bank layout to the same native-width treatment.
 v0.1.7 adds both source-verified title-splash layouts. A different character
 bank keeps the similar game-over screen outside this rule.
 
-v0.1.8 also masks only the extensions during the short Mode 9 level-loader
+v0.1.9 also masks only the extensions during the short Mode 9 level-loader
 state where DKC's camera bounds are still `$0000/$0000`. Full widescreen
 returns immediately when the level installs its real bounds.
 

@@ -1,6 +1,6 @@
 # SuperZSNES DKC Framebuffer Renderer
 
-Experimental BepInEx renderer for the canonical `DKC_Widescreen_358x224` ROM. It converts SNES Mode 1 tilemaps, planar tile graphics, OAM, per-scanline register state, per-scanline CGRAM changes, windows, priorities, brightness, and color math into one persistent 358x224 RGBA texture.
+Experimental BepInEx renderer for the canonical `DKC_Widescreen_358x224` and `DKC_Widescreen_398x224` ROM profiles. It auto-detects the verified ROM filename, selects 358x224/51-left or 398x224/71-left geometry, and configures the stock fallback renderer with the corresponding 7- or 9-tile margin.
 
 The canonical allowlist includes the standard widescreen build and both
 source-built MSU-1 variants: Deluxe 60-track and Restoration 27-track.
@@ -95,7 +95,7 @@ character base, and mode, only scanlines whose X/Y scroll changed are rebuilt.
 Any other state or memory change still takes the exact full rebuild path.
 `rasterPartialRebuilds` and `rasterPartialRows` expose the accepted fast path.
 
-v0.4.13 (IL2CPP v0.1.8) detects DKC's native-width opening, title, and
+v0.4.14 (IL2CPP v0.1.9) detects DKC's native-width opening, title, and
 file-select asset layouts and paints only their out-of-range side extensions
 black, preventing their 32-tile maps from wrapping into the widescreen margins.
 It applies the same treatment during the short Mode 9 level-loader interval

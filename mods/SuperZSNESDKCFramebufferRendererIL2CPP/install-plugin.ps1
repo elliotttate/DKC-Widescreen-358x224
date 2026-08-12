@@ -30,6 +30,7 @@ RetainedBackgrounds = true
 
 [Geometry]
 
+AutoDetectRomGeometry = true
 Width = 358
 Height = 224
 LeftExtension = 51

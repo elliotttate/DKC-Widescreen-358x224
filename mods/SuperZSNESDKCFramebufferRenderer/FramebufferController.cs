@@ -18,6 +18,7 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static ConfigEntry<int> _width;
         private static ConfigEntry<int> _height;
         private static ConfigEntry<int> _leftExtension;
+        private static ConfigEntry<bool> _autoDetectGeometry;
         private static ConfigEntry<bool> _retainedBackgrounds;
         private static string _directory;
         private static DkcFrameRasterizer _rasterizer;
@@ -35,6 +36,17 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static string _lastCapture = string.Empty;
         private static PPURenderer _lastRenderer;
         private static bool _activeDisplayVramWrite;
+        private static int _effectiveWidth = 358;
+        private static int _effectiveHeight = 224;
+        private static int _effectiveLeftExtension = 51;
+        private static int _effectiveGuardTiles = 7;
+        private static string _effectiveProfile = "configured";
+        private static MainMenuManager.GameSpecificSettings _overriddenGameSettings;
+        private static bool _savedWidescreenOverride;
+        private static int _savedWideScreenBg;
+        private static int _savedWidescreenObj;
+        private static int _savedWidescreenM7;
+        private static int _savedWidescreenCol;
         private static readonly List<FallbackMetric> FallbackMetrics = new List<FallbackMetric>();
         private static FallbackMetric _pendingFallbackMetric;
         private static long _fallbackRendererStarted;
@@ -52,7 +64,8 @@ namespace SuperZSNESDKCFramebufferRenderer
 
         internal static void Initialize(ManualLogSource log, ConfigEntry<bool> present,
             ConfigEntry<int> shadowInterval, ConfigEntry<int> width, ConfigEntry<int> height,
-            ConfigEntry<int> leftExtension, ConfigEntry<bool> retainedBackgrounds, string directory)
+            ConfigEntry<int> leftExtension, ConfigEntry<bool> autoDetectGeometry,
+            ConfigEntry<bool> retainedBackgrounds, string directory)
         {
             _log = log;
             _present = present;
@@ -60,6 +73,7 @@ namespace SuperZSNESDKCFramebufferRenderer
             _width = width;
             _height = height;
             _leftExtension = leftExtension;
+            _autoDetectGeometry = autoDetectGeometry;
             _retainedBackgrounds = retainedBackgrounds;
             _directory = directory;
             _rasterizer = new DkcFrameRasterizer(retainedBackgrounds.Value);
@@ -72,6 +86,8 @@ namespace SuperZSNESDKCFramebufferRenderer
         {
             _lastRenderer = renderer;
             _frameCalls++;
+            RefreshEffectiveGeometry();
+            ApplyFallbackWidescreenSettings();
             bool unsafeVramWrite = _activeDisplayVramWrite;
             _activeDisplayVramWrite = false;
             bool wantRender = _present.Value || _captureRequested ||
@@ -97,8 +113,8 @@ namespace SuperZSNESDKCFramebufferRenderer
             string reason;
             try
             {
-                ok = _rasterizer.TryRender(renderer, _width.Value, _height.Value,
-                    _leftExtension.Value, _pixels, out reason);
+                ok = _rasterizer.TryRender(renderer, _effectiveWidth, _effectiveHeight,
+                    _effectiveLeftExtension, _pixels, out reason);
             }
             catch (Exception exception)
             {
@@ -143,6 +159,10 @@ namespace SuperZSNESDKCFramebufferRenderer
 
         internal static void AfterGenerateBackgrounds()
         {
+            // The legacy renderer needs the matching guard width only while its
+            // frame method runs. Do not persistently rewrite the user's
+            // per-game SuperZSNES settings.
+            RestoreFallbackWidescreenSettings();
             FallbackMetric metric = _pendingFallbackMetric;
             long started = _fallbackRendererStarted;
             _pendingFallbackMetric = null;
@@ -219,6 +239,7 @@ namespace SuperZSNESDKCFramebufferRenderer
 
         internal static void Shutdown()
         {
+            RestoreFallbackWidescreenSettings();
             if (_lastRenderer != null)
                 RestoreLegacyCameras(_lastRenderer);
             if (_texture != null)
@@ -330,8 +351,8 @@ namespace SuperZSNESDKCFramebufferRenderer
 
         private static void EnsureSurface()
         {
-            int width = Math.Max(256, Math.Min(512, _width.Value));
-            int height = Math.Max(200, Math.Min(240, _height.Value));
+            int width = Math.Max(256, Math.Min(512, _effectiveWidth));
+            int height = Math.Max(200, Math.Min(240, _effectiveHeight));
             if (_texture != null && _presentationTexture != null &&
                 _texture.width == width && _texture.height == height)
                 return;
@@ -361,6 +382,65 @@ namespace SuperZSNESDKCFramebufferRenderer
                 throw new InvalidOperationException("Framebuffer presentation RenderTexture creation failed.");
             _pixels = new Color32[width * height];
             _frameReady = false;
+        }
+
+        private static void RefreshEffectiveGeometry()
+        {
+            _effectiveWidth = Math.Max(256, Math.Min(512, _width.Value));
+            _effectiveHeight = Math.Max(200, Math.Min(240, _height.Value));
+            _effectiveLeftExtension = _leftExtension.Value;
+            _effectiveGuardTiles = Math.Max(0, (_effectiveWidth - 256 + 15) / 16);
+            _effectiveProfile = "configured";
+            if (_autoDetectGeometry == null || !_autoDetectGeometry.Value) return;
+
+            string filename = MainMenuManager.Instance?.GetLoadedGameFilename() ?? string.Empty;
+            int width;
+            int leftExtension;
+            int guardTiles;
+            if (!DkcFrameRasterizer.TryGetWidescreenProfile(filename, out width,
+                    out leftExtension, out guardTiles)) return;
+            _effectiveWidth = width;
+            _effectiveHeight = 224;
+            _effectiveLeftExtension = leftExtension;
+            _effectiveGuardTiles = guardTiles;
+            _effectiveProfile = width + "x224";
+        }
+
+        private static void ApplyFallbackWidescreenSettings()
+        {
+            if (_effectiveProfile == "configured")
+            {
+                RestoreFallbackWidescreenSettings();
+                return;
+            }
+            MainMenuManager.GameSpecificSettings settings = MainMenuManager.Instance?.GetGameSettings();
+            if (settings == null) return;
+            if (_overriddenGameSettings != settings)
+            {
+                RestoreFallbackWidescreenSettings();
+                _overriddenGameSettings = settings;
+                _savedWidescreenOverride = settings.widescreenOverride;
+                _savedWideScreenBg = settings.wideScreenBG;
+                _savedWidescreenObj = settings.widescreenOBJ;
+                _savedWidescreenM7 = settings.widescreenM7;
+                _savedWidescreenCol = settings.widescreenCOL;
+            }
+            settings.widescreenOverride = true;
+            settings.wideScreenBG = _effectiveGuardTiles;
+            settings.widescreenOBJ = _effectiveGuardTiles;
+            settings.widescreenM7 = 0;
+            settings.widescreenCOL = 0;
+        }
+
+        private static void RestoreFallbackWidescreenSettings()
+        {
+            if (_overriddenGameSettings == null) return;
+            _overriddenGameSettings.widescreenOverride = _savedWidescreenOverride;
+            _overriddenGameSettings.wideScreenBG = _savedWideScreenBg;
+            _overriddenGameSettings.widescreenOBJ = _savedWidescreenObj;
+            _overriddenGameSettings.widescreenM7 = _savedWidescreenM7;
+            _overriddenGameSettings.widescreenCOL = _savedWidescreenCol;
+            _overriddenGameSettings = null;
         }
 
         private static void DisableLegacyCameras(PPURenderer renderer)
@@ -403,7 +483,7 @@ namespace SuperZSNESDKCFramebufferRenderer
                 }
             }
             Color32[] mainBackgroundPixels = _rasterizer?.CreateMainBackgroundDiagnosticPixels(
-                _texture.width, _texture.height, _leftExtension.Value);
+                _texture.width, _texture.height, _effectiveLeftExtension);
             if (mainBackgroundPixels != null)
             {
                 Texture2D mainBackground = new Texture2D(_texture.width, _texture.height,
@@ -433,11 +513,16 @@ namespace SuperZSNESDKCFramebufferRenderer
             double stageDivisor = stageFrames == 0 ? 1 : stageFrames;
             string json = "{" +
 #if IL2CPP
-                          "\"version\":\"0.1.8-il2cpp\"," +
+                          "\"version\":\"0.1.9-il2cpp\"," +
 #else
-                          "\"version\":\"0.4.13\"," +
+                          "\"version\":\"0.4.14\"," +
 #endif
                           "\"state\":\"" + Escape(state) + "\"," +
+                          "\"geometryProfile\":\"" + Escape(_effectiveProfile) + "\"," +
+                          "\"framebufferWidth\":" + _effectiveWidth + "," +
+                          "\"framebufferHeight\":" + _effectiveHeight + "," +
+                          "\"leftExtension\":" + _effectiveLeftExtension + "," +
+                          "\"fallbackGuardTiles\":" + _effectiveGuardTiles + "," +
                           "\"present\":" + ((_present != null && _present.Value) ? "true" : "false") + "," +
                           "\"retainedBackgrounds\":" + ((_retainedBackgrounds != null && _retainedBackgrounds.Value) ? "true" : "false") + "," +
                           "\"frameCalls\":" + _frameCalls + "," +

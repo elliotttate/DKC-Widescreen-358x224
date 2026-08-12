@@ -1,6 +1,6 @@
-# Donkey Kong Country 358x224 widescreen
+# Donkey Kong Country widescreen
 
-Source, diagnostics, regression automation, and SuperZSNES runtime mods for a true **358x224** Donkey Kong Country widescreen presentation.
+Source, diagnostics, regression automation, and SuperZSNES runtime mods for a true **358x224** Donkey Kong Country widescreen presentation, with an optional near-exact **16:9 398x224** profile.
 
 The project has two complementary parts:
 
@@ -9,7 +9,7 @@ The project has two complementary parts:
 
 ## Easiest installation
 
-Download the latest package from [GitHub Releases](https://github.com/elliotttate/DKC-Widescreen-358x224/releases/latest), extract it, and run `DKC-Widescreen-Patcher.exe`. The patcher verifies a clean, headerless DKC USA v1.0 ROM, offers standard and MSU-1-compatible variants, writes a new ROM, and verifies the exact result. It never modifies the original ROM. The release also includes the SuperZSNES v0.300 IL2CPP renderer DLL and standalone BPS patches.
+Download the latest package from [GitHub Releases](https://github.com/elliotttate/DKC-Widescreen-358x224/releases/latest), extract it, and run `DKC-Widescreen-Patcher.exe`. The patcher verifies a clean, headerless DKC USA v1.0 ROM, offers 358x224 and 398x224 profiles with standard or MSU-1-compatible music hooks, writes a new ROM, and verifies the exact result. It never modifies the original ROM. The release also includes the SuperZSNES v0.300 IL2CPP renderer DLL and standalone BPS patches.
 
 The final renderer keeps the SNES core near 60 FPS while replacing SuperZSNES's expensive per-tile Unity presentation path for supported DKC Mode 1 frames. The accepted v0.4.2 retained-tile rewrite raised the difficult Millstone Mayhem scrolling case from 86-90 to 119.4-119.7 presentation updates/s, while eliminating every multi-frame batch in the controlled 1,800-frame test.
 
@@ -65,6 +65,9 @@ The check rejects copyrighted/runtime binaries, save data, captures, local absol
 - Final widescreen ROM SHA-256 `B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D`
 - Optional widescreen + Deluxe MSU-1 ROM SHA-256 `FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5`
 - Optional widescreen + 27-track Restoration MSU-1 ROM SHA-256 `4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5`
+- Optional 398x224 ROM SHA-256 `52272D471CF52B9F18FBA900DE3A5EC2E0D0B337061CCBB4DC2C8F945DCA6CFA`
+- Optional 398x224 + Deluxe MSU-1 ROM SHA-256 `C858CBFBD14C8C0F1D3435541242B948A6737E325CB2FAC5F914FE725FE2B1C1`
+- Optional 398x224 + Restoration MSU-1 ROM SHA-256 `E25B79726C1A552F4AFE150AE2A224A01385FA693F1C5C014C07C84A5DC94144`
 
 ## Documentation
 
