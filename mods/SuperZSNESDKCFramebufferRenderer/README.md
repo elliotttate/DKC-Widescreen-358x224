@@ -2,6 +2,9 @@
 
 Experimental BepInEx renderer for the canonical `DKC_Widescreen_358x224` ROM. It converts SNES Mode 1 tilemaps, planar tile graphics, OAM, per-scanline register state, per-scanline CGRAM changes, windows, priorities, brightness, and color math into one persistent 358x224 RGBA texture.
 
+The canonical allowlist includes the standard widescreen build and both
+source-built MSU-1 variants: Deluxe 60-track and Restoration 27-track.
+
 The plugin is disabled by default and patches nothing while disabled. When enabled it starts in shadow mode: the stock renderer remains authoritative and one candidate framebuffer is rendered every 60 composite calls. `F10` writes the next supported candidate to the plugin directory.
 
 For automated capture without focusing the window, create an empty `capture.request` file in `BepInEx/plugins/SuperZSNESDKCFramebufferRenderer`; it is consumed on the next Unity update.

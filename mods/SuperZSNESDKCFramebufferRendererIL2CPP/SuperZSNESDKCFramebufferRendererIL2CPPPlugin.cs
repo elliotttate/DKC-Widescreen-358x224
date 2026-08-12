@@ -15,7 +15,7 @@ namespace SuperZSNESDKCFramebufferRenderer
     {
         public const string PluginGuid = "dev.local.superzsnes.dkcframebuffer.il2cpp";
         public const string PluginName = "SuperZSNES DKC Framebuffer Renderer IL2CPP";
-        public const string PluginVersion = "0.1.3";
+        public const string PluginVersion = "0.1.4";
 
         private Harmony _harmony;
         private ConfigEntry<bool> _enabled;

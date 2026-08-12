@@ -60,6 +60,10 @@ a clean full build pixel-for-pixel and confirms a relevant VRAM write rejects
 the fast path. `status.json` reports `rasterPartialRebuilds`,
 `rasterPartialRows`, and bounded `slowRenderEvents` evidence.
 
+v0.1.4 adds the locked 27-track Restoration MSU-1 ROM hash to the canonical
+allowlist. Rendering behavior is unchanged; the additional source-built ROM
+differs only in its music hooks and uses the same widescreen graphics patch.
+
 Install into a closed disposable copy and explicitly arm presentation:
 
 ```powershell

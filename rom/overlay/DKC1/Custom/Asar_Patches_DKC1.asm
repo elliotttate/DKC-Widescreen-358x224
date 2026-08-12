@@ -29,6 +29,9 @@ macro DKC1_ApplyPatchesPostAssembly()
 	if defined("Define_DKC1_MSU1Deluxe")
 		incsrc "Patches/MSU1_Deluxe.asm"
 	endif
+	if defined("Define_DKC1_MSU1Restoration")
+		incsrc "Patches/MSU1_Restoration.asm"
+	endif
 endmacro
 
 ;---------------------------------------------------------------------------

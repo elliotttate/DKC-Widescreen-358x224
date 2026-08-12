@@ -433,9 +433,9 @@ namespace SuperZSNESDKCFramebufferRenderer
             double stageDivisor = stageFrames == 0 ? 1 : stageFrames;
             string json = "{" +
 #if IL2CPP
-                          "\"version\":\"0.1.3-il2cpp\"," +
+                          "\"version\":\"0.1.4-il2cpp\"," +
 #else
-                          "\"version\":\"0.4.8\"," +
+                          "\"version\":\"0.4.9\"," +
 #endif
                           "\"state\":\"" + Escape(state) + "\"," +
                           "\"present\":" + ((_present != null && _present.Value) ? "true" : "false") + "," +

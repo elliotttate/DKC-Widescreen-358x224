@@ -22,6 +22,25 @@ through track 11 (splash), 10 (title), Deluxe map variant 59, and 1 (level),
 including the corresponding PCM loads, volumes, play flags, and loop addresses.
 No BepInEx loader or runtime patch was present in that first v0.300 test.
 
+## Implemented Restoration 27-track build
+
+`rom/build.ps1 -EnableMsu1Restoration` provides a separate source-built mode
+for restoration packs using the established `MSU track = DKC music ID + 1`
+mapping. It intentionally does not use the Deluxe replacement or rotating-map
+tables. Its locked ROM SHA-256 is
+`4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5`.
+
+`rom/setup-msu1-restoration.ps1` validates tracks 1-27 and creates hard links
+under the combined ROM basename. This prevents missing Deluxe-only tracks
+28-60 from becoming silent cues and keeps the two music packs independently
+runnable.
+
+The Sam Miller/qwerty pack was validated in SuperZSNES v0.300 using this mode:
+the emulator detected MSU-1, loaded its tracks 11 and 10 from the dedicated
+hard-linked bundle, and reported their loop metadata without PCM errors. The
+v0.1.4 IL2CPP framebuffer allowlist includes the locked Restoration ROM hash,
+so the optimized 358x224 presentation remains active with this music mode.
+
 ## Conclusion
 
 Use an MSU-1 ROM integration, not a BepInEx MP3 player, for the production implementation.

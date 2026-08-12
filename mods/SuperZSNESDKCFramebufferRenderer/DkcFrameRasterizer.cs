@@ -115,7 +115,8 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static readonly string[] CanonicalRomSha256 =
         {
             "B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D", // widescreen
-            "FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5"  // widescreen + Deluxe MSU-1
+            "FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5", // widescreen + Deluxe MSU-1
+            "4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5"  // widescreen + Restoration MSU-1
         };
 
         private static readonly int[] BgLow = { 7, 6, 1 };

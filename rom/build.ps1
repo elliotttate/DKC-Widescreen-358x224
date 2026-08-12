@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory=$true)][string]$RomPath,
     [string]$OutputPath,
     [switch]$EnableMsu1Deluxe,
+    [switch]$EnableMsu1Restoration,
     [switch]$SkipExtraction
 )
 
@@ -11,9 +12,20 @@ $expectedUpstream = 'c2080f40469c716923f550706509a0d354229841'
 $expectedRomMd5 = '30C5F292FF4CBBFCC00FD8FA96C2DE3B'
 $expectedWidescreenSha256 = 'B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D'
 $expectedMsu1DeluxeSha256 = 'FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5'
+$expectedMsu1RestorationSha256 = '4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5'
+
+if ($EnableMsu1Deluxe -and $EnableMsu1Restoration) {
+    throw 'Choose only one MSU-1 music mode.'
+}
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
-    $artifactName = if ($EnableMsu1Deluxe) { 'DKC_Widescreen_358x224_MSU1_Deluxe.sfc' } else { 'DKC_Widescreen_358x224.sfc' }
+    $artifactName = if ($EnableMsu1Deluxe) {
+        'DKC_Widescreen_358x224_MSU1_Deluxe.sfc'
+    } elseif ($EnableMsu1Restoration) {
+        'DKC_Widescreen_358x224_MSU1_Restoration.sfc'
+    } else {
+        'DKC_Widescreen_358x224.sfc'
+    }
     $OutputPath = Join-Path $PSScriptRoot "..\artifacts\$artifactName"
 }
 
@@ -56,7 +68,13 @@ if (-not $SkipExtraction) {
 $asar = Join-Path $DisassemblyRoot 'Global\asar.exe'
 $assemble = Join-Path $DisassemblyRoot 'Global\AssembleFile.asm'
 $working = Join-Path $gameRoot 'DKC_Widescreen_358x224 (Hack).sfc'
-$romId = if ($EnableMsu1Deluxe) { 'HACK_DKC_Widescreen_358x224_MSU1Deluxe' } else { 'HACK_DKC_Widescreen_358x224' }
+$romId = if ($EnableMsu1Deluxe) {
+    'HACK_DKC_Widescreen_358x224_MSU1Deluxe'
+} elseif ($EnableMsu1Restoration) {
+    'HACK_DKC_Widescreen_358x224_MSU1Restoration'
+} else {
+    'HACK_DKC_Widescreen_358x224'
+}
 
 Push-Location $gameRoot
 try {
@@ -68,7 +86,7 @@ try {
     if ($LASTEXITCODE) { throw 'SPC700 engine assembly failed.' }
     & $asar --define GameID='DKC1' --define ROMID=$romId --define FileType=1 $assemble $working
     if ($LASTEXITCODE) { throw 'Main ROM assembly failed.' }
-    if ($EnableMsu1Deluxe) {
+    if ($EnableMsu1Deluxe -or $EnableMsu1Restoration) {
         & $asar --fix-checksum=on --define GameID='DKC1' --define ROMID=$romId --define FileType=2 $assemble $working
     } else {
         & $asar --define GameID='DKC1' --define ROMID=$romId --define FileType=2 $assemble $working
@@ -80,7 +98,13 @@ $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 New-Item -ItemType Directory -Path (Split-Path $OutputPath -Parent) -Force | Out-Null
 Copy-Item -LiteralPath $working -Destination $OutputPath -Force
 $sha = (Get-FileHash -Algorithm SHA256 -LiteralPath $OutputPath).Hash
-$expectedOutputSha256 = if ($EnableMsu1Deluxe) { $expectedMsu1DeluxeSha256 } else { $expectedWidescreenSha256 }
+$expectedOutputSha256 = if ($EnableMsu1Deluxe) {
+    $expectedMsu1DeluxeSha256
+} elseif ($EnableMsu1Restoration) {
+    $expectedMsu1RestorationSha256
+} else {
+    $expectedWidescreenSha256
+}
 if ($expectedOutputSha256 -and $sha -ne $expectedOutputSha256) {
     throw "Build completed but hash differs. Expected $expectedOutputSha256, got $sha."
 }

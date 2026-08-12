@@ -62,3 +62,31 @@ The overlay changes asset extraction/build automation plus these game behaviors:
 - restored player endpoint ranges at widened terminal cameras;
 - retry of missing children in active type-5 groups, fixing the Barrel Cannon Canyon upper-barrel softlock.
 - optional DKC Deluxe MSU-1 music selection for tracks 1-60 while retaining SPC sound effects.
+
+## Restoration MSU-1 music build
+
+Traditional DKC restoration packs use the established 27-track mapping rather
+than the Deluxe 60-track level-variant table. Build that compatible ROM mode
+with:
+
+```powershell
+./rom/build.ps1 `
+  -DisassemblyRoot '<dkc-disassembly-root>' `
+  -RomPath '<clean-dkc-usa-v1.0-rom>' `
+  -EnableMsu1Restoration
+```
+
+The expected Restoration output SHA-256 is
+`4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5`.
+Prepare the same-basename runtime bundle without copying its PCM data:
+
+```powershell
+./rom/setup-msu1-restoration.ps1 `
+  -RomPath './artifacts/DKC_Widescreen_358x224_MSU1_Restoration.sfc' `
+  -AudioPackPath '<directory-containing-dkc_msu-1.pcm-through-dkc_msu-27.pcm>' `
+  -DestinationDirectory '<playable-bundle-directory>'
+```
+
+The setup validates all 27 MSU1-PCM headers, sample alignment, and loop points.
+It hard-links the tracks under the ROM basename expected by SuperZSNES. Use
+`-UseAlternateTrack10` only for a pack that supplies `dkc_msu-10_alt.pcm`.

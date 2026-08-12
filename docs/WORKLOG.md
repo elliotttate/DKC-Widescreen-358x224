@@ -1,5 +1,29 @@
 # DKC 358x224 Widescreen Engineering Log
 
+## 2026-08-12 — 27-track Restoration MSU-1 mode
+
+The Sam Miller/qwerty Restoration pack contains the conventional tracks 1-27
+plus an alternate track 10, not the Deluxe 1-60 set. Reusing the 60-track ROM
+would leave level-specific and rotating-map selections missing. A separate
+USA v1.0 source overlay now selects the original DKC music ID plus one, retains
+the established loop/one-shot flags, silences only SPC music, and keeps the SPC
+engine active for sound effects. It uses the same byte-asserted music and NMI
+hooks as the verified Deluxe port while omitting all Deluxe remapping.
+
+The reproducible ROM is
+`DKC_Widescreen_358x224_MSU1_Restoration.sfc`, SHA-256
+`4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5`.
+`setup-msu1-restoration.ps1` validates all 27 PCM headers, alignment, and loop
+points and hard-links them into a separate runtime bundle without duplicating
+the source audio.
+
+SuperZSNES v0.300 live validation loaded tracks 11 and 10 from the
+`DKC_Widescreen_358x224_MSU1_Restoration_SamMiller_qwerty` bundle with valid
+loop metadata and no missing/invalid PCM errors. The IL2CPP framebuffer
+renderer canonical allowlist was extended for the locked Restoration ROM and
+bumped to v0.1.4; after restart its status changed from the expected hash
+fallback to `presenting` while the Restoration tracks remained active.
+
 This is the living source of truth for the Donkey Kong Country widescreen ROM hack and its SuperZSNES support. Update this file whenever a hypothesis is confirmed, rejected, implemented, or tested. Older handoffs are historical context and may describe superseded builds.
 
 ## Project objective
