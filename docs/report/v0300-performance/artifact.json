@@ -5,7 +5,7 @@
     "surface": "report",
     "title": "SuperZSNES v0.300: Widescreen Performance Port",
     "description": "A native-code audit and controlled A/B benchmark of the DKC widescreen renderer and applicable v0.230 optimizations on SuperZSNES v0.300 IL2CPP.",
-    "generatedAt": "2026-08-12T18:00:00Z",
+    "generatedAt": "2026-08-12T18:45:00Z",
     "cards": [
       {
         "id": "stock_cpu",
@@ -127,6 +127,27 @@
           ]
         },
         "layout": "full"
+      },
+      {
+        "id": "raster_partial_followup",
+        "title": "Raster-effect rendering before and after partial row refresh",
+        "subtitle": "Two 60-second trials per configuration; lower is better.",
+        "headerMarkdown": "A strict scroll-only row refresh cut average BG preparation **63.9%** and complete framebuffer work **16.2%** in the stutter workload.",
+        "type": "bar",
+        "dataset": "rasterPartialFollowup",
+        "sourceId": "raster_partial_data",
+        "valueFormat": "number",
+        "encodings": {
+          "x": { "field": "configuration", "type": "nominal", "label": "Renderer version" },
+          "y": { "field": "milliseconds", "type": "quantitative", "label": "Average milliseconds", "format": "number" },
+          "color": { "field": "stage", "type": "nominal", "label": "Measured stage" },
+          "tooltip": [
+            { "field": "relativeChange", "type": "quantitative", "label": "Change vs before", "format": "percent" },
+            { "field": "updateMs", "type": "quantitative", "label": "Average Unity Update ms", "format": "number" },
+            { "field": "trials", "type": "quantitative", "label": "Trials", "format": "number" }
+          ]
+        },
+        "layout": "full"
       }
     ],
     "tables": [
@@ -176,6 +197,11 @@
         "id": "native_audit",
         "label": "SuperZSNES v0.300 native optimization audit",
         "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/V0300_OPTIMIZATION_PORT.md"
+      },
+      {
+        "id": "raster_partial_data",
+        "label": "Reviewed raster partial-refresh A/B aggregate",
+        "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/benchmarks/v0300/raster-partial-results.json"
       }
     ],
     "blocks": [
@@ -184,15 +210,22 @@
         "id": "technical_summary",
         "type": "markdown",
         "sourceId": "benchmark_data",
-        "body": "## Technical Summary\n\nSuperZSNES v0.300 is CPU-limited in the legacy Unity tile **presentation** path, not in the SNES execution core. Stock sustained 59.98 emulated frames/s while consuming 2.99 CPU cores. The supported DKC CPU framebuffer reduced process CPU to 1.61 cores; its exact retained-background cache reduced it to 1.30 cores while preserving 60.01 emulated frames/s.\n\n**Recommendation:** ship the IL2CPP framebuffer renderer with retained backgrounds enabled. Keep both atlas experiments disabled: the managed gate adds hot-path overhead, while the source-equivalent native patch produced no measurable gain across four trials per configuration. Retain the bounded scheduler fix as an optional correctness patch for real hitches."
+        "body": "## Technical Summary\n\nSuperZSNES v0.300 is CPU-limited in the legacy Unity tile **presentation** path, not in the SNES execution core. Stock sustained 59.98 emulated frames/s while consuming 2.99 CPU cores. The supported DKC CPU framebuffer reduced process CPU to 1.61 cores; its exact retained-background cache reduced it to 1.30 cores while preserving 60.01 emulated frames/s. The v0.1.3 scroll-only raster refresh then removed the recurring full-frame BG2 rebuild in the difficult moving-light scene, cutting that background stage another 63.9%.\n\n**Recommendation:** ship IL2CPP renderer v0.1.3 with retained backgrounds and strict partial raster-row refresh enabled. Keep both atlas experiments disabled: the managed gate adds hot-path overhead, while the source-equivalent native patch produced no measurable gain across four trials per configuration. Retain the bounded scheduler fix as an optional correctness patch for real hitches."
       },
       { "id": "headline_metrics", "type": "metric-strip", "cardIds": ["stock_cpu", "optimized_cpu", "cache_hit_rate", "optimized_fps"] },
       {
         "id": "key_findings",
         "type": "markdown",
         "sourceId": "benchmark_data",
-        "body": "## Key Findings\n\n- The framebuffer rewrite is the decisive intervention: **46.0% less process CPU** than stock.\n- Retained backgrounds add a further **19.5% CPU reduction** versus cache-off and cut the background stage **49.5%**.\n- The atlas dirty-flag bug is real—about **1.26 million** false page hits per trial—but the managed per-tile gate is the wrong fix and increased presentation work **37.1%**.\n- A six-site native patch then removed that managed overhead and reproduced the intended dirty-branch behavior, yet four trials per configuration measured **2.6249 ms stock versus 2.6356 ms fixed presentation (+0.41%)** and **1.2350 versus 1.2234 CPU cores (-0.94%)**. Both are within noise, so the native patch remains disabled.\n- The accumulator bug is also real. Under the same deliberate stall, bounded recovery improved emulated cadence by **0.62–0.73 FPS** in the short paired windows."
+        "body": "## Key Findings\n\n- The framebuffer rewrite is the decisive intervention: **46.0% less process CPU** than stock.\n- Retained backgrounds add a further **19.5% CPU reduction** versus cache-off and cut the background stage **49.5%**.\n- Strict partial raster-row refresh cut the difficult scene's background stage **63.9%**, complete framebuffer time **16.2%**, average Update time **11.9%**, and multi-RunFrame Updates **69.0%** versus the prior retained renderer.\n- The atlas dirty-flag bug is real—about **1.26 million** false page hits per trial—but the managed per-tile gate is the wrong fix and increased presentation work **37.1%**.\n- A six-site native patch then removed that managed overhead and reproduced the intended dirty-branch behavior, yet four trials per configuration measured **2.6249 ms stock versus 2.6356 ms fixed presentation (+0.41%)** and **1.2350 versus 1.2234 CPU cores (-0.94%)**. Both are within noise, so the native patch remains disabled.\n- The accumulator bug is also real. Under the same deliberate stall, bounded recovery improved emulated cadence by **0.62–0.73 FPS** in the short paired windows."
       },
+      {
+        "id": "raster_partial_finding",
+        "type": "markdown",
+        "sourceId": "raster_partial_data",
+        "body": "## Partial rows remove the recurring BG2 rebuild spike\n\nBounded spike attribution ruled out stock fallback as the gameplay-stutter driver and isolated BG2's four-frame line-81 scroll animation. The old raster cache regenerated all 224 rows even though only the upper band's scroll changed. v0.1.3 redraws only changed-scroll rows after proving relevant VRAM, tilemap selection, video mode, and character base are unchanged; otherwise it executes the full original path. Across both accepted runs, **700 of 715** raster-effect rebuilds used the strict partial path."
+      },
+      { "id": "raster_partial_chart", "type": "chart", "chartId": "raster_partial_followup", "layout": "full" },
       { "id": "native_atlas_chart", "type": "chart", "chartId": "native_atlas_followup", "layout": "full" },
       { "id": "cpu_chart", "type": "chart", "chartId": "cpu_by_scenario", "layout": "full" },
       { "id": "renderer_chart", "type": "chart", "chartId": "renderer_stage_comparison", "layout": "full" },
@@ -221,13 +254,13 @@
         "id": "limitations",
         "type": "markdown",
         "sourceId": "benchmark_data",
-        "body": "## Limitations and Robustness\n\n- Two trials cleanly separate the large renderer gains but cannot establish small differences between cache-on and cache-on-plus-suite.\n- The native atlas follow-up improves that comparison to four trials per configuration, but its sub-1% movements are still smaller than run-to-run variance and should not be interpreted as a gain or regression.\n- The workload is one difficult DKC gameplay scene; fades, UI, Mode 7, and unsupported frames intentionally take the stock fallback and need separate workloads.\n- Process CPU is intentionally end-to-end and includes Unity, audio, emulation, presentation, and diagnostics.\n- Windows display scheduling varied between controlled hitch pairs, so the conclusion uses paired stock/fixed comparisons rather than treating host Update Hz as constant.\n- The framebuffer uses more endpoint memory than stock; this is an explicit CPU-for-memory trade."
+        "body": "## Limitations and Robustness\n\n- Two trials cleanly separate the large renderer gains but cannot establish small differences between cache-on and cache-on-plus-suite.\n- The partial-row follow-up also uses two fresh-process trials per configuration; its large stage reductions replicate across both runs, while its 1.18% CPU movement should be treated as secondary evidence.\n- The native atlas follow-up improves that comparison to four trials per configuration, but its sub-1% movements are still smaller than run-to-run variance and should not be interpreted as a gain or regression.\n- The workload is one difficult DKC gameplay scene; fades, UI, Mode 7, and unsupported frames intentionally take the stock fallback and need separate workloads.\n- Process CPU is intentionally end-to-end and includes Unity, audio, emulation, presentation, and diagnostics.\n- Windows display scheduling varied between controlled hitch pairs, so the conclusion uses paired stock/fixed comparisons rather than treating host Update Hz as constant.\n- The framebuffer uses more endpoint memory than stock; this is an explicit CPU-for-memory trade."
       },
       {
         "id": "next_steps",
         "type": "markdown",
         "sourceId": "native_audit",
-        "body": "## Recommended Next Steps\n\n1. Use `SuperZSNESDKCFramebufferRendererIL2CPP` with `RetainedBackgrounds=true`.\n2. Keep both `GateAtlasUploadsOnTileDirty=false` and the native atlas patch disabled; the native implementation is technically correct but produced no measurable benefit.\n3. Keep test stall settings at zero. Enable bounded backlog recovery only when the correctness fix is wanted.\n4. Prefer the emulator's own history/rewind-off settings; use the reversible guards only where settings cannot be persisted.\n5. Add a fade-heavy case, a stock-fallback sequence, Mode 7, and a long memory soak before packaging a binary release."
+        "body": "## Recommended Next Steps\n\n1. Use `SuperZSNESDKCFramebufferRendererIL2CPP` v0.1.3 with `RetainedBackgrounds=true`; the strict partial-row path is automatic and fails closed to the full renderer.\n2. Keep both `GateAtlasUploadsOnTileDirty=false` and the native atlas patch disabled; the native implementation is technically correct but produced no measurable benefit.\n3. Keep test stall settings at zero. Enable bounded backlog recovery only when the correctness fix is wanted.\n4. Prefer the emulator's own history/rewind-off settings; use the reversible guards only where settings cannot be persisted.\n5. Add a fade-heavy case, a stock-fallback sequence, Mode 7, and a long memory soak before packaging a binary release."
       },
       {
         "id": "further_questions",
@@ -238,7 +271,7 @@
   },
   "snapshot": {
     "version": 1,
-    "generatedAt": "2026-08-12T18:00:00Z",
+    "generatedAt": "2026-08-12T18:45:00Z",
     "status": "ready",
     "datasets": {
       "headline": [
@@ -274,9 +307,16 @@
         { "configuration": "Stock atlas path", "presentationMs": 2.624863, "presentationDelta": 0.0, "cpuCores": 1.234997, "cpuDelta": 0.0, "runFrameHz": 59.997771, "trials": 4, "managedHotCallbacks": 0, "patchedSites": 0 },
         { "configuration": "Native dirty-branch fix", "presentationMs": 2.635639, "presentationDelta": 0.004105, "cpuCores": 1.223376, "cpuDelta": -0.009410, "runFrameHz": 59.997007, "trials": 4, "managedHotCallbacks": 0, "patchedSites": 6 }
       ],
+      "rasterPartialFollowup": [
+        { "configuration": "Before partial rows", "stage": "Background stage", "milliseconds": 0.904050, "relativeChange": 0.0, "updateMs": 6.292000, "cpuCores": 1.143389, "trials": 2 },
+        { "configuration": "Before partial rows", "stage": "Complete framebuffer", "milliseconds": 4.357350, "relativeChange": 0.0, "updateMs": 6.292000, "cpuCores": 1.143389, "trials": 2 },
+        { "configuration": "v0.1.3 partial rows", "stage": "Background stage", "milliseconds": 0.326500, "relativeChange": -0.638846, "updateMs": 5.545600, "cpuCores": 1.129868, "trials": 2 },
+        { "configuration": "v0.1.3 partial rows", "stage": "Complete framebuffer", "milliseconds": 3.650700, "relativeChange": -0.162176, "updateMs": 5.545600, "cpuCores": 1.129868, "trials": 2 }
+      ],
       "portDecisions": [
         { "candidate": "DKC CPU framebuffer", "decision": "Accepted", "currentEvidence": "-46.0% process CPU", "reason": "Bypasses the dominant legacy Unity per-tile presentation path on supported Mode 1 frames." },
         { "candidate": "Exact retained backgrounds", "decision": "Accepted", "currentEvidence": "79.1% hits; -49.5% background ms", "reason": "Owns framebuffer planes and avoids shared Unity mesh-cache hazards." },
+        { "candidate": "Scroll-only raster row refresh", "decision": "Accepted", "currentEvidence": "-63.9% background ms; -16.2% framebuffer ms", "reason": "Redraws only changed scroll rows after exact VRAM and PPU-state gates; all other changes use the full path." },
         { "candidate": "Scheduled-frame backlog accounting", "decision": "Ported, optional", "currentEvidence": "+0.62 to +0.73 emulated FPS after a 500 ms stall", "reason": "The native due-versus-executed accounting defect persists; bounded fix leaves fast-forward unchanged." },
         { "candidate": "History and rewind Update guards", "decision": "Ported, optional", "currentEvidence": "No steady-state gain expected", "reason": "Prevents known service spikes and restores the user's exact values after each Update." },
         { "candidate": "Atlas dirty-page Harmony gate", "decision": "Rejected", "currentEvidence": "1.26M false hits found; +37.1% presentation ms", "reason": "The bug is real, but a per-tile managed callback is the wrong implementation on IL2CPP." },
@@ -307,6 +347,26 @@
           "backgroundCacheHitRate": "Background cache hits divided by hits plus misses.",
           "cpuDeltaVsStock": "Scenario mean CPU cores divided by stock mean CPU cores, minus one.",
           "nativeAtlasPresentationDelta": "Native-fix mean presentation milliseconds divided by the paired stock-configuration mean, minus one."
+        }
+      }
+    },
+    {
+      "id": "raster_partial_data",
+      "label": "Reviewed scroll-only raster partial-refresh A/B aggregate",
+      "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/benchmarks/v0300/raster-partial-results.json",
+      "query": {
+        "engine": "PowerShell benchmark harness",
+        "language": "PowerShell",
+        "sql": "SELECT configuration, stage, AVG(milliseconds) AS milliseconds, AVG(updateMs) AS updateMs, AVG(cpuCores) AS cpuCores FROM raster_partial_trials WHERE valid = TRUE GROUP BY configuration, stage",
+        "description": "Two 60-second fresh-process trials before and after the strict partial raster-row implementation, using the same difficult DKC moving-light checkpoint and exact binary/ROM gates.",
+        "url": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/mods/SuperZSNESPerformanceSuiteIL2CPP/run-v0300-benchmark.ps1",
+        "executed_at": "2026-08-12T18:41:00Z",
+        "filters": ["Exact SuperZSNES v0.300 executable and GameAssembly hashes", "Verified 358x224 widescreen ROM", "Two valid fresh-process trials before and after", "Relevant VRAM and non-scroll PPU state must be byte-identical for a partial rebuild", "Any unsupported change falls back to the complete renderer"],
+        "metric_definitions": {
+          "backgroundMilliseconds": "Mean CPU rasterizer time attributed to the background stage per supported frame.",
+          "framebufferMilliseconds": "Mean complete CPU framebuffer renderer time per supported frame.",
+          "partialRebuild": "A cached raster-effect frame where only rows with changed BG scroll are redrawn after all exact safety gates pass.",
+          "multiRunFrameUpdateShare": "Host Updates executing two or more emulated frames divided by all measured host Updates."
         }
       }
     },
