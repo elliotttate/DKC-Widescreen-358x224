@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-12T18:00:00Z",
+  "target": {
+    "superZsnesExeSha256": "B83358E453C9378A37AA0E43D22886AD49EE426F1ECF381B4F84A3A49F54FDD6",
+    "gameAssemblySha256": "0A5582B26EF2596FFA504AC6C1282E145EFA093B49EFD22974D4F2C74561271A",
+    "widescreenRomSha256": "B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D",
+    "vSyncCount": 1
+  },
+  "method": {
+    "warmupSeconds": 12,
+    "measurementSecondsNominal": 20,
+    "freshProcessPerTrial": true,
+    "ordinaryTrialsPerScenario": 2,
+    "aggregation": "arithmetic mean of two valid fresh-process trials"
+  },
+  "ordinaryScenarios": [
+    {
+      "scenario": "stock",
+      "label": "Stock v0.300",
+      "trials": 2,
+      "cpuCores": 2.986549,
+      "cpuDeltaVsStock": 0.0,
+      "updateHz": 158.652285,
+      "runFrameHz": 59.982158,
+      "presentationHz": 59.864308,
+      "averageUpdateMs": 1.934659,
+      "averageRunFrameMs": 2.092108,
+      "averagePresentationMs": 2.970088,
+      "workingSetMiB": 463.031,
+      "privateMiB": 456.314,
+      "atlasSuppressedPages": 0,
+      "atlasDirtyPages": 0,
+      "backgroundCacheHits": 0,
+      "backgroundCacheMisses": 0
+    },
+    {
+      "scenario": "stock-atlas",
+      "label": "Stock + atlas gate",
+      "trials": 2,
+      "cpuCores": 2.784908,
+      "cpuDeltaVsStock": -0.067516,
+      "updateHz": 148.638006,
+      "runFrameHz": 59.997584,
+      "presentationHz": 59.879944,
+      "averageUpdateMs": 2.535414,
+      "averageRunFrameMs": 2.165168,
+      "averagePresentationMs": 4.071292,
+      "workingSetMiB": 460.182,
+      "privateMiB": 449.574,
+      "atlasSuppressedPages": 1262370,
+      "atlasDirtyPages": 420.5,
+      "backgroundCacheHits": 0,
+      "backgroundCacheMisses": 0
+    },
+    {
+      "scenario": "framebuffer-cache-off",
+      "label": "CPU framebuffer",
+      "trials": 2,
+      "cpuCores": 1.612895,
+      "cpuDeltaVsStock": -0.459947,
+      "updateHz": 165.433013,
+      "runFrameHz": 59.980108,
+      "presentationHz": 59.816078,
+      "averageUpdateMs": 2.714678,
+      "averageRunFrameMs": 2.278934,
+      "averagePresentationMs": 0.477318,
+      "averageRendererMs": 5.69955,
+      "averageBackgroundMs": 1.93295,
+      "workingSetMiB": 580.051,
+      "privateMiB": 574.898,
+      "backgroundCacheHits": 0,
+      "backgroundCacheMisses": 0
+    },
+    {
+      "scenario": "framebuffer-cache-on",
+      "label": "Framebuffer + retained BG",
+      "trials": 2,
+      "cpuCores": 1.297771,
+      "cpuDeltaVsStock": -0.565461,
+      "cpuDeltaVsFramebuffer": -0.195378,
+      "updateHz": 183.970988,
+      "runFrameHz": 60.005368,
+      "presentationHz": 59.816646,
+      "averageUpdateMs": 2.126124,
+      "averageRunFrameMs": 2.221522,
+      "averagePresentationMs": 0.454928,
+      "averageRendererMs": 4.5829,
+      "averageBackgroundMs": 0.9758,
+      "workingSetMiB": 570.244,
+      "privateMiB": 560.748,
+      "backgroundCacheHits": 2134.5,
+      "backgroundCacheMisses": 565.5,
+      "backgroundCacheHitRate": 0.790556
+    },
+    {
+      "scenario": "framebuffer-cache-on-suite",
+      "label": "Retained BG + optional suite",
+      "trials": 2,
+      "cpuCores": 1.391305,
+      "cpuDeltaVsStock": -0.534143,
+      "updateHz": 184.64907,
+      "runFrameHz": 60.010198,
+      "presentationHz": 59.914733,
+      "averageUpdateMs": 2.098187,
+      "averageRunFrameMs": 2.192675,
+      "averagePresentationMs": 0.478968,
+      "averageRendererMs": 4.56805,
+      "averageBackgroundMs": 0.9751,
+      "workingSetMiB": 551.973,
+      "privateMiB": 568.131,
+      "backgroundCacheHits": 2135.5,
+      "backgroundCacheMisses": 564.5,
+      "backgroundCacheHitRate": 0.790926
+    }
+  ],
+  "controlledHitchPairs": [
+    {
+      "pair": 1,
+      "stallMilliseconds": 500,
+      "stockRunFrameHz": 58.781486,
+      "fixedRunFrameHz": 59.510033,
+      "deltaRunFrameHz": 0.728547,
+      "stockPresentationHz": 58.397607,
+      "fixedPresentationHz": 58.479962,
+      "recoveryBatches": 4,
+      "retainedBacklogFrameCharges": 35
+    },
+    {
+      "pair": 3,
+      "stallMilliseconds": 500,
+      "stockRunFrameHz": 58.977148,
+      "fixedRunFrameHz": 59.594604,
+      "deltaRunFrameHz": 0.617456,
+      "stockPresentationHz": 58.533711,
+      "fixedPresentationHz": 55.550526,
+      "recoveryBatches": 4,
+      "retainedBacklogFrameCharges": 36,
+      "stockMaxUpdateGapMs": 516.8857,
+      "fixedMaxUpdateGapMs": 517.4506
+    }
+  ],
+  "excludedRuns": [
+    {
+      "scenario": "framebuffer-cache-on-stall-fixed",
+      "trial": 2,
+      "reason": "The requested controlled stall did not occur during the sampled interval."
+    }
+  ]
+}

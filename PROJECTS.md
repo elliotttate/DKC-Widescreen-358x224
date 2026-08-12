@@ -4,6 +4,19 @@ The repository preserves accepted work, diagnostic tooling, and rejected experim
 
 ## Recommended runtime components
 
+### SuperZSNES v0.300 IL2CPP
+
+| Project | Status | Purpose |
+| --- | --- | --- |
+| `SuperZSNESDKCFramebufferRendererIL2CPP` | Recommended | Supported DKC Mode 1 CPU compositor and retained-background presentation path. This is the major v0.300 performance improvement. |
+| `SuperZSNESPerformanceSuiteIL2CPP` | Optional, all switches default off | Native-code audit probes, bounded backlog recovery, reversible history/rewind guards, and a rejected atlas-upload experiment retained for reproducibility. |
+
+The v0.300 benchmark and port decision matrix are in
+[the v0.300 optimization report](docs/V0300_OPTIMIZATION_PORT.md). Do not copy
+the Mono-targeted v0.230 DLLs into the IL2CPP build.
+
+### SuperZSNES v0.230 Mono
+
 | Project | Status | Purpose |
 | --- | --- | --- |
 | `SuperZSNESDKCFramebufferRendererIL2CPP` | Recommended for v0.300 only | BepInEx 6/x86 IL2CPP port of the accepted DKC framebuffer compositor. |
@@ -50,4 +63,4 @@ These projects are retained as evidence and default to disabled or fail-closed b
 
 Read the individual README and [technical worklog](docs/WORKLOG.md) before changing any default-off switch.
 
-The remaining projects in this matrix target the v0.230 Mono build unless their README explicitly says otherwise. Do not copy the old performance/automation DLLs into v0.300.
+The remaining projects in this matrix target the v0.230 Mono build unless their README explicitly says otherwise.

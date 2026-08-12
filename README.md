@@ -41,7 +41,7 @@ Prerequisites:
 
 The same paths can be supplied through `BEPINEX_ROOT`, `SUPERZSNES_ROOT`, and `SUPERZSNES_MANAGED_DIR`. Build output remains under each project's ignored `bin/` directory.
 
-For SuperZSNES v0.300, use [the separate IL2CPP renderer project](mods/SuperZSNESDKCFramebufferRendererIL2CPP/README.md). It pins the 32-bit BepInEx IL2CPP build that supports v0.300 metadata version 39. Do not install the v0.230 performance/debug plugins into v0.300; its native performance is already substantially better and those Mono-targeted patches are not ABI-compatible.
+For SuperZSNES v0.300, use [the separate IL2CPP renderer project](mods/SuperZSNESDKCFramebufferRendererIL2CPP/README.md). It pins the 32-bit BepInEx IL2CPP build that supports v0.300 metadata version 39. The companion [IL2CPP performance suite](mods/SuperZSNESPerformanceSuiteIL2CPP/README.md) contains only the old fixes that still map safely to current native methods; all switches default off. Do not install the v0.230 performance/debug plugins into v0.300 because the Mono and IL2CPP ABIs are incompatible.
 
 ## Validate the source-only tree
 
@@ -66,6 +66,7 @@ The check rejects copyrighted/runtime binaries, save data, captures, local absol
 - [Project status and safety matrix](PROJECTS.md)
 - [ROM build instructions](rom/README.md)
 - [Technical worklog](docs/WORKLOG.md)
+- [SuperZSNES v0.300 optimization port and benchmark](docs/V0300_OPTIMIZATION_PORT.md)
 - [MSU-1 music design and Deluxe integration](docs/MSU1_MUSIC_REPLACEMENT_PLAN.md)
 - Per-plugin READMEs under `mods/`
 

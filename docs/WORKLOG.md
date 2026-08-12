@@ -771,3 +771,55 @@ retained-background optimization therefore remains valuable on v0.300. The old
 v0.230 Mono scheduler, audio, material, and mesh transpilers remain unported
 and uninstalled; their target IL and runtime costs must be audited again against
 the v0.300 IL2CPP decompilation before considering them.
+
+## 2026-08-12 SuperZSNES v0.300 native optimization audit and benchmark
+
+The completed metadata-v39 decompilation provides 169,112 lines of Hex-Rays
+pseudocode for 2,048 application functions, a validated IDA database with
+128,595 annotated functions, and readable v0.230 Mono bodies for 73 of the 90
+current Hex-Rays failures. This made it possible to audit every accepted and
+rejected v0.230 performance candidate against current v0.300 native code rather
+than copying Mono patches across ABIs.
+
+The scheduler defect is still present in native `MasterExecutor.Update` at
+`$10426580`: normal play schedules at most five frames but charges every frame
+calculated as due. `mods/SuperZSNESPerformanceSuiteIL2CPP` v0.1.1 implements a
+fail-closed prefix/postfix correction. It runs only when exactly five frames
+were executed and the entry accumulator proves more than five were due, adds
+back only the unpaid normal-speed backlog, caps retained backlog at 120 frames
+by default, and leaves fast-forward unchanged. The suite also contains
+reversible per-Update history/rewind guards, shared low-overhead counters, and
+a test-only request-driven stall injector. Every switch defaults off.
+
+The native 2/4/8-bpp atlas accessors also still mark pages dirty outside their
+per-tile dirty branches. A conservative page gate proved the bug by suppressing
+an average 1,262,370 false page-dirty hits while seeing only 420.5 real dirty
+pages per approximately 21-second trial. However, the required per-tile IL2CPP
+Harmony callbacks raised presentation work from 2.970 to 4.071 ms. It is kept
+disabled as evidence for a future native/preloader rewrite, not recommended as
+a runtime optimization.
+
+The controlled ordinary A/B used two fresh-process trials per configuration,
+12 seconds of warmup, roughly 20 seconds of measurement, exact executable,
+`GameAssembly.dll`, and ROM hash gates, and the same disposable v0.300 copy.
+Stock averaged 2.987 process CPU cores at 59.982 emulated frames/s. The CPU
+framebuffer with cache off averaged 1.613 cores at 59.980 frames/s (-46.0%).
+Retained backgrounds averaged 1.298 cores at 60.005 frames/s (-56.5% versus
+stock and -19.5% versus cache-off). The retained cache hit 79.1% of background
+decisions and reduced its stage from 1.933 to 0.976 ms.
+
+Two paired 500 ms stall tests validated the backlog correction. Stock averaged
+58.781 and 58.977 emulated frames/s in the two intervals; the fixed runs reached
+59.510 and 59.595 through four stock-sized recovery batches each. The status
+field is named `retainedBacklogFrameCharges` because frames remaining across
+multiple batches can be charged more than once; it is not a unique recovered
+frame count.
+
+The old ReadMem, tile-material/draw-loop dictionary, mesh-bounds, scratch-pool,
+and 128-OBJ changes were not ported. Their earlier A/B evidence was negative or
+their targets are bypassed by supported framebuffer frames. The full matrix,
+methodology, limitations, aggregate data, and recommended configuration are in
+`docs/V0300_OPTIMIZATION_PORT.md` and
+`docs/benchmarks/v0300/benchmark-results.json`. The final v0.1.1 suite build is
+zero-warning/zero-error with SHA-256
+`46C85335D586BD134C3EEEB0D1D428069E9E4D9F6974177FCA26BC83066FA98F`.
