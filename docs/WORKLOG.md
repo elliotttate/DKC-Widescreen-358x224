@@ -615,3 +615,11 @@ The controlled comparison used the immutable state `<workspace>\DKC_Widescreen_3
 - The saved Millstone framebuffer before and after the rewrite is byte-identical, SHA-256 `6C69F18BCC6B0F7ACB78E68F85B70118BDC894284AD40AD0B89C91F5D115F8A6`.
 
 The v0.4.2 source/build verifier passes with zero warnings/errors. Installed DLL SHA-256 is `BDD6029BBC138B234E02F5888BAF62F8AD020FD42850C862AE06F0E8F32F12D2`; `Assembly-CSharp.dll` remains pristine. Old framebuffer backups must not retain a `.dll` suffix in an active BepInEx plugin directory: BepInEx scans them and may select an older same-GUID plugin. At handoff, the original Millstone performance state was restored, controller schedules were cleared, and gameplay was resumed with v0.4.2 active.
+
+## 2026-08-11 VSync restoration after the performance pass
+
+The visible tearing report was correct. `SuperZSNESPerformanceGuard` still had its earlier software-pacing experiment enabled: `LimitPresentationRate=true` forced `QualitySettings.vSyncCount=0` and `Application.targetFrameRate=120`. That setting was useful when diagnosing renderer starvation, but it was no longer appropriate after the v0.4.2 framebuffer renderer removed the bottleneck.
+
+The accepted runtime setting is now `LimitPresentationRate=false`. After restart, status confirmed `vSyncCount=1`, `targetFrameRate=-1`, 60.000 emulated FPS, and zero two-or-more-frame batches. Unity updates remained about 119.8/s because Windows reported active displays at 120 Hz and 200 Hz; those updates were synchronized rather than software-paced.
+
+`SuperZSNESPerformanceGuard` v0.4.1 changes the fresh-install default to keep stock synchronized presentation. It also tracks whether it applied a software override and restores the exact VSync/target-frame-rate pair captured at load whenever that override is disabled or the plugin unloads. The v0.4.1 build succeeds with zero warnings/errors; tested DLL SHA-256 is `BB03227A480D337655657B2FE72FD66EBA2B94BFFDB3391C894E94ADE665FE60`.

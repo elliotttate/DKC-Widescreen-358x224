@@ -6,7 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>SuperZSNESPerformanceGuard</AssemblyName>
     <RootNamespace>SuperZSNESPerformanceGuard</RootNamespace>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
     <Deterministic>true</Deterministic>
     <DebugType>portable</DebugType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
