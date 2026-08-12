@@ -823,3 +823,31 @@ methodology, limitations, aggregate data, and recommended configuration are in
 `docs/benchmarks/v0300/benchmark-results.json`. The final v0.1.1 suite build is
 zero-warning/zero-error with SHA-256
 `46C85335D586BD134C3EEEB0D1D428069E9E4D9F6974177FCA26BC83066FA98F`.
+
+## 2026-08-12 v0.300 next-architecture decision and fallback telemetry
+
+The proposed producer-thread, compute-shader, and direct-frontend rewrites were
+reviewed against the measured v0.300 costs. A large part of the suggested
+intermediate CPU rewrite already exists in `DkcFrameRasterizer`: decoded-tile
+caches validated from VRAM, retained circular background planes, persistent
+upload surfaces, and a single final upload/blit. The next unimplemented CPU
+steps are dirty strips/scanlines and SIMD composition, while a dedicated
+emulation thread would require a much broader state, command, audio, pause, and
+save/load synchronization redesign.
+
+The last production status contained 676 stock-renderer fallbacks among 19,876
+calls (3.40%), but the prior status format kept neither a reason histogram nor
+the stock-renderer cost. It also synchronously rewrote `status.json` on every
+fallback frame, adding disk I/O to the condition being diagnosed.
+
+Framebuffer renderer v0.4.6 and its IL2CPP port v0.1.1 now record per-reason
+frame counts, average/maximum stock `GenerateBackgrounds` milliseconds,
+per-reason consecutive counts, and whole-burst lengths. Status persistence is
+limited to the first fallback, every 120 fallback frames, and the end of a
+burst. Unsupported frames remain fail-closed and rendering output is unchanged.
+Both variants build with zero warnings/errors, and the existing v0.230
+rasterizer test suite passes. The v0.300 DLL has SHA-256
+`F0F76EC8297871D1B4424C4D6851446AA41075DD074A888D1108C92EACCDFBFA`
+and was installed into the closed production v0.300 copy with its existing
+presentation configuration preserved. The architectural decision record and
+promotion gates are in `docs/V0300_NEXT_ARCHITECTURE.md`.

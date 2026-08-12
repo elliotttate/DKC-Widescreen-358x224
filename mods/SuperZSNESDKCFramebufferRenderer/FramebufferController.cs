@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -34,6 +35,16 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static string _lastCapture = string.Empty;
         private static PPURenderer _lastRenderer;
         private static bool _activeDisplayVramWrite;
+        private static readonly List<FallbackMetric> FallbackMetrics = new List<FallbackMetric>();
+        private static FallbackMetric _pendingFallbackMetric;
+        private static long _fallbackRendererStarted;
+        private static long _measuredFallbackFrames;
+        private static double _fallbackRendererTotalMs;
+        private static double _fallbackRendererMaxMs;
+        private static int _currentFallbackStreak;
+        private static int _maxFallbackStreak;
+        private static int _currentReasonStreak;
+        private static string _currentFallbackReason = string.Empty;
 #if !IL2CPP
         private static readonly FieldInfo TransferMaterialUsed = AccessTools.Field(typeof(MainScreenBlit), "_transferMaterialUsed");
 #endif
@@ -51,6 +62,7 @@ namespace SuperZSNESDKCFramebufferRenderer
             _retainedBackgrounds = retainedBackgrounds;
             _directory = directory;
             _rasterizer = new DkcFrameRasterizer(retainedBackgrounds.Value);
+            ResetTelemetry();
             EnsureSurface();
             WriteStatus("initialized");
         }
@@ -64,17 +76,13 @@ namespace SuperZSNESDKCFramebufferRenderer
             bool wantRender = _present.Value || _captureRequested ||
                               (_shadowInterval.Value > 0 && _frameCalls % _shadowInterval.Value == 0);
             if (!wantRender)
-                return true;
-
-            if (unsafeVramWrite)
             {
-                _fallbackFrames++;
-                _lastFallback = "active-display-vram-write";
-                _frameReady = false;
-                RestoreLegacyCameras(renderer);
-                WriteStatus("fallback");
+                ResetFallbackStreak();
                 return true;
             }
+
+            if (unsafeVramWrite)
+                return BeginFallback(renderer, "active-display-vram-write");
 
             EnsureSurface();
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -94,19 +102,14 @@ namespace SuperZSNESDKCFramebufferRenderer
             stopwatch.Stop();
 
             if (!ok)
-            {
-                _fallbackFrames++;
-                _lastFallback = reason ?? "unsupported";
-                _frameReady = false;
-                RestoreLegacyCameras(renderer);
-                WriteStatus("fallback");
-                return true;
-            }
+                return BeginFallback(renderer, reason ?? "unsupported");
 
             double ms = stopwatch.Elapsed.TotalMilliseconds;
             _renderedFrames++;
             _totalMs += ms;
             if (ms > _maxMs) _maxMs = ms;
+            bool endedFallbackStreak = _currentFallbackStreak > 0;
+            ResetFallbackStreak();
             _lastFallback = string.Empty;
             _texture.SetPixels32(_pixels);
             _texture.Apply(false, false);
@@ -118,7 +121,7 @@ namespace SuperZSNESDKCFramebufferRenderer
                 _captureRequested = false;
                 WriteCapture();
             }
-            if (_renderedFrames == 1 || _renderedFrames % 300 == 0)
+            if (_renderedFrames == 1 || _renderedFrames % 300 == 0 || endedFallbackStreak)
                 WriteStatus(_present.Value ? "presenting" : "shadow");
 
             if (!_present.Value)
@@ -126,6 +129,28 @@ namespace SuperZSNESDKCFramebufferRenderer
 
             DisableLegacyCameras(renderer);
             return false;
+        }
+
+        internal static void AfterGenerateBackgrounds()
+        {
+            FallbackMetric metric = _pendingFallbackMetric;
+            long started = _fallbackRendererStarted;
+            _pendingFallbackMetric = null;
+            _fallbackRendererStarted = 0;
+            if (metric == null || started == 0)
+                return;
+
+            double ms = (Stopwatch.GetTimestamp() - started) * 1000.0 / Stopwatch.Frequency;
+            _measuredFallbackFrames++;
+            _fallbackRendererTotalMs += ms;
+            if (ms > _fallbackRendererMaxMs) _fallbackRendererMaxMs = ms;
+            metric.MeasuredFrames++;
+            metric.RendererMs += ms;
+            if (ms > metric.MaxRendererMs) metric.MaxRendererMs = ms;
+
+            // Keep telemetry useful without synchronously writing to disk on every fallback frame.
+            if (_fallbackFrames == 1 || _fallbackFrames % 120 == 0)
+                WriteStatus("fallback");
         }
 
         internal static bool TryPresent(MainScreenBlit blitter, RenderTexture source, RenderTexture destination)
@@ -199,6 +224,77 @@ namespace SuperZSNESDKCFramebufferRenderer
             _rasterizer = null;
             _frameReady = false;
             try { WriteStatus("shutdown"); } catch { }
+        }
+
+        private static bool BeginFallback(PPURenderer renderer, string reason)
+        {
+            reason = string.IsNullOrEmpty(reason) ? "unsupported" : reason;
+            _fallbackFrames++;
+            _lastFallback = reason;
+            _frameReady = false;
+            RestoreLegacyCameras(renderer);
+
+            FallbackMetric metric = GetFallbackMetric(reason);
+            metric.Frames++;
+            _currentFallbackStreak++;
+            if (string.Equals(_currentFallbackReason, reason, StringComparison.Ordinal))
+            {
+                _currentReasonStreak++;
+            }
+            else
+            {
+                _currentFallbackReason = reason;
+                _currentReasonStreak = 1;
+            }
+            if (_currentFallbackStreak > _maxFallbackStreak)
+                _maxFallbackStreak = _currentFallbackStreak;
+            if (_currentReasonStreak > metric.MaxConsecutiveFrames)
+                metric.MaxConsecutiveFrames = _currentReasonStreak;
+
+            _pendingFallbackMetric = metric;
+            _fallbackRendererStarted = Stopwatch.GetTimestamp();
+            return true;
+        }
+
+        private static FallbackMetric GetFallbackMetric(string reason)
+        {
+            for (int i = 0; i < FallbackMetrics.Count; i++)
+            {
+                if (string.Equals(FallbackMetrics[i].Reason, reason, StringComparison.Ordinal))
+                    return FallbackMetrics[i];
+            }
+            FallbackMetric metric = new FallbackMetric { Reason = reason };
+            FallbackMetrics.Add(metric);
+            return metric;
+        }
+
+        private static void ResetFallbackStreak()
+        {
+            _currentFallbackStreak = 0;
+            _currentReasonStreak = 0;
+            _currentFallbackReason = string.Empty;
+        }
+
+        private static void ResetTelemetry()
+        {
+            _frameCalls = 0;
+            _renderedFrames = 0;
+            _fallbackFrames = 0;
+            _totalMs = 0;
+            _maxMs = 0;
+            _lastFallback = "not-rendered";
+            _lastCapture = string.Empty;
+            _activeDisplayVramWrite = false;
+            _pendingFallbackMetric = null;
+            _fallbackRendererStarted = 0;
+            _measuredFallbackFrames = 0;
+            _fallbackRendererTotalMs = 0;
+            _fallbackRendererMaxMs = 0;
+            _currentFallbackStreak = 0;
+            _maxFallbackStreak = 0;
+            _currentReasonStreak = 0;
+            _currentFallbackReason = string.Empty;
+            FallbackMetrics.Clear();
         }
 
         private static void EnsureSurface()
@@ -306,9 +402,9 @@ namespace SuperZSNESDKCFramebufferRenderer
             double stageDivisor = stageFrames == 0 ? 1 : stageFrames;
             string json = "{" +
 #if IL2CPP
-                          "\"version\":\"0.1.0-il2cpp\"," +
+                          "\"version\":\"0.1.1-il2cpp\"," +
 #else
-                          "\"version\":\"0.4.5\"," +
+                          "\"version\":\"0.4.6\"," +
 #endif
                           "\"state\":\"" + Escape(state) + "\"," +
                           "\"present\":" + ((_present != null && _present.Value) ? "true" : "false") + "," +
@@ -316,6 +412,12 @@ namespace SuperZSNESDKCFramebufferRenderer
                           "\"frameCalls\":" + _frameCalls + "," +
                           "\"renderedFrames\":" + _renderedFrames + "," +
                           "\"fallbackFrames\":" + _fallbackFrames + "," +
+                          "\"fallbackRate\":" + Number(_frameCalls == 0 ? 0 : 100.0 * _fallbackFrames / _frameCalls) + "," +
+                          "\"fallbackRendererAverageMs\":" + Number(_measuredFallbackFrames == 0 ? 0 : _fallbackRendererTotalMs / _measuredFallbackFrames) + "," +
+                          "\"fallbackRendererMaxMs\":" + Number(_fallbackRendererMaxMs) + "," +
+                          "\"currentFallbackStreak\":" + _currentFallbackStreak + "," +
+                          "\"maxFallbackStreak\":" + _maxFallbackStreak + "," +
+                          "\"fallbackReasons\":" + FallbackReasonsJson() + "," +
                           "\"backgroundCacheHits\":" + (_rasterizer?.BackgroundCacheHits ?? 0) + "," +
                           "\"backgroundCacheMisses\":" + (_rasterizer?.BackgroundCacheMisses ?? 0) + "," +
                           "\"rasterEffectRebuilds\":" + (_rasterizer?.RasterEffectRebuilds ?? 0) + "," +
@@ -348,6 +450,22 @@ namespace SuperZSNESDKCFramebufferRenderer
             return "[" + values[0] + "," + values[1] + "," + values[2] + "]";
         }
 
+        private static string FallbackReasonsJson()
+        {
+            string[] values = new string[FallbackMetrics.Count];
+            for (int i = 0; i < FallbackMetrics.Count; i++)
+            {
+                FallbackMetric metric = FallbackMetrics[i];
+                double average = metric.MeasuredFrames == 0 ? 0 : metric.RendererMs / metric.MeasuredFrames;
+                values[i] = "{\"reason\":\"" + Escape(metric.Reason) + "\"," +
+                            "\"frames\":" + metric.Frames + "," +
+                            "\"averageStockRendererMs\":" + Number(average) + "," +
+                            "\"maxStockRendererMs\":" + Number(metric.MaxRendererMs) + "," +
+                            "\"maxConsecutiveFrames\":" + metric.MaxConsecutiveFrames + "}";
+            }
+            return "[" + string.Join(",", values) + "]";
+        }
+
         private static string BackgroundAverages(DkcFrameRasterizer rasterizer)
         {
             if (rasterizer == null) return "[0,0,0]";
@@ -369,6 +487,16 @@ namespace SuperZSNESDKCFramebufferRenderer
         {
             return (value ?? string.Empty).Replace("\\", "\\\\").Replace("\"", "\\\"")
                 .Replace("\r", "\\r").Replace("\n", "\\n");
+        }
+
+        private sealed class FallbackMetric
+        {
+            internal string Reason;
+            internal long Frames;
+            internal long MeasuredFrames;
+            internal double RendererMs;
+            internal double MaxRendererMs;
+            internal int MaxConsecutiveFrames;
         }
     }
 }

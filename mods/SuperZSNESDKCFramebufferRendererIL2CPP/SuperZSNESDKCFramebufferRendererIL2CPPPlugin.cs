@@ -15,7 +15,7 @@ namespace SuperZSNESDKCFramebufferRenderer
     {
         public const string PluginGuid = "dev.local.superzsnes.dkcframebuffer.il2cpp";
         public const string PluginName = "SuperZSNES DKC Framebuffer Renderer IL2CPP";
-        public const string PluginVersion = "0.1.0";
+        public const string PluginVersion = "0.1.1";
 
         private Harmony _harmony;
         private ConfigEntry<bool> _enabled;
@@ -54,7 +54,9 @@ namespace SuperZSNESDKCFramebufferRenderer
                 _harmony = new Harmony(PluginGuid);
                 _harmony.Patch(layout.GenerateBackgrounds,
                     prefix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.GenerateBackgroundsPrefix))
-                    { priority = Priority.First });
+                    { priority = Priority.First },
+                    postfix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.GenerateBackgroundsPostfix))
+                    { priority = Priority.Last });
                 _harmony.Patch(layout.OnRenderImage,
                     prefix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.OnRenderImagePrefix))
                     { priority = Priority.First });
@@ -62,7 +64,8 @@ namespace SuperZSNESDKCFramebufferRenderer
                     prefix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.WritePpuIoPrefix))
                     { priority = Priority.First });
 
-                if (!HasOwnPrefix(layout.GenerateBackgrounds) || !HasOwnPrefix(layout.OnRenderImage) ||
+                if (!HasOwnPrefix(layout.GenerateBackgrounds) || !HasOwnPostfix(layout.GenerateBackgrounds) ||
+                    !HasOwnPrefix(layout.OnRenderImage) ||
                     !HasOwnPrefix(layout.WritePpuIo))
                     throw new InvalidOperationException("Runtime Harmony chain did not retain all IL2CPP renderer patches.");
 
@@ -88,6 +91,12 @@ namespace SuperZSNESDKCFramebufferRenderer
         {
             Patches info = Harmony.GetPatchInfo(method);
             return info != null && info.Prefixes.Any(p => p.owner == PluginGuid);
+        }
+
+        private static bool HasOwnPostfix(MethodInfo method)
+        {
+            Patches info = Harmony.GetPatchInfo(method);
+            return info != null && info.Postfixes.Any(p => p.owner == PluginGuid);
         }
 
         private static string StatusDirectory()
@@ -129,6 +138,11 @@ namespace SuperZSNESDKCFramebufferRenderer
                 FramebufferController.RequestCapture();
             }
             return FramebufferController.BeforeGenerateBackgrounds(__instance);
+        }
+
+        public static void GenerateBackgroundsPostfix()
+        {
+            FramebufferController.AfterGenerateBackgrounds();
         }
 
         public static bool OnRenderImagePrefix(MainScreenBlit __instance,

@@ -71,6 +71,16 @@ v0.4.4 matches the legacy behavior. Its per-pixel path uses a precomputed 16x32x
 
 The verified v0.4.4 DLL has SHA-256 `A99B13F43025DDD9A3D1693BCB98EC0EED56A7D91938E655394D67D11A427184`.
 
+## Fallback-burst telemetry in v0.4.6
+
+v0.4.6 measures the stock `GenerateBackgrounds` cost whenever the CPU
+framebuffer deliberately fails closed. `status.json` now separates unsupported
+reasons, frame counts, consecutive-run lengths, and average/maximum stock
+renderer milliseconds. It also removes the old synchronous status-file rewrite
+on every fallback frame; status is sampled at burst boundaries and every 120
+fallback frames instead. The same instrumentation is shared with the v0.300
+IL2CPP port.
+
 ## Deluxe MSU-1 ROM identity in v0.4.5
 
 v0.4.5 adds the reproducible widescreen + Deluxe MSU-1 ROM hash to the same

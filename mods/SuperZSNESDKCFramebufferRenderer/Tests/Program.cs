@@ -21,8 +21,9 @@ internal static class Program
             TestCachePrimitives(rasterizer);
             TestDecodedTileAtlas(rasterizer);
             TestFixedNativePillarbox(rasterizer);
+            TestFallbackTelemetry(plugin);
             TestRuntimeShape();
-            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache primitives, fixed-native pillarbox, and v0.230 patch targets.");
+            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache primitives, fixed-native pillarbox, fallback telemetry, and v0.230 patch targets.");
             return 0;
         }
         catch (Exception exception)
@@ -200,6 +201,49 @@ internal static class Program
         string[] required = { "_ppuStartFrame", "_ppuLineChanges", "_cgLineChanges" };
         foreach (string property in required)
             Require(typeof(SNESPPU).GetProperty(property) != null, "SNESPPU property missing: " + property);
+    }
+
+    private static void TestFallbackTelemetry(Assembly plugin)
+    {
+        Type controller = plugin.GetType("SuperZSNESDKCFramebufferRenderer.FramebufferController", true);
+        Type patches = plugin.GetType("SuperZSNESDKCFramebufferRenderer.RendererPatches", true);
+        Require(patches.GetMethod("GenerateBackgroundsPostfix", BindingFlags.Static |
+            BindingFlags.Public) != null, "fallback timing postfix missing");
+
+        MethodInfo reset = controller.GetMethod("ResetTelemetry", BindingFlags.Static |
+            BindingFlags.NonPublic);
+        MethodInfo toJson = controller.GetMethod("FallbackReasonsJson", BindingFlags.Static |
+            BindingFlags.NonPublic);
+        Type metricType = controller.GetNestedType("FallbackMetric", BindingFlags.NonPublic);
+        Require(reset != null && toJson != null && metricType != null,
+            "fallback telemetry shape missing");
+        reset.Invoke(null, null);
+
+        object metric = Activator.CreateInstance(metricType, true);
+        metricType.GetField("Reason", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, "mosaic\"\nmode");
+        metricType.GetField("Frames", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 3L);
+        metricType.GetField("MeasuredFrames", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 2L);
+        metricType.GetField("RendererMs", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 8.0);
+        metricType.GetField("MaxRendererMs", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 5.5);
+        metricType.GetField("MaxConsecutiveFrames", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 3);
+
+        var metrics = (System.Collections.IList)controller.GetField("FallbackMetrics",
+            BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+        metrics.Add(metric);
+        string json = (string)toJson.Invoke(null, null);
+        Require(json.Contains("mosaic\\\"\\nmode"), "fallback reason JSON escaping");
+        Require(json.Contains("\"frames\":3"), "fallback frame count JSON");
+        Require(json.Contains("\"averageStockRendererMs\":4.0000"),
+            "fallback average JSON");
+        Require(json.Contains("\"maxStockRendererMs\":5.5000"),
+            "fallback maximum JSON");
+        reset.Invoke(null, null);
     }
 
     private static MethodInfo Required(Type type, string name)

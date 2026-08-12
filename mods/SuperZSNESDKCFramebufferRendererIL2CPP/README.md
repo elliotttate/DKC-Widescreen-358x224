@@ -24,6 +24,20 @@ Build:
 
 The project links the proven rasterizer/controller source from the Mono plugin and compiles its IL2CPP-specific array adapters under the `IL2CPP` symbol. Create `capture.request` in the plugin status directory to capture the next supported frame.
 
+## Fallback-burst telemetry (v0.1.1)
+
+Every unsupported presentation frame runs the stock Unity tile renderer. v0.1.1
+records each fail-closed reason, its frame count and longest consecutive run, plus
+the average and maximum time spent in the actual stock `GenerateBackgrounds`
+call. The fields are written to `status.json` as `fallbackReasons`,
+`fallbackRate`, `fallbackRendererAverageMs`, `fallbackRendererMaxMs`, and
+`maxFallbackStreak`.
+
+Earlier builds synchronously rewrote `status.json` on every fallback frame.
+v0.1.1 writes only at the start of a burst, every 120 fallback frames, and when
+the burst ends. This keeps the measurement path from adding a disk-I/O hitch to
+the condition being measured.
+
 `RetainedBackgrounds=true` is recommended. In a matched pair of disposable
 v0.300 startup runs, it reduced the background stage from 2.5847 ms to
 1.4862 ms (42.5%) and the complete rasterizer from 7.7664 ms to 6.9705 ms
