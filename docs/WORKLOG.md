@@ -623,3 +623,13 @@ The visible tearing report was correct. `SuperZSNESPerformanceGuard` still had i
 The accepted runtime setting is now `LimitPresentationRate=false`. After restart, status confirmed `vSyncCount=1`, `targetFrameRate=-1`, 60.000 emulated FPS, and zero two-or-more-frame batches. Unity updates remained about 119.8/s because Windows reported active displays at 120 Hz and 200 Hz; those updates were synchronized rather than software-paced.
 
 `SuperZSNESPerformanceGuard` v0.4.1 changes the fresh-install default to keep stock synchronized presentation. It also tracks whether it applied a software override and restores the exact VSync/target-frame-rate pair captured at load whenever that override is disabled or the plugin unloads. The v0.4.1 build succeeds with zero warnings/errors; tested DLL SHA-256 is `BB03227A480D337655657B2FE72FD66EBA2B94BFFDB3391C894E94ADE665FE60`.
+
+## 2026-08-11 fixed-width world-map wrap correction
+
+The Snow Barrel Blast world map exposed unrelated cave/mountain fragments in both widescreen margins. Raw PPU evidence showed that BG1 and BG2 were fixed 32x32 maps at scroll X=0 (`BGSC $7C/$78`, bases `$F800/$F000`). The 358-pixel renderer samples beyond native X 0..255, so the SNES 32-column tilemap lookup naturally wrapped negative and >=256 coordinates into unrelated parts of the same map. No ROM streaming data was corrupt.
+
+`SuperZSNESDKCFramebufferRenderer` v0.4.3 detects the exact fixed-screen signature across every visible line: Mode 1, BG1 enabled, sub screen and color math disabled, BG1/BG2 X scroll zero, and both maps 32 columns wide. Only those frames render black outside native X 0..255. Scrolling scenes, 64-wide maps, color-math scenes, and normal Mode 9 gameplay stay on the full 358-pixel renderer.
+
+The exact reproduction is preserved as `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst-snow-map-wrap-repro`. The accepted output keeps the authored central 256 pixels unchanged and removes both wrapped sections; runtime diagnostics reported `fixedNativePillarboxActive=true` for 600/600 supported map frames. The saved Millstone gameplay oracle remained byte-identical to v0.4.2, SHA-256 `6C69F18BCC6B0F7ACB78E68F85B70118BDC894284AD40AD0B89C91F5D115F8A6`, with the gate false.
+
+Production build and the expanded pillarbox/signature verifier pass with zero warnings/errors. Tested v0.4.3 DLL SHA-256 is `26088E224B973BC145CCC657F5AFDE327033E7EF02A37F9C4D202B880340E49F`.

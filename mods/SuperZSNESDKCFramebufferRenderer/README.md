@@ -58,3 +58,7 @@ Millstone Mayhem exposed a remaining scrolling bottleneck. Each eight-pixel came
 The exact 1,800-frame Millstone left/right macro improved from 86-90 Unity updates/s on v0.3.1 to 119.4-119.7 updates/s on v0.4.2. Every full v0.4.2 window ran at about 60 emulated FPS with zero updates that consumed two or more SNES frames. Background preparation fell from about 4.27 ms to 0.31 ms per rendered frame, and total framebuffer work fell from about 7.5 ms to 3.2 ms. A saved Millstone frame before and after the rewrite is byte-identical (`SHA-256 6C69F18BCC6B0F7ACB78E68F85B70118BDC894284AD40AD0B89C91F5D115F8A6`).
 
 The installed v0.4.2 DLL used for that result has SHA-256 `BDD6029BBC138B234E02F5888BAF62F8AD020FD42850C862AE06F0E8F32F12D2`. A rejected v0.4.0 prototype decoded all 1,024 tiles whenever any byte in a nominal CHR range changed; DKC stores unrelated streamed data in portions of those ranges, so that version rebuilt atlases unnecessarily and was superseded by per-tile validation.
+
+## Fixed native-width maps in v0.4.3
+
+DKC's world maps use fixed, non-scrolling 32x32 BG1/BG2 tilemaps. Sampling the normal 51-pixel widescreen margins wraps those 256-pixel maps and exposes unrelated map sections on both sides. v0.4.3 recognizes the exact fixed Mode 1 signature across all 224 lines and renders black pillarbox margins while keeping the authored central 256 pixels unchanged. Scrolling scenes, 64-wide tilemaps, color-math scenes, and normal Mode 1 gameplay remain on the full 358-pixel path.

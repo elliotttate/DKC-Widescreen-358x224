@@ -4,5 +4,5 @@ using System.Reflection;
 [assembly: AssemblyDescription("Experimental retained indexed framebuffer renderer for DKC Mode 1")]
 [assembly: AssemblyCompany("Local")]
 [assembly: AssemblyProduct("SuperZSNESDKCFramebufferRenderer")]
-[assembly: AssemblyVersion("0.4.2.0")]
-[assembly: AssemblyFileVersion("0.4.2.0")]
+[assembly: AssemblyVersion("0.4.3.0")]
+[assembly: AssemblyFileVersion("0.4.3.0")]

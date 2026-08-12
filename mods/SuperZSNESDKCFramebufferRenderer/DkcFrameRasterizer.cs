@@ -54,6 +54,8 @@ namespace SuperZSNESDKCFramebufferRenderer
         internal double BackgroundMs { get; private set; }
         internal double SpriteMs { get; private set; }
         internal double CompositeMs { get; private set; }
+        internal long FixedNativePillarboxFrames { get; private set; }
+        internal bool FixedNativePillarboxActive { get; private set; }
         internal string LastRasterEffect { get; private set; } = string.Empty;
         internal string LineDiagnosticsJson { get; private set; } = "[]";
 
@@ -108,6 +110,8 @@ namespace SuperZSNESDKCFramebufferRenderer
             if (!BuildLineState(ppu, out reason))
                 return false;
             LineStateMs += ElapsedMilliseconds(stageStart);
+            bool fixedNativePillarbox = ShouldPillarboxFixedNativeFrame();
+            FixedNativePillarboxActive = fixedNativePillarbox;
 
             byte[] vram = ppu.GetPPUMemory();
             stageStart = Stopwatch.GetTimestamp();
@@ -128,6 +132,11 @@ namespace SuperZSNESDKCFramebufferRenderer
                 for (int x = 0; x < width; x++)
                 {
                     int nativeX = x - leftExtension;
+                    if (fixedNativePillarbox && (nativeX < 0 || nativeX >= 256))
+                    {
+                        destination[(height - 1 - y) * width + x] = new Color32(0, 0, 0, 255);
+                        continue;
+                    }
                     LayerPixel main = Backdrop(y);
                     LayerPixel sub = Backdrop(y);
 
@@ -179,8 +188,29 @@ namespace SuperZSNESDKCFramebufferRenderer
                 }
             });
             CompositeMs += ElapsedMilliseconds(stageStart);
+            if (fixedNativePillarbox) FixedNativePillarboxFrames++;
             StageFrames++;
             return true;
+        }
+
+        private bool ShouldPillarboxFixedNativeFrame()
+        {
+            for (int y = 0; y < Lines; y++)
+            {
+                LineState state = _line[y];
+                if (!IsFixedNativeFrameSignature(state.Bgmode, state.Tm, state.Ts,
+                    state.Cgadsub, state.ScrollX1, state.ScrollX2, state.Bg1sc, state.Bg2sc))
+                    return false;
+            }
+            return true;
+        }
+
+        private static bool IsFixedNativeFrameSignature(byte bgmode, byte tm, byte ts,
+            byte cgadsub, int scrollX1, int scrollX2, byte bg1sc, byte bg2sc)
+        {
+            return bgmode == 1 && (tm & 0x01) != 0 && ts == 0 && cgadsub == 0 &&
+                   (scrollX1 & 0xFFFF) == 0 && (scrollX2 & 0xFFFF) == 0 &&
+                   (bg1sc & 3) == 0 && (bg2sc & 3) == 0;
         }
 
         private void PrepareBackgroundPlanes(byte[] vram, int width, int height, int leftExtension)

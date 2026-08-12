@@ -19,8 +19,9 @@ internal static class Program
             TestStockPaletteExpansion(rasterizer);
             TestCachePrimitives(rasterizer);
             TestDecodedTileAtlas(rasterizer);
+            TestFixedNativePillarbox(rasterizer);
             TestRuntimeShape();
-            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, color math, window regions, retained-cache primitives, and v0.230 patch targets.");
+            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, color math, window regions, retained-cache primitives, fixed-native pillarbox, and v0.230 patch targets.");
             return 0;
         }
         catch (Exception exception)
@@ -155,6 +156,18 @@ internal static class Program
         prepare.Invoke(null, new object[] { cache, 0xFFF0, 4 });
         read.Invoke(rasterizer, new object[] { vram, cache, 0xFFF0, 0, 4, 0, 0, 0 });
         Require(misses[0] == 6, "decoded atlas VRAM invalidation");
+    }
+
+    private static void TestFixedNativePillarbox(Type type)
+    {
+        MethodInfo signature = Required(type, "IsFixedNativeFrameSignature");
+        bool S(byte mode, byte tm, byte ts, byte math, int sx1, int sx2, byte bg1sc, byte bg2sc) =>
+            (bool)signature.Invoke(null, new object[] { mode, tm, ts, math, sx1, sx2, bg1sc, bg2sc });
+        Require(S(1, 0x11, 0, 0, 0, 0, 0x7C, 0x78), "Snow map fixed-frame signature");
+        Require(!S(9, 0x17, 0x17, 0x93, 0, 0, 0x7D, 0x79), "gameplay must stay wide");
+        Require(!S(1, 0x11, 0, 0, 1, 0, 0x7C, 0x78), "scrolling BG1 must stay wide");
+        Require(!S(1, 0x11, 0, 0, 0, 0, 0x7D, 0x78), "64-wide BG1 must stay wide");
+        Require(!S(1, 0x11, 0, 1, 0, 0, 0x7C, 0x78), "color-math scene must stay wide");
     }
 
     private static void TestRuntimeShape()
