@@ -851,3 +851,35 @@ rasterizer test suite passes. The v0.300 DLL has SHA-256
 and was installed into the closed production v0.300 copy with its existing
 presentation configuration preserved. The architectural decision record and
 promotion gates are in `docs/V0300_NEXT_ARCHITECTURE.md`.
+
+## 2026-08-12 native atlas dirty-branch follow-up
+
+The source-level atlas correction was implemented without the rejected managed
+per-tile detours. `SuperZSNESNativeAtlasDirtyFixIL2CPP` verifies the exact
+v0.300 `GameAssembly.dll` SHA-256 and six native instruction windows before
+changing memory. It NOPs the unconditional page-dirty stores at RVAs
+`$3A956E/$3A9A5E/$3A9FBE` and routes the already-true tile-dirty paths at
+`$3A95A0/$3A9A90/$3A9FF0` through three x86 trampolines. Each trampoline sets
+the validated page flag, replays the displaced instructions, and returns. Hook
+jumps are installed before stores are removed, partial failures roll back, and
+the on-disk DLL remains pristine. There are zero managed hot-path callbacks.
+
+Offline verification passed the exact executable hash/bytes, field and local
+offsets, displaced-instruction replay, and every rel32 return target. The
+benchmarked DLL SHA-256 was
+`5F1931D49993EA5891C5AE699A482CFE5C59AAD8EC04D2CABE1331DD3BC9BB39`.
+Afterward, the failure path was hardened to immediately restore a site if an
+instruction-cache flush fails after copying bytes; this does not alter the
+successful hot path. The final zero-warning/zero-error build SHA-256 is
+`C12FE2CDDEB12158A3B31A3B11F87F8C0D251CBFD132BE21612A5218AA05C68E`.
+A disposable runtime smoke test reported all six sites active without errors.
+
+Four fresh-process stock-renderer trials per configuration then used 12 seconds
+of warmup and approximately 20 seconds of measurement. Stock versus native-fix
+mean presentation was 2.6249 versus 2.6356 ms (+0.41%); process CPU was 1.2350
+versus 1.2234 cores (-0.94%); Unity Update was 4.5180 versus 4.5167 ms; and both
+held about 59.997 emulated FPS. Median presentation differed only +0.07%.
+These differences are smaller than trial noise, so the native correction has
+no measurable performance benefit in the tested DKC workload. It remains a
+disabled reference/correctness implementation, is disabled again in the
+disposable copy, and was not installed into the production v0.300 directory.

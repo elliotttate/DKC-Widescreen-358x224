@@ -47,6 +47,13 @@ DisableRewindCapture = false
 GateAtlasUploadsOnTileDirty = false
 ```
 
+The benchmark harness also accepts `stock-native-atlas` when the separate
+`SuperZSNESNativeAtlasDirtyFixIL2CPP` project is installed in the disposable
+copy. That scenario disables both the framebuffer and managed atlas gate,
+enables the six-site native correction, and verifies its runtime status before
+sampling. Four matched trials found no measurable presentation improvement, so
+the native plugin also remains disabled outside controlled tests.
+
 `status.json` reports Update, RunFrame, and presentation totals/timings; the
 0/1/2/3/4/5/6+ RunFrame-per-Update histogram; backlog recovery batches and
 cumulative retained-backlog frame charges; service-guard activity; atlas

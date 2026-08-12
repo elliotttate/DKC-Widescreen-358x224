@@ -15,7 +15,9 @@ recommended production configuration. The new performance suite preserves a
 bounded scheduler-backlog fix and reversible service guards, but keeps every
 switch off until explicitly enabled. The atlas-upload gate remains available
 only as a documented experiment because its per-tile IL2CPP Harmony overhead
-made presentation slower even though it proved the native dirty-flag bug.
+made presentation slower even though it proved the native dirty-flag bug. A
+subsequent source-equivalent native x86 patch removed that callback cost but was
+performance-neutral across four matched trials, so it also remains disabled.
 
 ## Native-code audit
 
@@ -41,7 +43,8 @@ coverage and its validated IDA database. Relevant current native entry points:
 | Exact retained-background cache | **Accepted** | Average process CPU fell another 19.5% versus framebuffer cache-off. Hit rate was 79.1%; average background stage fell from 1.933 to 0.976 ms. |
 | Charge only actually scheduled frames | **Ported, optional** | The native bug persists. A controlled 500 ms stall produced four bounded recovery batches and 0.62–0.73 more emulated frames/s than paired stock runs. Fast-forward is untouched. |
 | Disable history/rewind work during Update | **Ported, optional** | Uses the existing v0.300 flags and restores the user's values after every Update. It prevents service spikes but is not a steady-state throughput optimization. Prefer the emulator's own settings when available. |
-| Atlas uploads only for real tile dirtiness | **Rejected for production** | It proved about 1.26 million false page-dirty hits per 21-second trial, but per-tile IL2CPP Harmony hooks raised measured presentation work from 2.970 to 4.071 ms. Keep disabled. |
+| Managed atlas dirty-page gate | **Rejected for production** | It proved about 1.26 million false page-dirty assignments per 21-second trial, but per-tile IL2CPP Harmony hooks raised measured presentation work from 2.970 to 4.071 ms. |
+| Native atlas dirty-branch correction | **Verified, no measurable benefit** | A hash/byte-gated six-site x86 patch moved the page assignment onto the existing true-dirty path with zero managed hot callbacks. Four trials averaged 2.625 ms stock versus 2.636 ms fixed presentation (+0.41%); keep disabled. |
 | `ReadMem` cheat fast path | **Not ported** | The v0.230 A/B regressed wall time 2.8% and CPU/frame 8.3%. A native detour on an even hotter IL2CPP path would add more risk. |
 | Tile-material and draw-loop dictionary rewrites | **Not ported** | Old controlled runs showed no benefit or visual risk. Supported framebuffer frames bypass those paths. |
 | Mesh bounds, material scratch pools, and 128-OBJ loop | **Not ported** | These target the legacy renderer that supported framebuffer frames skip. The OBJ correction is less than 1% of one loop and is not a multi-Hz fix. |
@@ -72,6 +75,23 @@ renderer-native total for those rows.
 The cache-on runs recorded 2,134.5 background hits and 565.5 misses on average,
 or a 79.1% hit rate. This reduced the framebuffer background stage from 1.933
 to 0.976 ms (49.5%) and the renderer's total from 5.700 to 4.583 ms (19.6%).
+
+### Native atlas follow-up
+
+`SuperZSNESNativeAtlasDirtyFixIL2CPP` implements the source-level correction
+without a Harmony callback in the tile accessors. It verifies the complete
+`GameAssembly.dll` hash and six original instruction windows, then routes only
+the existing true-dirty branches through native x86 trampolines. The DLL on disk
+is never modified and every switch defaults off.
+
+Four fresh stock-renderer trials per side used the same 12-second warmup and
+approximately 20-second measurement. Both configurations held essentially
+59.997 emulated FPS. Mean presentation time was 2.6249 ms stock and 2.6356 ms
+fixed (+0.41%); median presentation differed by only +0.07%. Mean process CPU
+was 1.2350 and 1.2234 cores respectively (-0.94%), with trial variance larger
+than the difference. The correct conclusion is no measurable performance gain,
+not a small win. The native patch is preserved as a correctness/reference
+implementation but is not recommended for production.
 
 ### Controlled backlog recovery
 
@@ -127,9 +147,9 @@ The full reviewed aggregate is preserved in
 
 1. Ship the IL2CPP framebuffer renderer with `RetainedBackgrounds=true` for the
    supported DKC path.
-2. Keep `GateAtlasUploadsOnTileDirty=false`; a future native/preloader rewrite
-   could move the assignment with no per-tile Harmony callback and deserves a
-   fresh A/B test.
+2. Keep both `GateAtlasUploadsOnTileDirty=false` and the native atlas patch
+   disabled. The native/source-equivalent follow-up removed callback overhead
+   but did not improve presentation across four matched trials.
 3. Enable bounded backlog recovery only when the scheduler fix is desired; keep
    the test stall settings at zero.
 4. Use the emulator's own history/rewind-off settings first. The reversible

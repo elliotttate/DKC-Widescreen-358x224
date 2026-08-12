@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-12T18:00:00Z",
+  "generatedAt": "2026-08-12T18:15:00Z",
   "target": {
     "superZsnesExeSha256": "B83358E453C9378A37AA0E43D22886AD49EE426F1ECF381B4F84A3A49F54FDD6",
     "gameAssemblySha256": "0A5582B26EF2596FFA504AC6C1282E145EFA093B49EFD22974D4F2C74561271A",
@@ -114,6 +114,44 @@
       "backgroundCacheHitRate": 0.790926
     }
   ],
+  "nativeAtlasFollowup": {
+    "method": {
+      "warmupSeconds": 12,
+      "measurementSecondsNominal": 20,
+      "freshProcessPerTrial": true,
+      "trialsPerConfiguration": 4,
+      "framebufferEnabled": false,
+      "nativeManagedHotPathCallbacks": 0
+    },
+    "stock": {
+      "cpuCoresMean": 1.2349965333,
+      "cpuCoresMedian": 1.2504381376,
+      "averageUpdateMsMean": 4.5180354545,
+      "averageRunFrameMsMean": 1.8573463355,
+      "averagePresentationMsMean": 2.6248634148,
+      "averagePresentationMsMedian": 2.6074026477,
+      "runFrameHzMean": 59.9977708466
+    },
+    "nativeFix": {
+      "pluginSha256": "5F1931D49993EA5891C5AE699A482CFE5C59AAD8EC04D2CABE1331DD3BC9BB39",
+      "patchedSites": 6,
+      "cpuCoresMean": 1.2233756096,
+      "cpuCoresMedian": 1.2417247201,
+      "averageUpdateMsMean": 4.516655,
+      "averageRunFrameMsMean": 1.8521461458,
+      "averagePresentationMsMean": 2.6356390288,
+      "averagePresentationMsMedian": 2.609348,
+      "runFrameHzMean": 59.99700661
+    },
+    "deltaNativeVsStock": {
+      "cpuCores": -0.009410,
+      "averageUpdateMs": -0.000306,
+      "averageRunFrameMs": -0.002800,
+      "averagePresentationMs": 0.004105,
+      "runFrameHz": -0.000013
+    },
+    "decision": "Verified source-equivalent native fix, but no measurable performance benefit; keep disabled."
+  },
   "controlledHitchPairs": [
     {
       "pair": 1,

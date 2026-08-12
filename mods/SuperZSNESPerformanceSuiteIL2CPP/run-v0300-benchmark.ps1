@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory=$true)][string]$GameRoot,
     [Parameter(Mandatory=$true)][string]$RomPath,
     [Parameter(Mandatory=$true)]
-    [ValidateSet('stock','stock-atlas','framebuffer-cache-off','framebuffer-cache-on','framebuffer-cache-on-suite','framebuffer-cache-on-stall-stock','framebuffer-cache-on-stall-fixed')]
+    [ValidateSet('stock','stock-atlas','stock-native-atlas','framebuffer-cache-off','framebuffer-cache-on','framebuffer-cache-on-suite','framebuffer-cache-on-stall-stock','framebuffer-cache-on-stall-fixed')]
     [string]$Scenario,
     [Parameter(Mandatory=$true)][int]$Trial,
     [string]$OutputDirectory = (Join-Path $PSScriptRoot 'Runs'),
@@ -13,7 +13,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 if (-not $AllowConfigurationOverwrite) {
-    throw 'This benchmark overwrites two plugin configs in a disposable game copy. Pass -AllowConfigurationOverwrite.'
+    throw 'This benchmark overwrites plugin configs in a disposable game copy. Pass -AllowConfigurationOverwrite.'
 }
 $GameRoot = (Resolve-Path -LiteralPath $GameRoot).Path
 $RomPath = (Resolve-Path -LiteralPath $RomPath).Path
@@ -36,19 +36,23 @@ if ($existing.Count) { throw "Close the disposable SuperZSNES process first: $($
 
 $perfDll = Join-Path $GameRoot 'BepInEx\plugins\SuperZSNESPerformanceSuiteIL2CPP\SuperZSNESPerformanceSuiteIL2CPP.dll'
 $rendererDll = Join-Path $GameRoot 'BepInEx\plugins\SuperZSNESDKCFramebufferRendererIL2CPP\SuperZSNESDKCFramebufferRendererIL2CPP.dll'
-if (-not (Test-Path -LiteralPath $perfDll) -or -not (Test-Path -LiteralPath $rendererDll)) {
-    throw 'Install both IL2CPP plugins into the disposable copy before benchmarking.'
+$nativeAtlasDll = Join-Path $GameRoot 'BepInEx\plugins\SuperZSNESNativeAtlasDirtyFixIL2CPP\SuperZSNESNativeAtlasDirtyFixIL2CPP.dll'
+if (-not (Test-Path -LiteralPath $perfDll) -or -not (Test-Path -LiteralPath $rendererDll) -or
+    -not (Test-Path -LiteralPath $nativeAtlasDll)) {
+    throw 'Install the performance, framebuffer, and native-atlas IL2CPP plugins into the disposable copy before benchmarking.'
 }
 
 $rendererEnabled = $Scenario.StartsWith('framebuffer-')
 $retained = $Scenario -in @('framebuffer-cache-on','framebuffer-cache-on-suite','framebuffer-cache-on-stall-stock','framebuffer-cache-on-stall-fixed')
 $suite = $Scenario -in @('framebuffer-cache-on-suite','framebuffer-cache-on-stall-fixed')
 $atlas = $Scenario -eq 'stock-atlas'
+$nativeAtlas = $Scenario -eq 'stock-native-atlas'
 $stall = $Scenario -in @('framebuffer-cache-on-stall-stock','framebuffer-cache-on-stall-fixed')
 $configRoot = Join-Path $GameRoot 'BepInEx\config'
 New-Item -ItemType Directory -Path $configRoot -Force | Out-Null
 $perfConfig = Join-Path $configRoot 'dev.local.superzsnes.performance.il2cpp.cfg'
 $rendererConfig = Join-Path $configRoot 'dev.local.superzsnes.dkcframebuffer.il2cpp.cfg'
+$nativeAtlasConfig = Join-Path $configRoot 'dev.local.superzsnes.nativeatlasdirtyfix.il2cpp.cfg'
 @"
 [Diagnostics]
 
@@ -79,9 +83,15 @@ Width = 358
 Height = 224
 LeftExtension = 51
 "@ | Set-Content -LiteralPath $rendererConfig -Encoding UTF8
+@"
+[Patch]
+
+Enabled = $($nativeAtlas.ToString().ToLowerInvariant())
+"@ | Set-Content -LiteralPath $nativeAtlasConfig -Encoding UTF8
 
 $perfStatus = Join-Path $GameRoot 'BepInEx\plugins\SuperZSNESPerformanceSuiteIL2CPP\status.json'
 $rendererStatus = Join-Path $GameRoot 'BepInEx\plugins\SuperZSNESDKCFramebufferRendererIL2CPP\status.json'
+$nativeAtlasStatus = Join-Path $GameRoot 'BepInEx\plugins\SuperZSNESNativeAtlasDirtyFixIL2CPP\status.json'
 $process = $null
 try {
     $launchedAt = Get-Date
@@ -95,6 +105,13 @@ try {
     $startPerf = Get-Content -Raw -LiteralPath $perfStatus | ConvertFrom-Json
     if ($startPerf.state -ne 'active' -or [long]$startPerf.errors -ne 0) {
         throw "Performance plugin is not healthy at measurement start: state=$($startPerf.state), errors=$($startPerf.errors)"
+    }
+    $nativeStatus = if (Test-Path -LiteralPath $nativeAtlasStatus) {
+        Get-Content -Raw -LiteralPath $nativeAtlasStatus | ConvertFrom-Json
+    } else { $null }
+    if ($nativeAtlas -and ($null -eq $nativeStatus -or $nativeStatus.state -ne 'active' -or
+        -not [bool]$nativeStatus.applied -or [int]$nativeStatus.patchedSites -ne 6)) {
+        throw "Native atlas patch is not healthy: $($nativeStatus | ConvertTo-Json -Compress)"
     }
     $startRenderer = if ($rendererEnabled -and (Test-Path -LiteralPath $rendererStatus)) {
         Get-Content -Raw -LiteralPath $rendererStatus | ConvertFrom-Json
@@ -166,6 +183,13 @@ try {
         qualityVSyncCount = [int]$endPerf.qualityVSyncCount
         targetFrameRate = [int]$endPerf.targetFrameRate
         errors = [long]$endPerf.errors
+        nativeAtlas = if ($nativeAtlas) { [ordered]@{
+            state = [string]$nativeStatus.state
+            applied = [bool]$nativeStatus.applied
+            patchedSites = [int]$nativeStatus.patchedSites
+            managedHotPathCallbacks = [int]$nativeStatus.managedHotPathCallbacks
+            gameAssemblySha256 = [string]$nativeStatus.gameAssemblySha256
+        }} else { $null }
         renderer = if ($rendererEnabled) { [ordered]@{
             renderedFrames = [long]$endRenderer.renderedFrames - [long]$startRenderer.renderedFrames
             fallbackFrames = [long]$endRenderer.fallbackFrames - [long]$startRenderer.fallbackFrames

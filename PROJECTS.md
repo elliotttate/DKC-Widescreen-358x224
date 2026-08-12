@@ -10,6 +10,7 @@ The repository preserves accepted work, diagnostic tooling, and rejected experim
 | --- | --- | --- |
 | `SuperZSNESDKCFramebufferRendererIL2CPP` | Recommended | Supported DKC Mode 1 CPU compositor and retained-background presentation path. This is the major v0.300 performance improvement. |
 | `SuperZSNESPerformanceSuiteIL2CPP` | Optional, all switches default off | Native-code audit probes, bounded backlog recovery, reversible history/rewind guards, and a rejected atlas-upload experiment retained for reproducibility. |
+| `SuperZSNESNativeAtlasDirtyFixIL2CPP` | Verified reference, keep disabled | Exact hash/byte-gated native correction for the atlas dirty-flag bug. It removes managed hot callbacks but showed no measurable performance benefit in four matched trials. |
 
 The v0.300 benchmark and port decision matrix are in
 [the v0.300 optimization report](docs/V0300_OPTIMIZATION_PORT.md). Do not copy
