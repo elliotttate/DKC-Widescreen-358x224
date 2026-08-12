@@ -1143,3 +1143,12 @@ returning to active rebuilt it. A full-window capture remained coherent, and
 the current component report showed large continuous BG masses pinned to zero
 with compact disconnected BG2/BG3 shapes assigned shallow offsets. This is
 encouraging live evidence, not yet broad per-level visual coverage.
+
+The looping intro's working/private memory continued to rise during the long
+run. A direct F6 isolation showed about +90 MiB private memory over 30 seconds
+with the controller inactive and no component snapshots or builds, while
+handles and threads decreased slightly. The growth therefore is not owned by
+the component worker; it is consistent with the already documented stock
+palette/material churn during repeated fades. Re-enabling F6 rebuilt the table
+normally. This isolation does not excuse the emulator-side growth, but it keeps
+it separate from the retained depth implementation.
