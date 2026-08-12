@@ -16,7 +16,7 @@ namespace DKCWidescreenDebugger
     {
         public const string PluginGuid = "dev.local.superzsnes.dkcwidescreendebugger";
         public const string PluginName = "DKC Widescreen Debugger";
-        public const string PluginVersion = "0.1.2";
+        public const string PluginVersion = "0.1.4";
 
         internal static DKCWidescreenDebuggerPlugin Instance;
 

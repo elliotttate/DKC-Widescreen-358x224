@@ -14,7 +14,7 @@ namespace SuperZSNESPerformanceGuard
     {
         public const string PluginGuid = "dev.local.superzsnes.performanceguard";
         public const string PluginName = "SuperZSNES Performance Guard";
-        public const string PluginVersion = "0.4.0";
+        public const string PluginVersion = "0.4.1";
 
         internal static SuperZSNESPerformanceGuardPlugin Instance;
 
@@ -33,6 +33,7 @@ namespace SuperZSNESPerformanceGuard
         private int _releasedStates;
         private int _originalVSyncCount;
         private int _originalTargetFrameRate;
+        private bool _presentationOverrideApplied;
 
         private void Awake()
         {
@@ -47,8 +48,8 @@ namespace SuperZSNESPerformanceGuard
                 "BackgroundServices", "ReleaseAllocatedRewindBuffer", true,
                 "Clear already allocated rewind state objects after rewind capture is disabled.");
             _limitPresentationRate = Config.Bind(
-                "Presentation", "LimitPresentationRate", true,
-                "Run Unity presentation at a deliberate rate instead of trying to render at the monitor refresh rate. This prevents a 200 Hz display from forcing 0/2 or 1/2 emulation-frame batches.");
+                "Presentation", "LimitPresentationRate", false,
+                "Disable VSync and run Unity presentation at a deliberate software-limited rate. Leave false for synchronized presentation; use only as an A/B option.");
             _uncappedPresentation = Config.Bind(
                 "Presentation", "UncappedPresentation", false,
                 "Keep VSync disabled and remove Unity's software presentation ceiling. This is an A/B option for scenes whose renderer cost falls between one 60 Hz and one 120 Hz scheduling interval.");
@@ -104,19 +105,30 @@ namespace SuperZSNESPerformanceGuard
         private void OnDestroy()
         {
             try { if (_harmony != null) _harmony.UnpatchSelf(); } catch { }
-            if (_limitPresentationRate != null && _limitPresentationRate.Value)
+            if (_presentationOverrideApplied)
             {
                 QualitySettings.vSyncCount = _originalVSyncCount;
                 Application.targetFrameRate = _originalTargetFrameRate;
+                _presentationOverrideApplied = false;
             }
             if (ReferenceEquals(Instance, this)) Instance = null;
         }
 
         private void ApplyPresentationSettings()
         {
-            if (!_limitPresentationRate.Value) return;
+            if (!_limitPresentationRate.Value)
+            {
+                if (_presentationOverrideApplied)
+                {
+                    QualitySettings.vSyncCount = _originalVSyncCount;
+                    Application.targetFrameRate = _originalTargetFrameRate;
+                    _presentationOverrideApplied = false;
+                }
+                return;
+            }
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = _uncappedPresentation.Value ? -1 : _targetPresentationRate.Value;
+            _presentationOverrideApplied = true;
         }
 
         internal bool ShouldLimitPpuRenderTextures()

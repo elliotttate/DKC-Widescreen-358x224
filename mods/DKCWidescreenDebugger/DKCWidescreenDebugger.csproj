@@ -6,7 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>DKCWidescreenDebugger</AssemblyName>
     <RootNamespace>DKCWidescreenDebugger</RootNamespace>
-    <Version>0.1.2</Version>
+    <Version>0.1.4</Version>
     <Deterministic>true</Deterministic>
     <DebugType>portable</DebugType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

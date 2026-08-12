@@ -1,0 +1,37 @@
+{
+  "date": "2026-08-12",
+  "workload": "verified DKC widescreen ROM; v0.300 IL2CPP; 5 s warmup; 60 s measurement; VSync=1",
+  "beforeTrials": [50, 51],
+  "afterTrials": [54, 55],
+  "before": {
+    "cpuCores": 1.143389,
+    "averageUpdateMs": 6.292000,
+    "averageRunFrameMs": 2.225300,
+    "averageFramebufferMs": 4.357350,
+    "averageBackgroundMs": 0.904050,
+    "twoPlusRunFrameShare": 0.007172,
+    "maximumFramebufferMs": 29.191400
+  },
+  "after": {
+    "cpuCores": 1.129868,
+    "averageUpdateMs": 5.545600,
+    "averageRunFrameMs": 2.110250,
+    "averageFramebufferMs": 3.650700,
+    "averageBackgroundMs": 0.326500,
+    "twoPlusRunFrameShare": 0.002222,
+    "maximumFramebufferMs": 15.116200,
+    "rasterEffectRebuildsPerTrial": 715,
+    "rasterPartialRebuildsPerTrial": 700,
+    "rasterPartialRowsPerTrial": 65216
+  },
+  "relativeChange": {
+    "cpuCores": -0.011826,
+    "averageUpdateMs": -0.118625,
+    "averageRunFrameMs": -0.051700,
+    "averageFramebufferMs": -0.162176,
+    "averageBackgroundMs": -0.638846,
+    "twoPlusRunFrameShare": -0.690145
+  },
+  "decision": "accepted",
+  "safety": "Partial refresh is permitted only when relevant VRAM is byte-identical and BGSC, BGMODE, and CHR base remain exact. Otherwise the full raster rebuild runs. An emulator-free fixture compares partial output against a clean full rebuild and verifies VRAM invalidation."
+}

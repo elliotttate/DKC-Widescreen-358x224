@@ -21,6 +21,38 @@ This directory contains only the source overlay required to build the widescreen
 
 The expected output SHA-256 is `B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D`.
 
+## Deluxe MSU-1 music build
+
+The optional build below combines the same widescreen patch with the 60-track
+DKC Deluxe MSU-1 cue map. It is a source port of the Deluxe USA Rev. 2 patch to
+this project's USA v1.0 hooks; do not apply the original Deluxe IPS to this ROM.
+
+```powershell
+./rom/build.ps1 `
+  -DisassemblyRoot '<dkc-disassembly-root>' `
+  -RomPath '<clean-dkc-usa-v1.0-rom>' `
+  -EnableMsu1Deluxe
+```
+
+The expected Deluxe output SHA-256 is
+`FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5`.
+The repository contains no audio. Given a matching, legally obtained 60-track
+pack, prepare a runnable same-basename bundle without duplicating its roughly
+1.44 GiB of PCM data:
+
+```powershell
+./rom/setup-msu1-deluxe.ps1 `
+  -RomPath './artifacts/DKC_Widescreen_358x224_MSU1_Deluxe.sfc' `
+  -AudioPackPath '<directory-containing-dkc_msu-1.pcm-through-dkc_msu-60.pcm>' `
+  -DestinationDirectory '<playable-bundle-directory>'
+```
+
+The setup script validates every `MSU1` header, sample alignment, and loop
+point; creates the required empty same-basename `.msu` marker; and hard-links
+the PCM files under the ROM basename SuperZSNES expects. Add
+`-UseOptionalGangPlankGalleon` only when the pack includes and you prefer its
+optional track 25.
+
 The overlay changes asset extraction/build automation plus these game behaviors:
 
 - symmetric 56-pixel camera and render margins;
@@ -29,3 +61,32 @@ The overlay changes asset extraction/build automation plus these game behaviors:
 - banana formation coverage, positioning, collision, and 9-bit OAM X handling;
 - restored player endpoint ranges at widened terminal cameras;
 - retry of missing children in active type-5 groups, fixing the Barrel Cannon Canyon upper-barrel softlock.
+- optional DKC Deluxe MSU-1 music selection for tracks 1-60 while retaining SPC sound effects.
+
+## Restoration MSU-1 music build
+
+Traditional DKC restoration packs use the established 27-track mapping rather
+than the Deluxe 60-track level-variant table. Build that compatible ROM mode
+with:
+
+```powershell
+./rom/build.ps1 `
+  -DisassemblyRoot '<dkc-disassembly-root>' `
+  -RomPath '<clean-dkc-usa-v1.0-rom>' `
+  -EnableMsu1Restoration
+```
+
+The expected Restoration output SHA-256 is
+`4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5`.
+Prepare the same-basename runtime bundle without copying its PCM data:
+
+```powershell
+./rom/setup-msu1-restoration.ps1 `
+  -RomPath './artifacts/DKC_Widescreen_358x224_MSU1_Restoration.sfc' `
+  -AudioPackPath '<directory-containing-dkc_msu-1.pcm-through-dkc_msu-27.pcm>' `
+  -DestinationDirectory '<playable-bundle-directory>'
+```
+
+The setup validates all 27 MSU1-PCM headers, sample alignment, and loop points.
+It hard-links the tracks under the ROM basename expected by SuperZSNES. Use
+`-UseAlternateTrack10` only for a pack that supplies `dkc_msu-10_alt.pcm`.

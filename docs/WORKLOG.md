@@ -1,5 +1,29 @@
 # DKC 358x224 Widescreen Engineering Log
 
+## 2026-08-12 — 27-track Restoration MSU-1 mode
+
+The Sam Miller/qwerty Restoration pack contains the conventional tracks 1-27
+plus an alternate track 10, not the Deluxe 1-60 set. Reusing the 60-track ROM
+would leave level-specific and rotating-map selections missing. A separate
+USA v1.0 source overlay now selects the original DKC music ID plus one, retains
+the established loop/one-shot flags, silences only SPC music, and keeps the SPC
+engine active for sound effects. It uses the same byte-asserted music and NMI
+hooks as the verified Deluxe port while omitting all Deluxe remapping.
+
+The reproducible ROM is
+`DKC_Widescreen_358x224_MSU1_Restoration.sfc`, SHA-256
+`4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5`.
+`setup-msu1-restoration.ps1` validates all 27 PCM headers, alignment, and loop
+points and hard-links them into a separate runtime bundle without duplicating
+the source audio.
+
+SuperZSNES v0.300 live validation loaded tracks 11 and 10 from the
+`DKC_Widescreen_358x224_MSU1_Restoration_SamMiller_qwerty` bundle with valid
+loop metadata and no missing/invalid PCM errors. The IL2CPP framebuffer
+renderer canonical allowlist was extended for the locked Restoration ROM and
+bumped to v0.1.4; after restart its status changed from the expected hash
+fallback to `presenting` while the Restoration tracks remained active.
+
 This is the living source of truth for the Donkey Kong Country widescreen ROM hack and its SuperZSNES support. Update this file whenever a hypothesis is confirmed, rejected, implemented, or tested. Older handoffs are historical context and may describe superseded builds.
 
 ## Project objective
@@ -591,3 +615,364 @@ Validation used the exact user state `<workspace>\DKC_Widescreen_358x224.data.sz
 Because the framebuffer renderer deliberately accepts only a canonical ROM hash, `SuperZSNESDKCFramebufferRenderer` was rebuilt as v0.3.1 with the new ROM SHA. Source and installed DLL SHA-256 are `36C4968CED5585D2FE6F4213B50311BE3FC48419C1AA33C730D36DB8EE295943`; its full verifier and renderer tests passed. Live status reports `presenting` with no fallback. The accepted live framebuffer capture is `<superzsnes>\BepInEx\plugins\SuperZSNESDKCFramebufferRenderer\candidate-20260811-220321-201.png`.
 
 The durable automation case is `<superzsnes-source>\Mods\DKCLevelAutomation\recipes\barrel-cannon-group-retry.json`. It asserts the exact level/entrance, nonzero `$8A/$8B/$8C` bookkeeping, Zinger/barrel IDs and target coordinates after two frames, then checks persistence after 300 frames. At handoff, the emulator was running the rebuilt canonical ROM with the exact state loaded, the two missing children spawned, controller schedules cleared, and framebuffer presentation active.
+
+## 2026-08-11 Millstone Mayhem scrolling performance fix
+
+The user's test spot was identified from a full debugger capture as Millstone Mayhem (`level $0028`, entrance `$0058`, Layer1/camera X `$2295`, Y `$00D0`). The CPU framebuffer was presenting with no fallback, but live cadence varied from 36-70 Unity updates/second while the SNES core stayed near 60 frames/second. In the worst five-second window, 97 of 181 Unity updates consumed two or more emulated frames, explaining the reported near-30-FPS motion.
+
+The remaining content-dependent cost was the retained background miss path. Each eight-pixel scrolling bucket miss rebuilt a 374x240 guarded plane pixel-by-pixel. Every pixel repeated tilemap addressing, descriptor decoding, flip/priority work, and planar bit extraction. Broad CHR snapshots also treated unrelated DKC VRAM streaming as a reason to invalidate a background.
+
+`SuperZSNESDKCFramebufferRenderer` v0.4.2 replaces that path with exact per-tile retention and tile-block construction:
+
+- only tile graphics referenced by the retained plane participate in its CHR validity key;
+- a referenced 2bpp/4bpp tile is validated once per frame and decoded only when its own bytes changed;
+- uniform planes are filled in clipped 8x8 blocks, computing one tilemap descriptor per block instead of once per pixel;
+- circular VRAM ranges retain exact wrap behavior but use eight-byte comparisons and block copies;
+- out-of-range 16x16 subtile indices fail closed to direct decoding and make the plane non-cacheable.
+
+An intermediate v0.4.0 whole-atlas prototype was rejected. It improved host cadence in one run but decoded all 1,024 tiles whenever any byte in the nominal CHR range changed. Millstone counters showed 450 whole-atlas rebuilds for BG1/BG2 and 775 for BG3 in 1,800 frames because DKC stores unrelated streamed data inside those broad ranges. v0.4.1 introduced per-tile validity but still rebuilt planes pixel-by-pixel; it was used only as the correctness oracle for the final tile-block rewrite.
+
+The controlled comparison used the immutable state `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst-perf-millstone-20260811` and the same 1,800-frame macro alternating 90 frames of Right+Y and Left+Y. Results:
+
+- v0.3.1 baseline: sustained 86-90 Unity updates/second during the aligned moving windows, with occasional two-frame batches; cumulative framebuffer background/total averages were about 4.27/7.50 ms.
+- v0.4.2: 119.4-119.7 Unity updates/second in every full moving window, 59.90-60.15 emulated FPS, and zero 2+ frame batches; framebuffer background/total averages were about 0.31/3.20 ms.
+- The saved Millstone framebuffer before and after the rewrite is byte-identical, SHA-256 `6C69F18BCC6B0F7ACB78E68F85B70118BDC894284AD40AD0B89C91F5D115F8A6`.
+
+The v0.4.2 source/build verifier passes with zero warnings/errors. Installed DLL SHA-256 is `BDD6029BBC138B234E02F5888BAF62F8AD020FD42850C862AE06F0E8F32F12D2`; `Assembly-CSharp.dll` remains pristine. Old framebuffer backups must not retain a `.dll` suffix in an active BepInEx plugin directory: BepInEx scans them and may select an older same-GUID plugin. At handoff, the original Millstone performance state was restored, controller schedules were cleared, and gameplay was resumed with v0.4.2 active.
+
+## 2026-08-11 VSync restoration after the performance pass
+
+The visible tearing report was correct. `SuperZSNESPerformanceGuard` still had its earlier software-pacing experiment enabled: `LimitPresentationRate=true` forced `QualitySettings.vSyncCount=0` and `Application.targetFrameRate=120`. That setting was useful when diagnosing renderer starvation, but it was no longer appropriate after the v0.4.2 framebuffer renderer removed the bottleneck.
+
+The accepted runtime setting is now `LimitPresentationRate=false`. After restart, status confirmed `vSyncCount=1`, `targetFrameRate=-1`, 60.000 emulated FPS, and zero two-or-more-frame batches. Unity updates remained about 119.8/s because Windows reported active displays at 120 Hz and 200 Hz; those updates were synchronized rather than software-paced.
+
+`SuperZSNESPerformanceGuard` v0.4.1 changes the fresh-install default to keep stock synchronized presentation. It also tracks whether it applied a software override and restores the exact VSync/target-frame-rate pair captured at load whenever that override is disabled or the plugin unloads. The v0.4.1 build succeeds with zero warnings/errors; tested DLL SHA-256 is `BB03227A480D337655657B2FE72FD66EBA2B94BFFDB3391C894E94ADE665FE60`.
+
+## 2026-08-11 fixed-width world-map wrap correction
+
+The Snow Barrel Blast world map exposed unrelated cave/mountain fragments in both widescreen margins. Raw PPU evidence showed that BG1 and BG2 were fixed 32x32 maps at scroll X=0 (`BGSC $7C/$78`, bases `$F800/$F000`). The 358-pixel renderer samples beyond native X 0..255, so the SNES 32-column tilemap lookup naturally wrapped negative and >=256 coordinates into unrelated parts of the same map. No ROM streaming data was corrupt.
+
+`SuperZSNESDKCFramebufferRenderer` v0.4.3 detects the exact fixed-screen signature across every visible line: Mode 1, BG1 enabled, sub screen and color math disabled, BG1/BG2 X scroll zero, and both maps 32 columns wide. Only those frames render black outside native X 0..255. Scrolling scenes, 64-wide maps, color-math scenes, and normal Mode 9 gameplay stay on the full 358-pixel renderer.
+
+The exact reproduction is preserved as `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst-snow-map-wrap-repro`. The accepted output keeps the authored central 256 pixels unchanged and removes both wrapped sections; runtime diagnostics reported `fixedNativePillarboxActive=true` for 600/600 supported map frames. The saved Millstone gameplay oracle remained byte-identical to v0.4.2, SHA-256 `6C69F18BCC6B0F7ACB78E68F85B70118BDC894284AD40AD0B89C91F5D115F8A6`, with the gate false.
+
+Production build and the expanded pillarbox/signature verifier pass with zero warnings/errors. Tested v0.4.3 DLL SHA-256 is `26088E224B973BC145CCC657F5AFDE327033E7EF02A37F9C4D202B880340E49F`.
+
+## 2026-08-11 Slip-Slide Ride rope-position investigation
+
+The exact user state is `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst1`, frame 551552, in Slip-Slide Ride (`level $0051`, entrance `$006D`). It initially appeared that the nearby blue rope was misplaced or nonfunctional. Two independent facts explain the observation without requiring a rope-coordinate patch.
+
+First, the state was saved with DKC's internal pause bit set: `$7E0579=$00C1`, including bit `$0040`. `CODE_80992F` still reads controllers while this bit is set, but skips gameplay updates, so the rope, Kongs, camera, and objects remain frozen. One Start frame changes the value to `$0081` and resumes normal simulation.
+
+Second, the rope's authored, simulated, rendered, and collision coordinates agree. The nearby object is the sole rope record in this section: `SlipSlideRide_Main.bin+$0038` / `DATA_BDD638`, `dw $0001,$02E0,$63E0,DATA_B5BE91`. At the saved frame its active ID `$30` actor is at `$02DD,$63E0`, three pixels left of its `$02E0` horizontal oscillation anchor. With Layer1 X `$0229`, the actor is at native screen X `$00B4`; its OAM art anchor is X `$00B1`, the expected three-pixel sprite-art offset. The framebuffer places it at output X about 228 after adding the 51-pixel left extension. The background uses the same native-to-output mapping.
+
+A reversible stock-ROM comparison loaded this same state, applied the identical `0=START;1-30=NONE` input, and compared it with the widescreen ROM at frame 551583. Both produce rope actor X/Y `$02E2/$63E0`. OAM entries 23-33 are byte-identical in both captures: X 182, Y 231 through 71 in 16-pixel steps, tile `$60`, attributes `$36`, large-size pair 2. The complete OAM snapshots differ only in six bytes belonging to widened banana coverage; no rope byte differs. Captures:
+
+- stock: `<superzsnes>\BepInEx\plugins\DKCWidescreenDebugger\Sessions\20260811-214936\capture-f00551583-20260811-223245-769`;
+- widescreen: `<superzsnes>\BepInEx\plugins\DKCWidescreenDebugger\Sessions\20260811-214936\capture-f00551583-20260811-223259-949`.
+
+The object table also confirms there is no omitted second rope nearby: the preceding and following equivalent `DATA_B5BE91` ropes are authored at X `$0100` and `$0520`, while this rope is at `$02E0`. The widened viewport merely reveals more of the surrounding cave; it does not relocate this rope.
+
+The exact route was tested deterministically. From the state, `0=START;1-8=RIGHT+B;9-420=UP` attaches Diddy to the rope (Kong state `$0025`) and the blue rope carries the Kongs upward automatically; another 420 Up frames continues the ascent. `0-59=RIGHT+B;60-180=RIGHT+Y` then jumps off and advances the level. This verifies the visible rope and the grabbable/collision rope are the same actor.
+
+No ROM or renderer patch was made for this checkpoint. Moving the rope would make it diverge from the original game and its collision path. Treat any later rope-position report as a separate state-specific case, especially for purple ropes or multi-rope sequences, and repeat the authored/live/OAM/collision comparison before changing coordinates.
+
+## 2026-08-12 Slip-Slide Ride shimmer compositor fix
+
+The user state `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst1` reproduces a foreground ice-shimmer error in the CPU framebuffer renderer. At exact save-state frame 573672, the PPU is uniform Mode 1 with `TM=$13` (BG1/BG2/OBJ main), `TS=$04` (BG3 subscreen), `CGWSEL=$02` (subscreen color operand), and `CGADSUB=$33` (add color math on BG1/BG2/OBJ/backdrop). The bad CPU image displayed large purple BG3 halo shapes across the foreground. Disabling the CPU presenter restored the correct white/cyan glints.
+
+Layer-isolated evidence proved the tilemaps were not corrupt. CPU BG1/BG2 main-priority output matched the legacy main plane structurally, and CPU BG3 contained the intended animated glint art. The divergence appeared only after main/subscreen composition. The pre-fix final candidate is `<superzsnes>\BepInEx\plugins\SuperZSNESDKCFramebufferRenderer\candidate-20260812-144406-627.png`; its diagnostic planes share the same timestamp.
+
+The screenshot tooling itself contained a misleading fallback: `PPURenderer.GetFinalComposedTexture()` returns a `Texture2D`, but `DKCWidescreenDebugger` accepted only `RenderTexture`, so `target=composed` silently returned the raw main plane. `DKCWidescreenDebugger` v0.1.4 now captures the live private `transferScreenRenderTexture` for the full 796x448 widescreen composite, accepts the private subscreen render texture as `target=sub`, and correctly encodes/destroys a returned `Texture2D` fallback. At frame 573672 the exact background-only oracle surfaces are:
+
+- main: session `20260812-105619`, `screenshot-main-f00573672-20260812-105634-629.png`;
+- sub: `screenshot-sub-f00573672-20260812-105634-670.png`;
+- composed: `screenshot-composed-f00573672-20260812-105634-721.png`.
+
+Those surfaces reveal two legacy-compositor rules the CPU path lacked. An empty subscreen location is opaque black, not CGRAM color 0. A selected additive pixel is blended by the final shader after sRGB-to-linear conversion: each linear channel is raised to `1/1.9`, main and sub are summed, the result is raised to `1.9`, clamped, and encoded to sRGB. Across the captured additive pixels, this model differs from the GPU oracle by at most one 8-bit value per channel. Representative exact readbacks include main/sub/final channel values `16+8 -> 31`, `40+8 -> 53`, `48+8 -> 61`, and `72+8 -> 84`.
+
+`SuperZSNESDKCFramebufferRenderer` v0.4.4 implements both rules. The gamma-aware add is a precomputed 16-brightness x 32-main x 32-sub lookup table (16 KiB), avoiding power functions in the per-pixel loop. The existing SNES 5-bit subtract/half path remains unchanged. Captures now include BG1/BG2/BG3 and main-background-only diagnostic PNGs, with the configured left extension used for window coordinates.
+
+The full verifier builds with zero warnings/errors and includes the captured shader-add fixtures. At the reproduction checkpoint, live retained rendering reported approximately 2.09 ms per supported frame after warmup: 0.18 ms line state, 0.16 ms backgrounds, 0.09 ms sprites, and 1.63 ms composition. The accepted frame is `<superzsnes>\BepInEx\plugins\SuperZSNESDKCFramebufferRenderer\candidate-20260812-150241-223.png`; the corresponding live composed screenshot is debugger session `20260812-110219`, `screenshot-composed-f00573672-20260812-110243-041.png`. A 120-frame neutral animation pass retained the glints without the purple overlay or renderer fallback.
+
+Final shareable build hashes are framebuffer renderer v0.4.4 `A99B13F43025DDD9A3D1693BCB98EC0EED56A7D91938E655394D67D11A427184` and repo-built widescreen debugger v0.1.4 `E572DFFA798CD845E22A6D82A37983BCA83A694C380171BFB23AFFAC4234D302`. `Assembly-CSharp.dll` remains pristine at `33ED627F3A29B5DB82ED8F5CFFC8306CCBACAA2743E1408C976666DC06131DED`.
+
+## 2026-08-12 external music replacement investigation
+
+DKC's soundtrack is Rare/SPC700 sequenced music rather than MIDI. The game already exposes a stable cue boundary: music IDs `$0000-$001A` flow through `CODE_B99036/CODE_B99049`, the old song is stopped with SPC command `$FF`, `CODE_8AB1C6` uploads the new song, and command `$FE` starts it. This makes an MSU-1 ROM integration the preferred way to substitute externally rendered audio while retaining the original SPC sound effects.
+
+SuperZSNES v0.230 already implements MSU-1 detection, track selection, loop points, volume, audio-thread mixing, pause behavior, and save-state position. It accepts MSU1-PCM, not MP3: 44.1 kHz signed 16-bit little-endian stereo with an eight-byte `MSU1`/loop-sample header. An MP3 should be decoded and loop-trimmed during packaging rather than decoded by a BepInEx runtime player.
+
+An existing DKC MSU-1 v4 patch confirms the design and establishes the one-based mapping `MSU track = DKC music ID + 1`, including loop/one-shot flags for all 27 songs. It targets USA Rev. 2 and must not be applied directly to this project's USA v1.0 ROM. Static porting candidates for v1.0 are `$CA:B1CD` (music upload), `$C0:A971` (NMI ready polling), `$CA:A9E5` (historical full-library SPC music mute), and zero-filled code space at `$FB:F800`; the current widescreen patch does not overlap them. These are research findings, not an applied ROM change, and require expected-byte assertions before implementation.
+
+A one-song-only pack must not use the historical global SPC mute, but the disassembly exposes a safer selective method. `CODE_B990CE` can still upload the selected song/sample environment and then omit only its final SPC `$FE` start command when the configured replacement ID has a valid MSU track. All other IDs execute stock playback, and a missing PCM falls back to the stock `$FE` path. `CODE_B990E7` should stop both engines on transitions. This retains SPC sound effects and avoids supplying PCM copies of the other 26 songs. A small MSU-ready state machine is still required for portable busy handling.
+
+The complete design, track table, SuperZSNES contract, v1.0 port notes, asset rules, and acceptance matrix are in `docs/MSU1_MUSIC_REPLACEMENT_PLAN.md`. No ROM, emulator configuration, runtime plugin, or audio asset was changed during this investigation.
+
+## 2026-08-12 DKC Deluxe MSU-1 port and clean SuperZSNES v0.300 test
+
+The matching Deluxe inputs were supplied separately: a 60-file JUD6MENT PCM
+pack and the public `dkc_msu.asm`/IPS patch. Every main-pack PCM from 1 through
+60 has a valid `MSU1` header, signed-stereo frame alignment, and an in-range
+loop sample. The files total about 1.44 GiB. The optional alternate Gang-Plank
+Galleon track 25 was found but intentionally not selected by default.
+
+The supplied Deluxe patch targets DKC USA Rev. 2 and was not applied directly.
+Its behavior was ported into `Custom/Patches/MSU1_Deluxe.asm` with asserted USA
+v1.0 equivalents: entrance capture `$80:829B`, SPC music-control bytes
+`$CA:A9E5`, music selection `$CA:B1CD`, and NMI polling `$C0:A971`. Code and the
+loop/replacement tables live at `$FB:F800-$FB:FB2F`, separate from the bank-$CA
+widescreen helpers. The standard build remains byte-identical at SHA-256
+`B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D`.
+The checksum-fixed Deluxe build is
+`FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5`;
+its header complement/checksum are `$A5D9/$5A26`, XOR to `$FFFF`, and the full
+ROM byte sum is `$5A26`.
+
+`rom/setup-msu1-deluxe.ps1` packages legally obtained audio without copying its
+payload: it validates all tracks, creates a same-basename empty `.msu` marker,
+and creates 60 hard links named for the ROM. Existing mismatched ROMs/tracks
+fail closed rather than being overwritten.
+
+The first runtime test deliberately switched to a clean SuperZSNES v0.300
+IL2CPP distribution with no BepInEx loader or plugins. Its native `Player.log`
+reported a valid ROM checksum, `Loading MSU1 without manifest`, then loaded and
+played track 11 for the splash, track 10 for the title, Deluxe map variant 59,
+and track 1 for gameplay with the expected volume/play/loop commands. This
+proves both the v1.0 cue hooks and same-basename audio packaging are functioning
+before evaluating whether any legacy v0.230 renderer/performance mods are still
+needed. The v0.300 process was left running for interactive play.
+
+## 2026-08-12 SuperZSNES v0.300 IL2CPP widescreen renderer port
+
+SuperZSNES v0.300 is a 32-bit Unity 6000.3.6f1 IL2CPP application rather than
+the v0.230 Mono build. Its clean native execution fixed the earlier performance
+problem but retained the legacy wide-compositor defect: the ROM's seven-tile
+BG/OBJ margin was active while Unity's main/sub/window camera composition split
+layers into mismatched vertical regions.
+
+BepInEx `Unity.IL2CPP-win-x86` build `6.0.0-be.783+c58c42d` is the pinned
+loader. v0.300 uses IL2CPP metadata version 39; be.783 generated 111 interop
+assemblies successfully, while later tested builds with a reverted Cpp2IL did
+not accept that metadata. The verified BepInEx archive SHA-256 is
+`AEA68423FE7539DEAC6102B4CF9F5EE4205519EB92533FE904500F74B0D3DAAE`.
+
+`mods/SuperZSNESDKCFramebufferRendererIL2CPP` is a separate net6.0 BepInEx 6
+plugin. It shares the accepted rasterizer/controller source with the v0.230
+project but snapshots IL2CPP native-backed VRAM, CGRAM, and OAM arrays into
+reused managed buffers before parallel rasterization. The plugin hooks the same
+three semantic seams retained by v0.300: `PPURenderer.GenerateBackgrounds`,
+`MainScreenBlit.OnRenderImage`, and `SNESPPU.WriteIO`. It is the only legacy mod
+ported at this stage; no v0.230 performance or debugger patch was installed.
+
+The production plugin and the disposable test copy both use SHA-256
+`7EF16F9963A4236E69F2CAA4A7A7F14691FD7C0EFA5A752FEE7A787EE55442CC`.
+Both the new net6.0 project and the shared net472 v0.230 project build with zero
+warnings/errors. The installed v0.300 session generated its interop assemblies,
+loaded exactly one plugin, retained MSU-1 playback, and produced seam-free
+358x224 full-screen output. Unsupported modes/transitions and active-display
+VRAM writes continue to fail closed to the stock renderer.
+
+In a 20-second moving attract-mode sample in the disposable copy, the plugin
+presented 1,223 supported frames in 20.028 seconds (about 61.07 Hz). The process
+used about 1.24 CPU cores. The CPU framebuffer averaged 4.75 ms after warmup,
+with retained-background stage averages near 0.82 ms and composition near
+1.22 ms. This confirms the port does not reintroduce the v0.230 throughput
+bottleneck. The installed v0.300 game was left running for user testing; the
+BepInEx console is disabled for the next launch while disk logging remains on.
+
+A matching retained-background A/B used two fresh launches of the disposable
+v0.300 copy, the same ROM, an eight-second startup period, and a further
+25-second observation. With caching disabled, 1,200 supported frames averaged
+2.5847 ms in the background stage and 7.7664 ms for the complete rasterizer.
+With caching enabled, 900 supported frames averaged 1.4862 ms and 6.9705 ms;
+2,090 of 2,700 per-layer decisions were hits (77.41%). That is a 42.5%
+reduction in background-stage time and a 10.3% reduction in complete
+rasterizer time in this short startup workload. Approximate cumulative process
+CPU also fell from 94.31 to 80.67 CPU-seconds over equal wall-clock runs, though
+that process-wide number includes startup and concurrent-system noise. The
+retained-background optimization therefore remains valuable on v0.300. The old
+v0.230 Mono scheduler, audio, material, and mesh transpilers remain unported
+and uninstalled; their target IL and runtime costs must be audited again against
+the v0.300 IL2CPP decompilation before considering them.
+
+## 2026-08-12 SuperZSNES v0.300 native optimization audit and benchmark
+
+The completed metadata-v39 decompilation provides 169,112 lines of Hex-Rays
+pseudocode for 2,048 application functions, a validated IDA database with
+128,595 annotated functions, and readable v0.230 Mono bodies for 73 of the 90
+current Hex-Rays failures. This made it possible to audit every accepted and
+rejected v0.230 performance candidate against current v0.300 native code rather
+than copying Mono patches across ABIs.
+
+The scheduler defect is still present in native `MasterExecutor.Update` at
+`$10426580`: normal play schedules at most five frames but charges every frame
+calculated as due. `mods/SuperZSNESPerformanceSuiteIL2CPP` v0.1.1 implements a
+fail-closed prefix/postfix correction. It runs only when exactly five frames
+were executed and the entry accumulator proves more than five were due, adds
+back only the unpaid normal-speed backlog, caps retained backlog at 120 frames
+by default, and leaves fast-forward unchanged. The suite also contains
+reversible per-Update history/rewind guards, shared low-overhead counters, and
+a test-only request-driven stall injector. Every switch defaults off.
+
+The native 2/4/8-bpp atlas accessors also still mark pages dirty outside their
+per-tile dirty branches. A conservative page gate proved the bug by suppressing
+an average 1,262,370 false page-dirty hits while seeing only 420.5 real dirty
+pages per approximately 21-second trial. However, the required per-tile IL2CPP
+Harmony callbacks raised presentation work from 2.970 to 4.071 ms. It is kept
+disabled as evidence for a future native/preloader rewrite, not recommended as
+a runtime optimization.
+
+The controlled ordinary A/B used two fresh-process trials per configuration,
+12 seconds of warmup, roughly 20 seconds of measurement, exact executable,
+`GameAssembly.dll`, and ROM hash gates, and the same disposable v0.300 copy.
+Stock averaged 2.987 process CPU cores at 59.982 emulated frames/s. The CPU
+framebuffer with cache off averaged 1.613 cores at 59.980 frames/s (-46.0%).
+Retained backgrounds averaged 1.298 cores at 60.005 frames/s (-56.5% versus
+stock and -19.5% versus cache-off). The retained cache hit 79.1% of background
+decisions and reduced its stage from 1.933 to 0.976 ms.
+
+Two paired 500 ms stall tests validated the backlog correction. Stock averaged
+58.781 and 58.977 emulated frames/s in the two intervals; the fixed runs reached
+59.510 and 59.595 through four stock-sized recovery batches each. The status
+field is named `retainedBacklogFrameCharges` because frames remaining across
+multiple batches can be charged more than once; it is not a unique recovered
+frame count.
+
+The old ReadMem, tile-material/draw-loop dictionary, mesh-bounds, scratch-pool,
+and 128-OBJ changes were not ported. Their earlier A/B evidence was negative or
+their targets are bypassed by supported framebuffer frames. The full matrix,
+methodology, limitations, aggregate data, and recommended configuration are in
+`docs/V0300_OPTIMIZATION_PORT.md` and
+`docs/benchmarks/v0300/benchmark-results.json`. The final v0.1.1 suite build is
+zero-warning/zero-error with SHA-256
+`46C85335D586BD134C3EEEB0D1D428069E9E4D9F6974177FCA26BC83066FA98F`.
+
+## 2026-08-12 v0.300 next-architecture decision and fallback telemetry
+
+The proposed producer-thread, compute-shader, and direct-frontend rewrites were
+reviewed against the measured v0.300 costs. A large part of the suggested
+intermediate CPU rewrite already exists in `DkcFrameRasterizer`: decoded-tile
+caches validated from VRAM, retained circular background planes, persistent
+upload surfaces, and a single final upload/blit. The next unimplemented CPU
+steps are dirty strips/scanlines and SIMD composition, while a dedicated
+emulation thread would require a much broader state, command, audio, pause, and
+save/load synchronization redesign.
+
+The last production status contained 676 stock-renderer fallbacks among 19,876
+calls (3.40%), but the prior status format kept neither a reason histogram nor
+the stock-renderer cost. It also synchronously rewrote `status.json` on every
+fallback frame, adding disk I/O to the condition being diagnosed.
+
+Framebuffer renderer v0.4.6 and its IL2CPP port v0.1.1 now record per-reason
+frame counts, average/maximum stock `GenerateBackgrounds` milliseconds,
+per-reason consecutive counts, and whole-burst lengths. Status persistence is
+limited to the first fallback, every 120 fallback frames, and the end of a
+burst. Unsupported frames remain fail-closed and rendering output is unchanged.
+Both variants build with zero warnings/errors, and the existing v0.230
+rasterizer test suite passes. The v0.300 DLL has SHA-256
+`F0F76EC8297871D1B4424C4D6851446AA41075DD074A888D1108C92EACCDFBFA`
+and was installed into the closed production v0.300 copy with its existing
+presentation configuration preserved. The architectural decision record and
+promotion gates are in `docs/V0300_NEXT_ARCHITECTURE.md`.
+
+## 2026-08-12 native atlas dirty-branch follow-up
+
+The source-level atlas correction was implemented without the rejected managed
+per-tile detours. `SuperZSNESNativeAtlasDirtyFixIL2CPP` verifies the exact
+v0.300 `GameAssembly.dll` SHA-256 and six native instruction windows before
+changing memory. It NOPs the unconditional page-dirty stores at RVAs
+`$3A956E/$3A9A5E/$3A9FBE` and routes the already-true tile-dirty paths at
+`$3A95A0/$3A9A90/$3A9FF0` through three x86 trampolines. Each trampoline sets
+the validated page flag, replays the displaced instructions, and returns. Hook
+jumps are installed before stores are removed, partial failures roll back, and
+the on-disk DLL remains pristine. There are zero managed hot-path callbacks.
+
+Offline verification passed the exact executable hash/bytes, field and local
+offsets, displaced-instruction replay, and every rel32 return target. The
+benchmarked DLL SHA-256 was
+`5F1931D49993EA5891C5AE699A482CFE5C59AAD8EC04D2CABE1331DD3BC9BB39`.
+Afterward, the failure path was hardened to immediately restore a site if an
+instruction-cache flush fails after copying bytes; this does not alter the
+successful hot path. The final zero-warning/zero-error build SHA-256 is
+`C12FE2CDDEB12158A3B31A3B11F87F8C0D251CBFD132BE21612A5218AA05C68E`.
+A disposable runtime smoke test reported all six sites active without errors.
+
+Four fresh-process stock-renderer trials per configuration then used 12 seconds
+of warmup and approximately 20 seconds of measurement. Stock versus native-fix
+mean presentation was 2.6249 versus 2.6356 ms (+0.41%); process CPU was 1.2350
+versus 1.2234 cores (-0.94%); Unity Update was 4.5180 versus 4.5167 ms; and both
+held about 59.997 emulated FPS. Median presentation differed only +0.07%.
+These differences are smaller than trial noise, so the native correction has
+no measurable performance benefit in the tested DKC workload. It remains a
+disabled reference/correctness implementation, is disabled again in the
+disposable copy, and was not installed into the production v0.300 directory.
+
+## 2026-08-12 v0.300 gameplay-spike attribution and raster-row optimization
+
+Fallback telemetry was measured over a 65-second v0.300 launch/gameplay run.
+The 655 fallback frames formed essentially one 649-frame startup/menu burst.
+Mode 5 accounted for 315 frames (1.817 ms average stock renderer), Mode 3 for
+225 (0.899 ms), Mode 7 for 47 (0.478 ms), Mode 0 for 40, active-display VRAM
+writes for 27, and a mid-frame OAM write for one. The maximum measured stock
+fallback was 8.603 ms. Extending the CPU framebuffer to these modes was rejected
+as the next performance task: the burst is not normal gameplay, every fallback
+was under one 16.7 ms frame budget, and the plugin compositor is usually more
+expensive than these stock paths.
+
+Performance suite v0.1.2 and renderer diagnostic v0.1.2 added bounded slow-event
+rings. They retain only slow RunFrame/Update calls and supported framebuffer
+renders, with frame/video/dirty context and line/background/sprite/composition
+stage deltas. This exposed a recurring four-frame rhythm: BG2's line-81
+horizontal-scroll raster effect invalidated a full 224-row plane whenever its
+animated upper-band scroll advanced.
+
+Renderer v0.4.8 / IL2CPP v0.1.3 now performs a strict scroll-only partial
+refresh. It first proves relevant VRAM byte-identical and every row's BGSC,
+BGMODE, and CHR base unchanged; it then redraws only rows whose X/Y scroll
+changed. All other cases retain the full path. The emulator-free verifier
+compares every resulting pixel with a clean full raster rebuild and proves a
+relevant map write forces the full path. Builds complete with zero warnings or
+errors and the complete v0.230 rasterizer verifier passes.
+
+Two long trials per side measured background preparation 0.9041 -> 0.3265 ms
+(-63.9%), complete framebuffer rendering 4.3574 -> 3.6507 ms (-16.2%), average
+Unity Update 6.2920 -> 5.5456 ms (-11.9%), and multi-RunFrame Update share
+0.717% -> 0.222%. Both accepted runs used partial refresh on 700 of 715 raster
+effects (65,216 rows rather than 156,800 rows). Final IL2CPP DLL SHA-256 is
+`07450217A493CB4CBEE2086B4FD804D59A1479A589B317DC3D626ED898194067`.
+It was installed into the closed production v0.300 copy without altering its
+existing widescreen configuration. Reviewed aggregates are in
+`docs/benchmarks/v0300/raster-partial-results.json`.
+
+## 2026-08-12 Native-width opening-screen margins
+
+The DKC opening cinematic uses a dedicated native-width PPU asset layout:
+Mode 1, BG1 map `$7C00`, BG2 map `$7800`, BG1 character bank `$2000`, and
+BG2 character bank `$6000`. Its 32-tile maps wrap into the 51-pixel widescreen
+extensions, exposing repeated and partially initialized art. The framebuffer
+renderer now identifies that exact four-register layout and composites opaque
+black outside native X `0..255`. The center 256 pixels, sprites, HDMA, palette
+animation, fades, and audio remain unchanged. Ordinary levels and all other
+PPU layouts continue rendering the full 358-pixel view.
+
+The following file-select scene uses a second native layout: BG maps
+`$7400/$7800/$7C00`, BG1/BG2 character-bank register `$04`, and BG3 character
+bank `$02`. It exhibited the same wrapped 32-tile art in both extensions. The
+same black-margin policy now covers that exact six-register signature as well.
+
+The title sequence has two more exact native layouts while animating and then
+settling its BG1 map: `$7400` with BG3 at `$7C00`, followed by BG1 at `$7C00`.
+Both use character bank zero. Those two source-verified signatures are now
+included, while the superficially similar game-over layout is excluded by its
+different `$210B` character-bank value.
+
+The remaining two-second artifact was not the title renderer itself. A rapid
+four-frame capture after loading the supplied state showed that the ROM had
+already selected gameplay PPU Mode 9 while its level camera record was still
+uninitialized. Offline parsing of the state file's raw 128 KiB WRAM block
+confirmed `$1B23=$0000` and `$1B25=$0000`; playable Jungle bounds later become
+`$0038..$13C8`. The renderer now keeps only the extensions black while Mode 9
+has that exact empty bound pair, then restores full widescreen on the first
+frame with valid bounds. Non-gameplay screens and high-world level ranges do
+not match this rule.

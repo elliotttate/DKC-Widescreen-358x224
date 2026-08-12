@@ -63,7 +63,7 @@ You may set `SUPERZSNES_BRIDGE_FILE` instead when the endpoint file is in a nons
 
 The server also exposes `superzsnes://status` and `superzsnes://debug/config` resources and a `dkc_widescreen_debug_workflow` prompt.
 
-`zsnes_screenshot` returns an actual MCP image block that multimodal LLM hosts can inspect immediately. Choose `main` for the emulator render, `composed` for the final composed texture (with automatic main fallback), or `window` for the full Unity window including overlays. Use `format="jpeg", quality=85` for a smaller `.jpg`, or `format="png"` for lossless output. Every grabbed image is also saved under the current session's `screenshots` directory.
+`zsnes_screenshot` returns an actual MCP image block that multimodal LLM hosts can inspect immediately. Choose `main` or `sub` for the raw PPU planes, `composed` for the full live widescreen transfer surface after color math, or `window` for the whole Unity window including overlays. `composed` falls back only when the live transfer surface is unavailable, and the fallback accepts the emulator's fixed-size `Texture2D` result instead of mislabelling it as `main`. Use `format="jpeg", quality=85` for a smaller `.jpg`, or `format="png"` for lossless output. Every grabbed image is also saved under the current session's `screenshots` directory.
 
 ## Safety model
 

@@ -1,0 +1,394 @@
+{
+  "surface": "report",
+  "manifest": {
+    "version": 1,
+    "surface": "report",
+    "title": "SuperZSNES v0.300: Widescreen Performance Port",
+    "description": "A native-code audit and controlled A/B benchmark of the DKC widescreen renderer and applicable v0.230 optimizations on SuperZSNES v0.300 IL2CPP.",
+    "generatedAt": "2026-08-12T18:45:00Z",
+    "cards": [
+      {
+        "id": "stock_cpu",
+        "description": "Average process CPU demand across two stock trials.",
+        "dataset": "headline",
+        "sourceId": "benchmark_data",
+        "metrics": [
+          { "label": "Stock CPU cores", "field": "stockCpuCores", "format": "number" }
+        ]
+      },
+      {
+        "id": "optimized_cpu",
+        "description": "Average process CPU with the framebuffer and retained-background cache.",
+        "dataset": "headline",
+        "sourceId": "benchmark_data",
+        "metrics": [
+          { "label": "Optimized CPU cores", "field": "optimizedCpuCores", "format": "number" },
+          { "label": "vs stock", "field": "cpuReduction", "format": "percent", "signed": true }
+        ]
+      },
+      {
+        "id": "cache_hit_rate",
+        "description": "Share of eligible per-layer background decisions reused exactly.",
+        "dataset": "headline",
+        "sourceId": "benchmark_data",
+        "metrics": [
+          { "label": "Background cache hit rate", "field": "backgroundHitRate", "format": "percent" },
+          { "label": "Background stage", "field": "backgroundStageReduction", "format": "percent", "signed": true }
+        ]
+      },
+      {
+        "id": "optimized_fps",
+        "description": "Emulated cadence remained at the SNES target in the optimized trials.",
+        "dataset": "headline",
+        "sourceId": "benchmark_data",
+        "metrics": [
+          { "label": "Optimized emulated FPS", "field": "optimizedRunFrameHz", "format": "number" }
+        ]
+      }
+    ],
+    "charts": [
+      {
+        "id": "cpu_by_scenario",
+        "title": "The renderer rewrite, not a micro-optimization, changes the CPU envelope",
+        "subtitle": "Mean process CPU across two fresh-process trials; lower is better.",
+        "headerMarkdown": "The supported framebuffer path cuts CPU by **46.0%**; exact retained backgrounds extend the reduction to **56.5%** versus stock.",
+        "type": "bar",
+        "dataset": "ordinaryScenarios",
+        "sourceId": "benchmark_data",
+        "valueFormat": "number",
+        "encodings": {
+          "x": { "field": "label", "type": "nominal", "label": "Configuration" },
+          "y": { "field": "cpuCores", "type": "quantitative", "label": "Average CPU cores", "format": "number" },
+          "tooltip": [
+            { "field": "runFrameHz", "type": "quantitative", "label": "Emulated FPS", "format": "number" },
+            { "field": "presentationHz", "type": "quantitative", "label": "Presentation FPS", "format": "number" },
+            { "field": "cpuDeltaVsStock", "type": "quantitative", "label": "CPU vs stock", "format": "percent" }
+          ]
+        },
+        "layout": "full"
+      },
+      {
+        "id": "renderer_stage_comparison",
+        "title": "Retained backgrounds halve the background stage",
+        "subtitle": "Framebuffer renderer-native timings with cache off and on; lower is better.",
+        "type": "bar",
+        "dataset": "rendererStages",
+        "sourceId": "benchmark_data",
+        "valueFormat": "number",
+        "encodings": {
+          "x": { "field": "configuration", "type": "nominal", "label": "Framebuffer configuration" },
+          "y": { "field": "milliseconds", "type": "quantitative", "label": "Average milliseconds", "format": "number" },
+          "color": { "field": "stage", "type": "nominal", "label": "Measured stage" },
+          "tooltip": [
+            { "field": "hitRate", "type": "quantitative", "label": "Cache hit rate", "format": "percent" },
+            { "field": "cpuCores", "type": "quantitative", "label": "Process CPU cores", "format": "number" }
+          ]
+        },
+        "layout": "full"
+      },
+      {
+        "id": "hitch_recovery",
+        "title": "Bounded backlog recovery preserves the emulated timeline after a hitch",
+        "subtitle": "Paired runs with one deliberate 500 ms main-thread pause; higher is better.",
+        "type": "bar",
+        "dataset": "hitchRuns",
+        "sourceId": "benchmark_data",
+        "valueFormat": "number",
+        "encodings": {
+          "x": { "field": "pairLabel", "type": "ordinal", "label": "Controlled pair" },
+          "y": { "field": "runFrameHz", "type": "quantitative", "label": "Emulated FPS", "format": "number" },
+          "color": { "field": "scheduler", "type": "nominal", "label": "Scheduler" },
+          "tooltip": [
+            { "field": "deltaVsStock", "type": "quantitative", "label": "Delta vs paired stock", "format": "number" },
+            { "field": "recoveryBatches", "type": "quantitative", "label": "Recovery batches", "format": "number" },
+            { "field": "stallMilliseconds", "type": "quantitative", "label": "Injected stall (ms)", "format": "number" }
+          ]
+        },
+        "layout": "full"
+      },
+      {
+        "id": "native_atlas_followup",
+        "title": "Native dirty-branch patch leaves presentation time unchanged",
+        "subtitle": "Four fresh-process trials per configuration; lower is better.",
+        "headerMarkdown": "The source-equivalent native fix removes all managed hot-path callbacks, but presentation time changed only **+0.41%** and CPU **-0.94%**, both within run-to-run noise.",
+        "type": "bar",
+        "dataset": "nativeAtlasFollowup",
+        "sourceId": "benchmark_data",
+        "valueFormat": "number",
+        "encodings": {
+          "x": { "field": "configuration", "type": "nominal", "label": "Atlas implementation" },
+          "y": { "field": "presentationMs", "type": "quantitative", "label": "Average presentation milliseconds", "format": "number" },
+          "tooltip": [
+            { "field": "cpuCores", "type": "quantitative", "label": "Process CPU cores", "format": "number" },
+            { "field": "runFrameHz", "type": "quantitative", "label": "Emulated FPS", "format": "number" },
+            { "field": "presentationDelta", "type": "quantitative", "label": "Presentation vs stock", "format": "percent" },
+            { "field": "trials", "type": "quantitative", "label": "Trials", "format": "number" },
+            { "field": "managedHotCallbacks", "type": "quantitative", "label": "Managed hot callbacks", "format": "number" }
+          ]
+        },
+        "layout": "full"
+      },
+      {
+        "id": "raster_partial_followup",
+        "title": "Raster-effect rendering before and after partial row refresh",
+        "subtitle": "Two 60-second trials per configuration; lower is better.",
+        "headerMarkdown": "A strict scroll-only row refresh cut average BG preparation **63.9%** and complete framebuffer work **16.2%** in the stutter workload.",
+        "type": "bar",
+        "dataset": "rasterPartialFollowup",
+        "sourceId": "raster_partial_data",
+        "valueFormat": "number",
+        "encodings": {
+          "x": { "field": "configuration", "type": "nominal", "label": "Renderer version" },
+          "y": { "field": "milliseconds", "type": "quantitative", "label": "Average milliseconds", "format": "number" },
+          "color": { "field": "stage", "type": "nominal", "label": "Measured stage" },
+          "tooltip": [
+            { "field": "relativeChange", "type": "quantitative", "label": "Change vs before", "format": "percent" },
+            { "field": "updateMs", "type": "quantitative", "label": "Average Unity Update ms", "format": "number" },
+            { "field": "trials", "type": "quantitative", "label": "Trials", "format": "number" }
+          ]
+        },
+        "layout": "full"
+      }
+    ],
+    "tables": [
+      {
+        "id": "scenario_detail",
+        "title": "Ordinary scenario detail",
+        "subtitle": "Reviewed arithmetic means from two valid trials per configuration.",
+        "dataset": "ordinaryScenarios",
+        "sourceId": "benchmark_data",
+        "defaultSort": { "field": "cpuCores", "direction": "desc" },
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          { "field": "label", "label": "Configuration", "type": "text" },
+          { "field": "cpuCores", "label": "CPU cores", "format": "number" },
+          { "field": "cpuDeltaVsStock", "label": "CPU vs stock", "format": "percent", "movement": true },
+          { "field": "updateHz", "label": "Update Hz", "format": "number" },
+          { "field": "runFrameHz", "label": "Emulated FPS", "format": "number" },
+          { "field": "presentationHz", "label": "Presentation FPS", "format": "number" },
+          { "field": "workingSetMiB", "label": "Working set (MiB)", "format": "number" },
+          { "field": "trials", "label": "Trials", "format": "number" }
+        ]
+      },
+      {
+        "id": "port_decisions",
+        "title": "v0.230-to-v0.300 port decision matrix",
+        "subtitle": "Only changes with current native evidence and an acceptable risk/performance profile were carried forward.",
+        "dataset": "portDecisions",
+        "sourceId": "native_audit",
+        "density": "dense",
+        "layout": "full",
+        "columns": [
+          { "field": "candidate", "label": "Candidate", "type": "text" },
+          { "field": "decision", "label": "Decision", "type": "text" },
+          { "field": "currentEvidence", "label": "Current evidence", "type": "text" },
+          { "field": "reason", "label": "Reason", "type": "text" }
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "benchmark_data",
+        "label": "Reviewed SuperZSNES v0.300 benchmark aggregate",
+        "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/benchmarks/v0300/benchmark-results.json"
+      },
+      {
+        "id": "native_audit",
+        "label": "SuperZSNES v0.300 native optimization audit",
+        "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/V0300_OPTIMIZATION_PORT.md"
+      },
+      {
+        "id": "raster_partial_data",
+        "label": "Reviewed raster partial-refresh A/B aggregate",
+        "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/benchmarks/v0300/raster-partial-results.json"
+      }
+    ],
+    "blocks": [
+      { "id": "title", "type": "markdown", "body": "# SuperZSNES v0.300: Widescreen Performance Port" },
+      {
+        "id": "technical_summary",
+        "type": "markdown",
+        "sourceId": "benchmark_data",
+        "body": "## Technical Summary\n\nSuperZSNES v0.300 is CPU-limited in the legacy Unity tile **presentation** path, not in the SNES execution core. Stock sustained 59.98 emulated frames/s while consuming 2.99 CPU cores. The supported DKC CPU framebuffer reduced process CPU to 1.61 cores; its exact retained-background cache reduced it to 1.30 cores while preserving 60.01 emulated frames/s. The v0.1.3 scroll-only raster refresh then removed the recurring full-frame BG2 rebuild in the difficult moving-light scene, cutting that background stage another 63.9%.\n\n**Recommendation:** ship IL2CPP renderer v0.1.3 with retained backgrounds and strict partial raster-row refresh enabled. Keep both atlas experiments disabled: the managed gate adds hot-path overhead, while the source-equivalent native patch produced no measurable gain across four trials per configuration. Retain the bounded scheduler fix as an optional correctness patch for real hitches."
+      },
+      { "id": "headline_metrics", "type": "metric-strip", "cardIds": ["stock_cpu", "optimized_cpu", "cache_hit_rate", "optimized_fps"] },
+      {
+        "id": "key_findings",
+        "type": "markdown",
+        "sourceId": "benchmark_data",
+        "body": "## Key Findings\n\n- The framebuffer rewrite is the decisive intervention: **46.0% less process CPU** than stock.\n- Retained backgrounds add a further **19.5% CPU reduction** versus cache-off and cut the background stage **49.5%**.\n- Strict partial raster-row refresh cut the difficult scene's background stage **63.9%**, complete framebuffer time **16.2%**, average Update time **11.9%**, and multi-RunFrame Updates **69.0%** versus the prior retained renderer.\n- The atlas dirty-flag bug is real—about **1.26 million** false page hits per trial—but the managed per-tile gate is the wrong fix and increased presentation work **37.1%**.\n- A six-site native patch then removed that managed overhead and reproduced the intended dirty-branch behavior, yet four trials per configuration measured **2.6249 ms stock versus 2.6356 ms fixed presentation (+0.41%)** and **1.2350 versus 1.2234 CPU cores (-0.94%)**. Both are within noise, so the native patch remains disabled.\n- The accumulator bug is also real. Under the same deliberate stall, bounded recovery improved emulated cadence by **0.62–0.73 FPS** in the short paired windows."
+      },
+      {
+        "id": "raster_partial_finding",
+        "type": "markdown",
+        "sourceId": "raster_partial_data",
+        "body": "## Partial rows remove the recurring BG2 rebuild spike\n\nBounded spike attribution ruled out stock fallback as the gameplay-stutter driver and isolated BG2's four-frame line-81 scroll animation. The old raster cache regenerated all 224 rows even though only the upper band's scroll changed. v0.1.3 redraws only changed-scroll rows after proving relevant VRAM, tilemap selection, video mode, and character base are unchanged; otherwise it executes the full original path. Across both accepted runs, **700 of 715** raster-effect rebuilds used the strict partial path."
+      },
+      { "id": "raster_partial_chart", "type": "chart", "chartId": "raster_partial_followup", "layout": "full" },
+      { "id": "native_atlas_chart", "type": "chart", "chartId": "native_atlas_followup", "layout": "full" },
+      { "id": "cpu_chart", "type": "chart", "chartId": "cpu_by_scenario", "layout": "full" },
+      { "id": "renderer_chart", "type": "chart", "chartId": "renderer_stage_comparison", "layout": "full" },
+      { "id": "hitch_chart", "type": "chart", "chartId": "hitch_recovery", "layout": "full" },
+      {
+        "id": "scope",
+        "type": "markdown",
+        "sourceId": "benchmark_data",
+        "body": "## Scope, Data, and Metrics\n\nThe benchmark covers the verified 32-bit SuperZSNES v0.300 IL2CPP executable, its matching `GameAssembly.dll`, and the verified 358×224 DKC widescreen ROM. Each ordinary configuration used two fresh processes, 12 seconds of warmup, and roughly 20–21 seconds of measurement with VSync left at the emulator's value of 1.\n\nThe primary metric is **process CPU cores** (`process CPU seconds / monotonic wall seconds`). Supporting metrics are host Update cadence, emulated `RunFrame` cadence, presentation cadence, renderer-native stage timing, background-cache hit rate, and endpoint memory."
+      },
+      { "id": "scenario_table", "type": "table", "tableId": "scenario_detail", "layout": "full" },
+      {
+        "id": "methodology",
+        "type": "markdown",
+        "sourceId": "benchmark_data",
+        "body": "## Methodology and Validation\n\nThe harness verifies immutable executable, native assembly, and ROM SHA-256 values; refuses an existing disposable emulator process; writes only two plugin configs in that disposable copy; waits for plugin health; samples monotonic plugin counters plus Windows process CPU/memory; and stops only the exact process it launched. Invalid trials are preserved but excluded with a reason.\n\nThe native atlas follow-up used four fresh-process trials for stock and four for the native fix, with 12 seconds of warmup and the framebuffer disabled so the legacy atlas path remained active. The native plugin byte- and hash-gated all six x86 patch sites and introduced zero managed callbacks in the per-tile path.\n\nThe scheduler experiment creates its stall request only after the measurement baseline is captured. Recovery never increases a batch beyond the stock cap of five, applies only to normal speed, retains a bounded backlog, and leaves fast-forward arithmetic untouched."
+      },
+      {
+        "id": "port_heading",
+        "type": "markdown",
+        "sourceId": "native_audit",
+        "body": "## Native Port Decisions\n\nThe completed metadata-v39 decompilation maps current native entry points to the readable Mono reference. Every old candidate was re-audited against v0.300; old DLLs and conclusions were not assumed ABI-compatible."
+      },
+      { "id": "port_table", "type": "table", "tableId": "port_decisions", "layout": "full" },
+      {
+        "id": "limitations",
+        "type": "markdown",
+        "sourceId": "benchmark_data",
+        "body": "## Limitations and Robustness\n\n- Two trials cleanly separate the large renderer gains but cannot establish small differences between cache-on and cache-on-plus-suite.\n- The partial-row follow-up also uses two fresh-process trials per configuration; its large stage reductions replicate across both runs, while its 1.18% CPU movement should be treated as secondary evidence.\n- The native atlas follow-up improves that comparison to four trials per configuration, but its sub-1% movements are still smaller than run-to-run variance and should not be interpreted as a gain or regression.\n- The workload is one difficult DKC gameplay scene; fades, UI, Mode 7, and unsupported frames intentionally take the stock fallback and need separate workloads.\n- Process CPU is intentionally end-to-end and includes Unity, audio, emulation, presentation, and diagnostics.\n- Windows display scheduling varied between controlled hitch pairs, so the conclusion uses paired stock/fixed comparisons rather than treating host Update Hz as constant.\n- The framebuffer uses more endpoint memory than stock; this is an explicit CPU-for-memory trade."
+      },
+      {
+        "id": "next_steps",
+        "type": "markdown",
+        "sourceId": "native_audit",
+        "body": "## Recommended Next Steps\n\n1. Use `SuperZSNESDKCFramebufferRendererIL2CPP` v0.1.3 with `RetainedBackgrounds=true`; the strict partial-row path is automatic and fails closed to the full renderer.\n2. Keep both `GateAtlasUploadsOnTileDirty=false` and the native atlas patch disabled; the native implementation is technically correct but produced no measurable benefit.\n3. Keep test stall settings at zero. Enable bounded backlog recovery only when the correctness fix is wanted.\n4. Prefer the emulator's own history/rewind-off settings; use the reversible guards only where settings cannot be persisted.\n5. Add a fade-heavy case, a stock-fallback sequence, Mode 7, and a long memory soak before packaging a binary release."
+      },
+      {
+        "id": "further_questions",
+        "type": "markdown",
+        "body": "## Further Questions\n\n- Would the native atlas correction matter in a deliberately VRAM-upload-heavy fade or transition workload, despite showing no gain in the measured gameplay scene?\n- What fraction of a full playthrough remains on stock fallback frames?\n- Does a 30-minute retained-framebuffer soak plateau in working set across multiple level transitions?\n- Would decoupling presentation from host Update improve visible recovery after a hitch, or merely duplicate the most recent emulated frame?"
+      }
+    ]
+  },
+  "snapshot": {
+    "version": 1,
+    "generatedAt": "2026-08-12T18:45:00Z",
+    "status": "ready",
+    "datasets": {
+      "headline": [
+        {
+          "stockCpuCores": 2.986549,
+          "optimizedCpuCores": 1.297771,
+          "cpuReduction": -0.565461,
+          "backgroundHitRate": 0.790556,
+          "backgroundStageReduction": -0.495176,
+          "optimizedRunFrameHz": 60.005368
+        }
+      ],
+      "ordinaryScenarios": [
+        { "scenario": "stock", "label": "Stock v0.300", "trials": 2, "cpuCores": 2.986549, "cpuDeltaVsStock": 0.0, "updateHz": 158.652285, "runFrameHz": 59.982158, "presentationHz": 59.864308, "averageUpdateMs": 1.934659, "averageRunFrameMs": 2.092108, "workingSetMiB": 463.031, "privateMiB": 456.314, "rankByCpu": 5 },
+        { "scenario": "stock-atlas", "label": "Stock + atlas gate", "trials": 2, "cpuCores": 2.784908, "cpuDeltaVsStock": -0.067516, "updateHz": 148.638006, "runFrameHz": 59.997584, "presentationHz": 59.879944, "averageUpdateMs": 2.535414, "averageRunFrameMs": 2.165168, "workingSetMiB": 460.182, "privateMiB": 449.574, "rankByCpu": 4 },
+        { "scenario": "framebuffer-cache-off", "label": "CPU framebuffer", "trials": 2, "cpuCores": 1.612895, "cpuDeltaVsStock": -0.459947, "updateHz": 165.433013, "runFrameHz": 59.980108, "presentationHz": 59.816078, "averageUpdateMs": 2.714678, "averageRunFrameMs": 2.278934, "workingSetMiB": 580.051, "privateMiB": 574.898, "rankByCpu": 3 },
+        { "scenario": "framebuffer-cache-on", "label": "Framebuffer + retained BG", "trials": 2, "cpuCores": 1.297771, "cpuDeltaVsStock": -0.565461, "updateHz": 183.970988, "runFrameHz": 60.005368, "presentationHz": 59.816646, "averageUpdateMs": 2.126124, "averageRunFrameMs": 2.221522, "workingSetMiB": 570.244, "privateMiB": 560.748, "rankByCpu": 1 },
+        { "scenario": "framebuffer-cache-on-suite", "label": "Retained BG + optional suite", "trials": 2, "cpuCores": 1.391305, "cpuDeltaVsStock": -0.534143, "updateHz": 184.649070, "runFrameHz": 60.010198, "presentationHz": 59.914733, "averageUpdateMs": 2.098187, "averageRunFrameMs": 2.192675, "workingSetMiB": 551.973, "privateMiB": 568.131, "rankByCpu": 2 }
+      ],
+      "rendererStages": [
+        { "configuration": "Cache off", "stage": "Complete renderer", "milliseconds": 5.699550, "hitRate": 0.0, "cpuCores": 1.612895, "supportedFrames": 900 },
+        { "configuration": "Cache off", "stage": "Background stage", "milliseconds": 1.932950, "hitRate": 0.0, "cpuCores": 1.612895, "supportedFrames": 900 },
+        { "configuration": "Retained BG", "stage": "Complete renderer", "milliseconds": 4.582900, "hitRate": 0.790556, "cpuCores": 1.297771, "supportedFrames": 900 },
+        { "configuration": "Retained BG", "stage": "Background stage", "milliseconds": 0.975800, "hitRate": 0.790556, "cpuCores": 1.297771, "supportedFrames": 900 }
+      ],
+      "hitchRuns": [
+        { "pair": 1, "pairLabel": "Pair 1", "scheduler": "Stock", "runFrameHz": 58.781486, "deltaVsStock": 0.0, "presentationHz": 58.397607, "recoveryBatches": 0, "stallMilliseconds": 500, "retainedBacklogFrameCharges": 0 },
+        { "pair": 1, "pairLabel": "Pair 1", "scheduler": "Bounded recovery", "runFrameHz": 59.510033, "deltaVsStock": 0.728547, "presentationHz": 58.479962, "recoveryBatches": 4, "stallMilliseconds": 500, "retainedBacklogFrameCharges": 35 },
+        { "pair": 3, "pairLabel": "Pair 3", "scheduler": "Stock", "runFrameHz": 58.977148, "deltaVsStock": 0.0, "presentationHz": 58.533711, "recoveryBatches": 0, "stallMilliseconds": 500, "retainedBacklogFrameCharges": 0, "maxUpdateGapMs": 516.8857 },
+        { "pair": 3, "pairLabel": "Pair 3", "scheduler": "Bounded recovery", "runFrameHz": 59.594604, "deltaVsStock": 0.617456, "presentationHz": 55.550526, "recoveryBatches": 4, "stallMilliseconds": 500, "retainedBacklogFrameCharges": 36, "maxUpdateGapMs": 517.4506 }
+      ],
+      "nativeAtlasFollowup": [
+        { "configuration": "Stock atlas path", "presentationMs": 2.624863, "presentationDelta": 0.0, "cpuCores": 1.234997, "cpuDelta": 0.0, "runFrameHz": 59.997771, "trials": 4, "managedHotCallbacks": 0, "patchedSites": 0 },
+        { "configuration": "Native dirty-branch fix", "presentationMs": 2.635639, "presentationDelta": 0.004105, "cpuCores": 1.223376, "cpuDelta": -0.009410, "runFrameHz": 59.997007, "trials": 4, "managedHotCallbacks": 0, "patchedSites": 6 }
+      ],
+      "rasterPartialFollowup": [
+        { "configuration": "Before partial rows", "stage": "Background stage", "milliseconds": 0.904050, "relativeChange": 0.0, "updateMs": 6.292000, "cpuCores": 1.143389, "trials": 2 },
+        { "configuration": "Before partial rows", "stage": "Complete framebuffer", "milliseconds": 4.357350, "relativeChange": 0.0, "updateMs": 6.292000, "cpuCores": 1.143389, "trials": 2 },
+        { "configuration": "v0.1.3 partial rows", "stage": "Background stage", "milliseconds": 0.326500, "relativeChange": -0.638846, "updateMs": 5.545600, "cpuCores": 1.129868, "trials": 2 },
+        { "configuration": "v0.1.3 partial rows", "stage": "Complete framebuffer", "milliseconds": 3.650700, "relativeChange": -0.162176, "updateMs": 5.545600, "cpuCores": 1.129868, "trials": 2 }
+      ],
+      "portDecisions": [
+        { "candidate": "DKC CPU framebuffer", "decision": "Accepted", "currentEvidence": "-46.0% process CPU", "reason": "Bypasses the dominant legacy Unity per-tile presentation path on supported Mode 1 frames." },
+        { "candidate": "Exact retained backgrounds", "decision": "Accepted", "currentEvidence": "79.1% hits; -49.5% background ms", "reason": "Owns framebuffer planes and avoids shared Unity mesh-cache hazards." },
+        { "candidate": "Scroll-only raster row refresh", "decision": "Accepted", "currentEvidence": "-63.9% background ms; -16.2% framebuffer ms", "reason": "Redraws only changed scroll rows after exact VRAM and PPU-state gates; all other changes use the full path." },
+        { "candidate": "Scheduled-frame backlog accounting", "decision": "Ported, optional", "currentEvidence": "+0.62 to +0.73 emulated FPS after a 500 ms stall", "reason": "The native due-versus-executed accounting defect persists; bounded fix leaves fast-forward unchanged." },
+        { "candidate": "History and rewind Update guards", "decision": "Ported, optional", "currentEvidence": "No steady-state gain expected", "reason": "Prevents known service spikes and restores the user's exact values after each Update." },
+        { "candidate": "Atlas dirty-page Harmony gate", "decision": "Rejected", "currentEvidence": "1.26M false hits found; +37.1% presentation ms", "reason": "The bug is real, but a per-tile managed callback is the wrong implementation on IL2CPP." },
+        { "candidate": "Native atlas dirty-branch correction", "decision": "Verified, disabled", "currentEvidence": "4 trials/config; +0.41% presentation, -0.94% CPU", "reason": "The six-site native patch is source-equivalent and has zero managed hot callbacks, but produced no measurable gain." },
+        { "candidate": "ReadMem cheat fast path", "decision": "Not ported", "currentEvidence": "Old A/B: +2.8% wall, +8.3% CPU/frame", "reason": "Negative evidence on the prior runtime and higher detour risk on the native hot path." },
+        { "candidate": "Material/draw dictionary rewrites", "decision": "Not ported", "currentEvidence": "No prior benefit or visual risk", "reason": "Supported framebuffer frames bypass these legacy-renderer paths." },
+        { "candidate": "Mesh, scratch pool, and 128-OBJ fixes", "decision": "Not ported", "currentEvidence": "Bypassed or sub-1% local effect", "reason": "They do not address the measured v0.300 bottleneck and expand native patch risk." }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "benchmark_data",
+      "label": "Reviewed SuperZSNES v0.300 benchmark aggregate",
+      "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/benchmarks/v0300/benchmark-results.json",
+      "query": {
+        "engine": "PowerShell and Python",
+        "language": "PowerShell",
+        "sql": "SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario",
+        "description": "Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.",
+        "url": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/mods/SuperZSNESPerformanceSuiteIL2CPP/run-v0300-benchmark.ps1",
+        "executed_at": "2026-08-12T18:00:00Z",
+        "filters": ["Exact SuperZSNES v0.300 executable and GameAssembly hashes", "Verified 358x224 widescreen ROM", "Two valid ordinary trials per scenario", "Four valid native-atlas trials per configuration", "One invalid hitch trial excluded because no stall occurred"],
+        "metric_definitions": {
+          "cpuCores": "Process CPU seconds divided by monotonic wall seconds.",
+          "runFrameHz": "Delta MasterExecutor.RunFrame calls divided by monotonic wall seconds.",
+          "presentationHz": "Delta PPURenderer.GenerateBackgrounds calls divided by monotonic wall seconds.",
+          "backgroundCacheHitRate": "Background cache hits divided by hits plus misses.",
+          "cpuDeltaVsStock": "Scenario mean CPU cores divided by stock mean CPU cores, minus one.",
+          "nativeAtlasPresentationDelta": "Native-fix mean presentation milliseconds divided by the paired stock-configuration mean, minus one."
+        }
+      }
+    },
+    {
+      "id": "raster_partial_data",
+      "label": "Reviewed scroll-only raster partial-refresh A/B aggregate",
+      "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/benchmarks/v0300/raster-partial-results.json",
+      "query": {
+        "engine": "PowerShell benchmark harness",
+        "language": "PowerShell",
+        "sql": "SELECT configuration, stage, AVG(milliseconds) AS milliseconds, AVG(updateMs) AS updateMs, AVG(cpuCores) AS cpuCores FROM raster_partial_trials WHERE valid = TRUE GROUP BY configuration, stage",
+        "description": "Two 60-second fresh-process trials before and after the strict partial raster-row implementation, using the same difficult DKC moving-light checkpoint and exact binary/ROM gates.",
+        "url": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/mods/SuperZSNESPerformanceSuiteIL2CPP/run-v0300-benchmark.ps1",
+        "executed_at": "2026-08-12T18:41:00Z",
+        "filters": ["Exact SuperZSNES v0.300 executable and GameAssembly hashes", "Verified 358x224 widescreen ROM", "Two valid fresh-process trials before and after", "Relevant VRAM and non-scroll PPU state must be byte-identical for a partial rebuild", "Any unsupported change falls back to the complete renderer"],
+        "metric_definitions": {
+          "backgroundMilliseconds": "Mean CPU rasterizer time attributed to the background stage per supported frame.",
+          "framebufferMilliseconds": "Mean complete CPU framebuffer renderer time per supported frame.",
+          "partialRebuild": "A cached raster-effect frame where only rows with changed BG scroll are redrawn after all exact safety gates pass.",
+          "multiRunFrameUpdateShare": "Host Updates executing two or more emulated frames divided by all measured host Updates."
+        }
+      }
+    },
+    {
+      "id": "native_audit",
+      "label": "SuperZSNES v0.300 native optimization audit",
+      "path": "https://github.com/elliotttate/DKC-Widescreen-358x224/blob/agent/optimize-retained-framebuffer/docs/V0300_OPTIMIZATION_PORT.md",
+      "query": {
+        "engine": "Reviewed native audit",
+        "language": "SQL projection over reviewed findings",
+        "sql": "SELECT candidate, decision, currentEvidence, reason FROM native_port_audit WHERE target_version = '0.300' ORDER BY review_order",
+        "description": "Projects the reviewed v0.230-to-v0.300 port decision matrix after current native entry-point verification.",
+        "executed_at": "2026-08-12T18:00:00Z",
+        "filters": ["Target version 0.300", "Current native target verified", "Fail-closed implementation required for accepted runtime patches"],
+        "metric_definitions": {
+          "nativeCoverage": "95.6% of 2,048 current application functions have Hex-Rays pseudocode.",
+          "portDecision": "Accepted only when the current native target persists, the implementation can fail closed, and controlled evidence is positive."
+        }
+      }
+    }
+  ],
+  "package_info": {
+    "originUrl": "https://github.com/elliotttate/DKC-Widescreen-358x224/tree/agent/optimize-retained-framebuffer/docs/report/v0300-performance"
+  }
+}

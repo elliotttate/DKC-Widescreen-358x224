@@ -15,11 +15,16 @@ internal static class Program
             TestPlanar(rasterizer);
             TestTileMap(rasterizer);
             TestColorMath(rasterizer);
+            TestLegacyShaderAdd(rasterizer);
             TestRegionModes(rasterizer);
             TestStockPaletteExpansion(rasterizer);
             TestCachePrimitives(rasterizer);
+            TestDecodedTileAtlas(rasterizer);
+            TestRasterPartialModel(rasterizer);
+            TestFixedNativePillarbox(rasterizer);
+            TestFallbackTelemetry(plugin);
             TestRuntimeShape();
-            Console.WriteLine("PASS: planar decode, tilemap addressing, color math, window regions, retained-cache primitives, and v0.230 patch targets.");
+            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache and raster-partial equivalence, fixed-native pillarbox, fallback telemetry, and v0.230 patch targets.");
             return 0;
         }
         catch (Exception exception)
@@ -76,6 +81,21 @@ internal static class Program
             "half-add divides before saturation");
     }
 
+    private static void TestLegacyShaderAdd(Type type)
+    {
+        MethodInfo add = Required(type, "LegacyAddChannel");
+        int A(int main, int sub, int brightness) =>
+            (byte)add.Invoke(null, new object[] { main, sub, brightness });
+        // Stable channel combinations from the Slip-Slide Ride frame-573672
+        // legacy main/sub/final oracle.
+        Require(A(2, 1, 15) == 31, "legacy shader add 16+8");
+        Require(A(5, 1, 15) == 53, "legacy shader add 40+8");
+        Require(A(6, 1, 15) == 61, "legacy shader add 48+8");
+        Require(A(9, 1, 15) == 84, "legacy shader add 72+8");
+        Require(A(31, 31, 15) == 255, "legacy shader add saturation");
+        Require(A(31, 31, 0) == 0, "legacy shader add zero brightness");
+    }
+
     private static void TestRegionModes(Type type)
     {
         MethodInfo apply = Required(type, "ApplyRegionMode");
@@ -104,6 +124,13 @@ internal static class Program
             "circular VRAM change invalidation");
     }
 
+    private static void TestRasterPartialModel(Type type)
+    {
+        MethodInfo test = Required(type, "RasterPartialModelSelfTest");
+        Require((bool)test.Invoke(null, null),
+            "scroll-only raster partial refresh must equal a clean full rebuild and reject changed VRAM");
+    }
+
     private static void TestStockPaletteExpansion(Type type)
     {
         MethodInfo expand = Required(type, "ExpandStockChannel");
@@ -113,6 +140,101 @@ internal static class Program
         Require(E(25, 15) == 199, "stock palette c/32 conversion");
         Require(E(31, 15) == 247, "stock palette maximum");
         Require(E(31, 0) == 0, "zero brightness");
+    }
+
+    private static void TestDecodedTileAtlas(Type type)
+    {
+        object rasterizer = Activator.CreateInstance(type, BindingFlags.Instance |
+            BindingFlags.NonPublic, null, new object[] { true }, null);
+        Type cacheType = type.GetNestedType("BackgroundCache", BindingFlags.NonPublic);
+        object cache = Activator.CreateInstance(cacheType, true);
+        MethodInfo prepare = type.GetMethod("PrepareDecodedTileFrame", BindingFlags.Static |
+            BindingFlags.NonPublic);
+        MethodInfo read = type.GetMethod("ReadDecodedTileColor", BindingFlags.Instance |
+            BindingFlags.NonPublic);
+        MethodInfo decode = Required(type, "DecodePlanar");
+        byte[] vram = new byte[65536];
+        for (int i = 0; i < vram.Length; i++) vram[i] = (byte)((i * 37 + 11) & 0xFF);
+
+        prepare.Invoke(null, new object[] { cache, 0xFFF0, 4 });
+        foreach (int tile in new[] { 0, 1, 127, 511, 1023 })
+        foreach (int y in new[] { 0, 3, 7 })
+        foreach (int x in new[] { 0, 4, 7 })
+        {
+            int expected = (int)decode.Invoke(null, new object[] { vram, 0xFFF0, tile, 4, x, y });
+            int actual = (int)read.Invoke(rasterizer,
+                new object[] { vram, cache, 0xFFF0, tile, 4, x, y, 0 });
+            Require(actual == expected,
+                "decoded atlas mismatch at tile=" + tile + " x=" + x + " y=" + y);
+        }
+
+        prepare.Invoke(null, new object[] { cache, 0xFFF0, 4 });
+        foreach (int tile in new[] { 0, 1, 127, 511, 1023 })
+            read.Invoke(rasterizer, new object[] { vram, cache, 0xFFF0, tile, 4, 0, 0, 0 });
+        long[] hits = (long[])type.GetField("PerBgDecodedTileHits", BindingFlags.Instance |
+            BindingFlags.NonPublic).GetValue(rasterizer);
+        long[] misses = (long[])type.GetField("PerBgDecodedTileMisses", BindingFlags.Instance |
+            BindingFlags.NonPublic).GetValue(rasterizer);
+        Require(hits[0] == 5 && misses[0] == 5, "decoded atlas hit/miss accounting");
+
+        vram[0xFFF0] ^= 0x80;
+        prepare.Invoke(null, new object[] { cache, 0xFFF0, 4 });
+        read.Invoke(rasterizer, new object[] { vram, cache, 0xFFF0, 0, 4, 0, 0, 0 });
+        Require(misses[0] == 6, "decoded atlas VRAM invalidation");
+    }
+
+    private static void TestFixedNativePillarbox(Type type)
+    {
+        MethodInfo signature = Required(type, "IsFixedNativeFrameSignature");
+        bool S(byte mode, byte tm, byte ts, byte math, int sx1, int sx2, byte bg1sc, byte bg2sc) =>
+            (bool)signature.Invoke(null, new object[] { mode, tm, ts, math, sx1, sx2, bg1sc, bg2sc });
+        Require(S(1, 0x11, 0, 0, 0, 0, 0x7C, 0x78), "Snow map fixed-frame signature");
+        Require(!S(9, 0x17, 0x17, 0x93, 0, 0, 0x7D, 0x79), "gameplay must stay wide");
+        Require(!S(1, 0x11, 0, 0, 1, 0, 0x7C, 0x78), "scrolling BG1 must stay wide");
+        Require(!S(1, 0x11, 0, 0, 0, 0, 0x7D, 0x78), "64-wide BG1 must stay wide");
+        Require(!S(1, 0x11, 0, 1, 0, 0, 0x7C, 0x78), "color-math scene must stay wide");
+
+        MethodInfo introSignature = Required(type, "IsDkcIntroScreenSignature");
+        bool Intro(byte mode, byte bg1sc, byte bg2sc, byte bg12nba) =>
+            (bool)introSignature.Invoke(null, new object[] { mode, bg1sc, bg2sc, bg12nba });
+        Require(Intro(1, 0x7C, 0x78, 0x13), "DKC opening screen must be pillarboxed");
+        Require(!Intro(1, 0x7D, 0x78, 0x13), "wide BG1 layout must not match opening");
+        Require(!Intro(1, 0x7C, 0x78, 0x31), "different character banks must not match opening");
+        Require(!Intro(9, 0x7C, 0x78, 0x13), "gameplay mode must not match opening");
+
+        MethodInfo fileSelectSignature = Required(type, "IsDkcFileSelectScreenSignature");
+        bool FileSelect(byte mode, byte bg1sc, byte bg2sc, byte bg3sc,
+            byte bg12nba, byte bg34nba) => (bool)fileSelectSignature.Invoke(null,
+                new object[] { mode, bg1sc, bg2sc, bg3sc, bg12nba, bg34nba });
+        Require(FileSelect(1, 0x74, 0x78, 0x7C, 0x04, 0x02),
+            "DKC file-select screen must be pillarboxed");
+        Require(!FileSelect(1, 0x75, 0x78, 0x7C, 0x04, 0x02),
+            "wide BG1 file-select layout must not match");
+        Require(!FileSelect(1, 0x74, 0x78, 0x7C, 0x40, 0x02),
+            "different file-select character banks must not match");
+        Require(!FileSelect(9, 0x74, 0x78, 0x7C, 0x04, 0x02),
+            "gameplay mode must not match file select");
+
+        MethodInfo titleSignature = Required(type, "IsDkcTitleScreenSignature");
+        bool Title(byte mode, byte bg1sc, byte bg2sc, byte bg3sc,
+            byte bg12nba, byte bg34nba) => (bool)titleSignature.Invoke(null,
+                new object[] { mode, bg1sc, bg2sc, bg3sc, bg12nba, bg34nba });
+        Require(Title(1, 0x74, 0x00, 0x7C, 0x00, 0x00),
+            "animated DKC title layout must be pillarboxed");
+        Require(Title(1, 0x7C, 0x78, 0x00, 0x00, 0x00),
+            "settled DKC title layout must be pillarboxed");
+        Require(!Title(1, 0x7C, 0x78, 0x00, 0x01, 0x00),
+            "game-over character bank must not match title");
+        Require(!Title(9, 0x7C, 0x78, 0x00, 0x00, 0x00),
+            "gameplay mode must not match title");
+
+        MethodInfo loadingSignature = Required(type, "IsDkcLevelInitializationSignature");
+        bool Loading(byte mode, int lower, int upper) => (bool)loadingSignature.Invoke(null,
+            new object[] { mode, lower, upper });
+        Require(Loading(9, 0, 0), "uninitialized DKC level bounds must be pillarboxed");
+        Require(!Loading(9, 0x0038, 0x13C8), "valid widescreen bounds must stay wide");
+        Require(!Loading(9, 0x6938, 0x6BC8), "valid high-world bounds must stay wide");
+        Require(!Loading(1, 0, 0), "non-gameplay native screens use explicit signatures");
     }
 
     private static void TestRuntimeShape()
@@ -129,6 +251,49 @@ internal static class Program
         string[] required = { "_ppuStartFrame", "_ppuLineChanges", "_cgLineChanges" };
         foreach (string property in required)
             Require(typeof(SNESPPU).GetProperty(property) != null, "SNESPPU property missing: " + property);
+    }
+
+    private static void TestFallbackTelemetry(Assembly plugin)
+    {
+        Type controller = plugin.GetType("SuperZSNESDKCFramebufferRenderer.FramebufferController", true);
+        Type patches = plugin.GetType("SuperZSNESDKCFramebufferRenderer.RendererPatches", true);
+        Require(patches.GetMethod("GenerateBackgroundsPostfix", BindingFlags.Static |
+            BindingFlags.Public) != null, "fallback timing postfix missing");
+
+        MethodInfo reset = controller.GetMethod("ResetTelemetry", BindingFlags.Static |
+            BindingFlags.NonPublic);
+        MethodInfo toJson = controller.GetMethod("FallbackReasonsJson", BindingFlags.Static |
+            BindingFlags.NonPublic);
+        Type metricType = controller.GetNestedType("FallbackMetric", BindingFlags.NonPublic);
+        Require(reset != null && toJson != null && metricType != null,
+            "fallback telemetry shape missing");
+        reset.Invoke(null, null);
+
+        object metric = Activator.CreateInstance(metricType, true);
+        metricType.GetField("Reason", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, "mosaic\"\nmode");
+        metricType.GetField("Frames", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 3L);
+        metricType.GetField("MeasuredFrames", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 2L);
+        metricType.GetField("RendererMs", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 8.0);
+        metricType.GetField("MaxRendererMs", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 5.5);
+        metricType.GetField("MaxConsecutiveFrames", BindingFlags.Instance | BindingFlags.NonPublic)
+            .SetValue(metric, 3);
+
+        var metrics = (System.Collections.IList)controller.GetField("FallbackMetrics",
+            BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+        metrics.Add(metric);
+        string json = (string)toJson.Invoke(null, null);
+        Require(json.Contains("mosaic\\\"\\nmode"), "fallback reason JSON escaping");
+        Require(json.Contains("\"frames\":3"), "fallback frame count JSON");
+        Require(json.Contains("\"averageStockRendererMs\":4.0000"),
+            "fallback average JSON");
+        Require(json.Contains("\"maxStockRendererMs\":5.5000"),
+            "fallback maximum JSON");
+        reset.Invoke(null, null);
     }
 
     private static MethodInfo Required(Type type, string name)

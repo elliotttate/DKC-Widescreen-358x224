@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>SuperZSNESDKCFramebufferRendererIL2CPP</AssemblyName>
+    <RootNamespace>SuperZSNESDKCFramebufferRenderer</RootNamespace>
+    <Version>0.1.8</Version>
+    <Deterministic>true</Deterministic>
+    <DebugType>portable</DebugType>
+    <DefineConstants>$(DefineConstants);IL2CPP</DefineConstants>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
+    <BepInExIl2CppRoot Condition="'$(BepInExIl2CppRoot)' == ''">$(RepoRoot).deps\SuperZSNES_v0.300</BepInExIl2CppRoot>
+    <InteropDir Condition="'$(InteropDir)' == ''">$(BepInExIl2CppRoot)\BepInEx\interop</InteropDir>
+    <CoreDir Condition="'$(CoreDir)' == ''">$(BepInExIl2CppRoot)\BepInEx\core</CoreDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SuperZSNESDKCFramebufferRenderer\DkcFrameRasterizer.cs" Link="DkcFrameRasterizer.cs" />
+    <Compile Include="..\SuperZSNESDKCFramebufferRenderer\FramebufferController.cs" Link="FramebufferController.cs" />
+    <Reference Include="Assembly-CSharp"><HintPath>$(InteropDir)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Core"><HintPath>$(CoreDir)\BepInEx.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Unity.IL2CPP"><HintPath>$(CoreDir)\BepInEx.Unity.IL2CPP.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(CoreDir)\0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Runtime"><HintPath>$(CoreDir)\Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2Cppmscorlib"><HintPath>$(InteropDir)\Il2Cppmscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(InteropDir)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(InteropDir)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.ImageConversionModule"><HintPath>$(InteropDir)\UnityEngine.ImageConversionModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

@@ -2,10 +2,32 @@
 
 The repository preserves accepted work, diagnostic tooling, and rejected experiments so results remain reproducible. Runtime patches are version-checked and leave `Assembly-CSharp.dll` unchanged on disk.
 
-## Recommended runtime components
+## Release tooling
 
 | Project | Status | Purpose |
 | --- | --- | --- |
+| `tools/DKCWidescreenPatcher` | Recommended | One-click Windows GUI that validates a clean DKC USA v1.0 ROM, applies an embedded BPS variant, verifies the exact output, and never overwrites the original. |
+| `scripts/build-release.ps1` | Maintainer tool | Generates standard/Deluxe/Restoration BPS patches from checksum-locked builds, embeds them, independently reapplies all three, rebuilds the IL2CPP renderer, and assembles the GitHub release ZIP. |
+
+## Recommended runtime components
+
+### SuperZSNES v0.300 IL2CPP
+
+| Project | Status | Purpose |
+| --- | --- | --- |
+| `SuperZSNESDKCFramebufferRendererIL2CPP` | Recommended | Supported DKC Mode 1 CPU compositor and retained-background presentation path. This is the major v0.300 performance improvement. |
+| `SuperZSNESPerformanceSuiteIL2CPP` | Optional, all switches default off | Native-code audit probes, bounded backlog recovery, reversible history/rewind guards, and a rejected atlas-upload experiment retained for reproducibility. |
+| `SuperZSNESNativeAtlasDirtyFixIL2CPP` | Verified reference, keep disabled | Exact hash/byte-gated native correction for the atlas dirty-flag bug. It removes managed hot callbacks but showed no measurable performance benefit in four matched trials. |
+
+The v0.300 benchmark and port decision matrix are in
+[the v0.300 optimization report](docs/V0300_OPTIMIZATION_PORT.md). Do not copy
+the Mono-targeted v0.230 DLLs into the IL2CPP build.
+
+### SuperZSNES v0.230 Mono
+
+| Project | Status | Purpose |
+| --- | --- | --- |
+| `SuperZSNESDKCFramebufferRendererIL2CPP` | Recommended for v0.300 only | BepInEx 6/x86 IL2CPP port of the accepted DKC framebuffer compositor. |
 | `SuperZSNESDKCFramebufferRenderer` | Recommended | Supported DKC Mode 1 CPU framebuffer and presentation path; the major performance fix. |
 | `SuperZSNESFramePacingFix` | Recommended | Charges only frames actually scheduled and preserves bounded normal-speed backlog. |
 | `SuperZSNESPerformanceGuard` | Recommended | Disables history/rewind spikes, caps presentation at 120, and limits PPU surfaces to 2x. |
@@ -48,3 +70,5 @@ These projects are retained as evidence and default to disabled or fail-closed b
 | `SuperZSNESVariableMaterialBatching` | Visual failure; v0.1.1 hard-quarantines enabled mode. |
 
 Read the individual README and [technical worklog](docs/WORKLOG.md) before changing any default-off switch.
+
+The remaining projects in this matrix target the v0.230 Mono build unless their README explicitly says otherwise.

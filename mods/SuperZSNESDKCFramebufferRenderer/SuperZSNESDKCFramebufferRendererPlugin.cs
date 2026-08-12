@@ -15,7 +15,7 @@ namespace SuperZSNESDKCFramebufferRenderer
     {
         public const string PluginGuid = "dev.local.superzsnes.dkcframebuffer";
         public const string PluginName = "SuperZSNES DKC Framebuffer Renderer";
-        public const string PluginVersion = "0.3.1";
+        public const string PluginVersion = "0.4.13";
 
         private Harmony _harmony;
         private ConfigEntry<bool> _enabled;
@@ -60,7 +60,9 @@ namespace SuperZSNESDKCFramebufferRenderer
                 _harmony = new Harmony(PluginGuid);
                 _harmony.Patch(layout.GenerateBackgrounds,
                     prefix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.GenerateBackgroundsPrefix))
-                    { priority = Priority.First });
+                    { priority = Priority.First },
+                    postfix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.GenerateBackgroundsPostfix))
+                    { priority = Priority.Last });
                 _harmony.Patch(layout.OnRenderImage,
                     prefix: new HarmonyMethod(typeof(RendererPatches), nameof(RendererPatches.OnRenderImagePrefix))
                     { priority = Priority.First });
@@ -72,6 +74,7 @@ namespace SuperZSNESDKCFramebufferRenderer
                 var presentInfo = Harmony.GetPatchInfo(layout.OnRenderImage);
                 var ppuInfo = Harmony.GetPatchInfo(layout.WritePpuIo);
                 if (frameInfo == null || !frameInfo.Prefixes.Any(p => p.owner == PluginGuid) ||
+                    !frameInfo.Postfixes.Any(p => p.owner == PluginGuid) ||
                     presentInfo == null || !presentInfo.Prefixes.Any(p => p.owner == PluginGuid) ||
                     ppuInfo == null || !ppuInfo.Prefixes.Any(p => p.owner == PluginGuid))
                     throw new InvalidOperationException("Runtime Harmony chain did not retain all framebuffer patches.");
@@ -137,6 +140,11 @@ namespace SuperZSNESDKCFramebufferRenderer
         public static bool GenerateBackgroundsPrefix(PPURenderer __instance)
         {
             return FramebufferController.BeforeGenerateBackgrounds(__instance);
+        }
+
+        public static void GenerateBackgroundsPostfix()
+        {
+            FramebufferController.AfterGenerateBackgrounds();
         }
 
         public static bool OnRenderImagePrefix(MainScreenBlit __instance, RenderTexture source, RenderTexture destination)
