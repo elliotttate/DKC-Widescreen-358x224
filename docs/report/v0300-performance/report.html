@@ -41,9 +41,979 @@ html:not([data-portable-source-tooltips-ready]) .portable-chart-summary>.portabl
 <div class="portable-block portable-layout-full" data-artifact-block-id="headline_metrics" data-artifact-block-type="metric-strip" data-layout="full"><section class="portable-metric-grid"><article class="portable-metric-card" data-artifact-id="metric:headline_metrics:stock_cpu" data-artifact-kind="card" data-card-id="stock_cpu"><p class="portable-metric-label">Stock CPU cores</p><p class="portable-metric-value"><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-6"><span class="portable-source-value-text">2.99</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-6" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 2.99</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span></p><p class="portable-card-description">Average process CPU demand across two stock trials.</p><div class="portable-inline-source portable-source-summary" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-summary-content"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Stock CPU cores</span><span class="portable-source-context">Average process CPU demand across two stock trials.</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div></article><article class="portable-metric-card" data-artifact-id="metric:headline_metrics:optimized_cpu" data-artifact-kind="card" data-card-id="optimized_cpu"><p class="portable-metric-label">Optimized CPU cores</p><p class="portable-metric-value"><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-7"><span class="portable-source-value-text">1.3</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-7" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 1.3</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span></p><p class="portable-card-description">Average process CPU with the framebuffer and retained-background cache.</p><div class="portable-metric-badges"><span class="portable-metric-badge portable-negative"><span>vs stock</span> <strong><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-8"><span class="portable-source-value-text">-56.5%</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-8" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for -56.5%</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span></strong></span></div><div class="portable-inline-source portable-source-summary" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-summary-content"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Optimized CPU cores</span><span class="portable-source-context">Average process CPU with the framebuffer and retained-background cache.</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div></article><article class="portable-metric-card" data-artifact-id="metric:headline_metrics:cache_hit_rate" data-artifact-kind="card" data-card-id="cache_hit_rate"><p class="portable-metric-label">Background cache hit rate</p><p class="portable-metric-value"><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-9"><span class="portable-source-value-text">79.1%</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-9" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 79.1%</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span></p><p class="portable-card-description">Share of eligible per-layer background decisions reused exactly.</p><div class="portable-metric-badges"><span class="portable-metric-badge portable-negative"><span>Background stage</span> <strong><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-10"><span class="portable-source-value-text">-49.5%</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-10" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for -49.5%</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span></strong></span></div><div class="portable-inline-source portable-source-summary" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-summary-content"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Background cache hit rate</span><span class="portable-source-context">Share of eligible per-layer background decisions reused exactly.</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div></article><article class="portable-metric-card" data-artifact-id="metric:headline_metrics:optimized_fps" data-artifact-kind="card" data-card-id="optimized_fps"><p class="portable-metric-label">Optimized emulated FPS</p><p class="portable-metric-value"><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-11"><span class="portable-source-value-text">60.01</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-11" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 60.01</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span></p><p class="portable-card-description">Emulated cadence remained at the SNES target in the optimized trials.</p><div class="portable-inline-source portable-source-summary" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-summary-content"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Optimized emulated FPS</span><span class="portable-source-context">Emulated cadence remained at the SNES target in the optimized trials.</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div></article></section></div>
 <div class="portable-block portable-layout-full" data-artifact-block-id="key_findings" data-artifact-block-type="markdown" data-layout="full"><section class="portable-markdown"><h2>Key Findings</h2>
 <ul><li>The framebuffer rewrite is the decisive intervention: <strong><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-12"><span class="portable-source-value-text">46.0%</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-12" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 46.0%</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span> less process CPU</strong> than stock.</li><li>Retained backgrounds add a further <strong><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-13"><span class="portable-source-value-text">19.5%</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-13" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 19.5%</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span> CPU reduction</strong> versus cache-off and cut the background stage <strong><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-14"><span class="portable-source-value-text">49.5%</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-14" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 49.5%</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span></strong>.</li><li>The atlas dirty-flag bug is real—about <strong>1.26 million</strong> false page hits per trial—but a managed per-tile detour is the wrong fix and increased presentation work <strong><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-15"><span class="portable-source-value-text">37.1%</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-15" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 37.1%</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span></strong>.</li><li>The accumulator bug is also real. Under the same deliberate stall, bounded recovery improved emulated cadence by <strong><span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-16"><span class="portable-source-value-text">0.62</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-16" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 0.62</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span>–<span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-17"><span class="portable-source-value-text">0.73</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-17" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 0.73</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span> FPS</strong> in the short paired windows.</li></ul></section><div class="portable-inline-source portable-source-summary" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-summary-content"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Key Findings</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div></div>
-<div class="portable-block portable-layout-full" data-artifact-block-id="cpu_chart" data-artifact-block-type="chart" data-layout="full"><figure class="portable-content-card portable-chart-summary" data-artifact-id="cpu_by_scenario" data-artifact-kind="chart" data-chart-id="cpu_by_scenario" data-portable-visual-title="The supported framebuffer path cuts CPU by 46.0%; exact retained backgrounds extend the reduction to 56.5% versus stock." data-portable-source-host="true" tabindex="0" aria-label="The supported framebuffer path cuts CPU by 46.0%; exact retained backgrounds extend the reduction to 56.5% versus stock." aria-describedby="portable-source-tooltip-18"><figcaption class="portable-visual-header portable-markdown"><p>The supported framebuffer path cuts CPU by <strong>46.0%</strong>; exact retained backgrounds extend the reduction to <strong>56.5%</strong> versus stock.</p></figcaption><div class="portable-inline-source" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-tooltip-content" id="portable-source-tooltip-18" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for The supported framebuffer path cuts CPU by 46.0%; exact retained backgrounds extend the reduction to 56.5% versus stock.</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div><div class="portable-table-scroll"><table><caption>The renderer rewrite, not a micro-optimization, changes the CPU envelope data</caption><thead><tr><th scope="col">Configuration</th><th scope="col" class="portable-table-number">Average CPU cores</th><th scope="col" class="portable-table-number">Emulated FPS</th><th scope="col" class="portable-table-number">Presentation FPS</th><th scope="col" class="portable-table-number">CPU vs stock</th></tr></thead><tbody><tr><td>Stock v0.300</td><td class="portable-table-number">2.99</td><td class="portable-table-number">59.98</td><td class="portable-table-number">59.86</td><td class="portable-table-number">0%</td></tr><tr><td>Stock + atlas gate</td><td class="portable-table-number">2.78</td><td class="portable-table-number">60</td><td class="portable-table-number">59.88</td><td class="portable-table-number">-6.8%</td></tr><tr><td>CPU framebuffer</td><td class="portable-table-number">1.61</td><td class="portable-table-number">59.98</td><td class="portable-table-number">59.82</td><td class="portable-table-number">-46%</td></tr><tr><td>Framebuffer + retained BG</td><td class="portable-table-number">1.3</td><td class="portable-table-number">60.01</td><td class="portable-table-number">59.82</td><td class="portable-table-number">-56.5%</td></tr><tr><td>Retained BG + optional suite</td><td class="portable-table-number">1.39</td><td class="portable-table-number">60.01</td><td class="portable-table-number">59.91</td><td class="portable-table-number">-53.4%</td></tr></tbody></table></div></figure></div>
-<div class="portable-block portable-layout-full" data-artifact-block-id="renderer_chart" data-artifact-block-type="chart" data-layout="full"><figure class="portable-content-card portable-chart-summary" data-artifact-id="renderer_stage_comparison" data-artifact-kind="chart" data-chart-id="renderer_stage_comparison" data-portable-visual-title="Retained backgrounds halve the background stage" data-portable-source-host="true" tabindex="0" aria-label="Retained backgrounds halve the background stage" aria-describedby="portable-source-tooltip-19"><figcaption class="portable-visual-header"><strong>Retained backgrounds halve the background stage</strong></figcaption><div class="portable-inline-source" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-tooltip-content" id="portable-source-tooltip-19" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Retained backgrounds halve the background stage</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div><div class="portable-table-scroll"><table><caption>Retained backgrounds halve the background stage data</caption><thead><tr><th scope="col">Framebuffer configuration</th><th scope="col" class="portable-table-number">Average milliseconds</th><th scope="col">Measured stage</th><th scope="col" class="portable-table-number">Cache hit rate</th><th scope="col" class="portable-table-number">Process CPU cores</th></tr></thead><tbody><tr><td>Cache off</td><td class="portable-table-number">5.7</td><td>Complete renderer</td><td class="portable-table-number">0%</td><td class="portable-table-number">1.61</td></tr><tr><td>Cache off</td><td class="portable-table-number">1.93</td><td>Background stage</td><td class="portable-table-number">0%</td><td class="portable-table-number">1.61</td></tr><tr><td>Retained BG</td><td class="portable-table-number">4.58</td><td>Complete renderer</td><td class="portable-table-number">79.1%</td><td class="portable-table-number">1.3</td></tr><tr><td>Retained BG</td><td class="portable-table-number">0.98</td><td>Background stage</td><td class="portable-table-number">79.1%</td><td class="portable-table-number">1.3</td></tr></tbody></table></div></figure></div>
-<div class="portable-block portable-layout-full" data-artifact-block-id="hitch_chart" data-artifact-block-type="chart" data-layout="full"><figure class="portable-content-card portable-chart-summary" data-artifact-id="hitch_recovery" data-artifact-kind="chart" data-chart-id="hitch_recovery" data-portable-visual-title="Bounded backlog recovery preserves the emulated timeline after a hitch" data-portable-source-host="true" tabindex="0" aria-label="Bounded backlog recovery preserves the emulated timeline after a hitch" aria-describedby="portable-source-tooltip-20"><figcaption class="portable-visual-header"><strong>Bounded backlog recovery preserves the emulated timeline after a hitch</strong></figcaption><div class="portable-inline-source" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-tooltip-content" id="portable-source-tooltip-20" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Bounded backlog recovery preserves the emulated timeline after a hitch</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div><div class="portable-table-scroll"><table><caption>Bounded backlog recovery preserves the emulated timeline after a hitch data</caption><thead><tr><th scope="col">Controlled pair</th><th scope="col" class="portable-table-number">Emulated FPS</th><th scope="col">Scheduler</th><th scope="col" class="portable-table-number">Delta vs paired stock</th><th scope="col" class="portable-table-number">Recovery batches</th><th scope="col" class="portable-table-number">Injected stall (ms)</th></tr></thead><tbody><tr><td>Pair 1</td><td class="portable-table-number">58.78</td><td>Stock</td><td class="portable-table-number">0</td><td class="portable-table-number">0</td><td class="portable-table-number">500</td></tr><tr><td>Pair 1</td><td class="portable-table-number">59.51</td><td>Bounded recovery</td><td class="portable-table-number">0.73</td><td class="portable-table-number">4</td><td class="portable-table-number">500</td></tr><tr><td>Pair 3</td><td class="portable-table-number">58.98</td><td>Stock</td><td class="portable-table-number">0</td><td class="portable-table-number">0</td><td class="portable-table-number">500</td></tr><tr><td>Pair 3</td><td class="portable-table-number">59.59</td><td>Bounded recovery</td><td class="portable-table-number">0.62</td><td class="portable-table-number">4</td><td class="portable-table-number">500</td></tr></tbody></table></div></figure></div>
+<div class="portable-block portable-layout-full" data-artifact-block-id="cpu_chart" data-artifact-block-type="chart" data-layout="full"><figure class="portable-content-card portable-chart-summary" data-artifact-id="cpu_by_scenario" data-artifact-kind="chart" data-chart-id="cpu_by_scenario" data-portable-visual-title="The supported framebuffer path cuts CPU by 46.0%; exact retained backgrounds extend the reduction to 56.5% versus stock." data-portable-source-host="true" tabindex="0" aria-label="The supported framebuffer path cuts CPU by 46.0%; exact retained backgrounds extend the reduction to 56.5% versus stock." aria-describedby="portable-source-tooltip-18"><figcaption class="portable-visual-header portable-markdown"><p>The supported framebuffer path cuts CPU by <strong>46.0%</strong>; exact retained backgrounds extend the reduction to <strong>56.5%</strong> versus stock.</p></figcaption><div class="portable-inline-source" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-tooltip-content" id="portable-source-tooltip-18" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for The supported framebuffer path cuts CPU by 46.0%; exact retained backgrounds extend the reduction to 56.5% versus stock.</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div><div class="portable-static-chart" data-static-chart-id="cpu_by_scenario" data-static-chart-block-id="cpu_chart" role="img" aria-label="The renderer rewrite, not a micro-optimization, changes the CPU envelope chart" style="max-width:768px"><div class="portable-static-chart-variant portable-static-chart-light" aria-hidden="true"><svg width="768" height="320" viewBox="0 0 768 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="portable-static-chart-svg" focusable="false" preserveAspectRatio="xMidYMid meet">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<line x1="56" y1="264" x2="768" y2="264" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="56" y1="206.5" x2="768" y2="206.5" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="56" y1="149" x2="768" y2="149" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="56" y1="91.5" x2="768" y2="91.5" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="56" y1="34" x2="768" y2="34" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<defs>
+<clipPath id="portable-0-light-0">
+<rect x="56" y="34" height="230" width="712" clip-path="none" clip-rule="nonzero" fill="rgb(0, 0, 0)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</rect>
+</clipPath>
+</defs>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g id="portable-0-light-1" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M70.24,41.0312A 6,6,0,0,1,76.24,35.0312L 177.24,35.0312A 6,6,0,0,1,
+        183.24,41.0312L 183.24,264L 70.24,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M212.64,56.4904A 6,6,0,0,1,218.64,50.4904L 319.64,50.4904A 6,6,0,0,1,
+        325.64,56.4904L 325.64,264L 212.64,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M355.04,146.3447A 6,6,0,0,1,361.04,140.3447L 462.04,140.3447A 6,6,0,0,1,
+        468.04,146.3447L 468.04,264L 355.04,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M497.44,170.5042A 6,6,0,0,1,503.44,164.5042L 604.44,164.5042A 6,6,0,0,1,
+        610.44,170.5042L 610.44,264L 497.44,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M639.84,163.3333A 6,6,0,0,1,645.84,157.3333L 746.84,157.3333A 6,6,0,0,1,
+        752.84,163.3333L 752.84,264L 639.84,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<text x="127.2" y="276" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="127.2" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Stock v0.300</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="269.6" y="276" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="269.6" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Stock + atlas gate</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="412" y="276" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="412" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">CPU framebuffer</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="554.4000000000001" y="276" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="554.4000000000001" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Framebuffer +</tspan>
+<tspan dy="1.2em" x="554.4000000000001" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">retained BG</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="696.8000000000001" y="276" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="696.8000000000001" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Retained BG +</tspan>
+<tspan dy="1.2em" x="696.8000000000001" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">optional suite</tspan>
+</text>
+</g>
+</g>
+<text x="412" y="316" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="412" dy="0em" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Configuration</tspan>
+</text>
+<g opacity="1">
+<g opacity="1">
+<text x="48" y="264" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">0</text>
+</g>
+<g opacity="1">
+<text x="48" y="206.5" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">0.75</text>
+</g>
+<g opacity="1">
+<text x="48" y="149" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">1.5</text>
+</g>
+<g opacity="1">
+<text x="48" y="91.5" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">2.25</text>
+</g>
+<g opacity="1">
+<text x="48" y="34" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">3</text>
+</g>
+</g>
+<text transform="rotate(-90, 4, 149)" x="4" y="149" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="4" dy="0.355em" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Average CPU cores</tspan>
+</text>
+<g opacity="1">
+<text x="126.74" y="27.03124333333333" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">2.99</text>
+<text x="269.14" y="42.49038666666665" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">2.78</text>
+<text x="411.54" y="132.34471666666667" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">1.61</text>
+<text x="553.94" y="156.5042233333333" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">1.3</text>
+<text x="696.34" y="149.33328333333333" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">1.39</text>
+</g>
+</g>
+</svg></div><div class="portable-static-chart-variant portable-static-chart-dark" aria-hidden="true"><svg width="768" height="320" viewBox="0 0 768 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="portable-static-chart-svg" focusable="false" preserveAspectRatio="xMidYMid meet">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<line x1="56" y1="264" x2="768" y2="264" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="56" y1="206.5" x2="768" y2="206.5" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="56" y1="149" x2="768" y2="149" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="56" y1="91.5" x2="768" y2="91.5" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="56" y1="34" x2="768" y2="34" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<defs>
+<clipPath id="portable-0-dark-0">
+<rect x="56" y="34" height="230" width="712" clip-path="none" clip-rule="nonzero" fill="rgb(0, 0, 0)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</rect>
+</clipPath>
+</defs>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g id="portable-0-dark-1" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M70.24,41.0312A 6,6,0,0,1,76.24,35.0312L 177.24,35.0312A 6,6,0,0,1,
+        183.24,41.0312L 183.24,264L 70.24,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M212.64,56.4904A 6,6,0,0,1,218.64,50.4904L 319.64,50.4904A 6,6,0,0,1,
+        325.64,56.4904L 325.64,264L 212.64,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M355.04,146.3447A 6,6,0,0,1,361.04,140.3447L 462.04,140.3447A 6,6,0,0,1,
+        468.04,146.3447L 468.04,264L 355.04,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M497.44,170.5042A 6,6,0,0,1,503.44,164.5042L 604.44,164.5042A 6,6,0,0,1,
+        610.44,170.5042L 610.44,264L 497.44,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M639.84,163.3333A 6,6,0,0,1,645.84,157.3333L 746.84,157.3333A 6,6,0,0,1,
+        752.84,163.3333L 752.84,264L 639.84,264Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<text x="127.2" y="276" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="127.2" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Stock v0.300</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="269.6" y="276" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="269.6" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Stock + atlas gate</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="412" y="276" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="412" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">CPU framebuffer</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="554.4000000000001" y="276" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="554.4000000000001" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Framebuffer +</tspan>
+<tspan dy="1.2em" x="554.4000000000001" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">retained BG</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="696.8000000000001" y="276" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan dy="0" x="696.8000000000001" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Retained BG +</tspan>
+<tspan dy="1.2em" x="696.8000000000001" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="hanging" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">optional suite</tspan>
+</text>
+</g>
+</g>
+<text x="412" y="316" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="412" dy="0em" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Configuration</tspan>
+</text>
+<g opacity="1">
+<g opacity="1">
+<text x="48" y="264" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">0</text>
+</g>
+<g opacity="1">
+<text x="48" y="206.5" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">0.75</text>
+</g>
+<g opacity="1">
+<text x="48" y="149" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">1.5</text>
+</g>
+<g opacity="1">
+<text x="48" y="91.5" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">2.25</text>
+</g>
+<g opacity="1">
+<text x="48" y="34" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">3</text>
+</g>
+</g>
+<text transform="rotate(-90, 4, 149)" x="4" y="149" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="4" dy="0.355em" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Average CPU cores</tspan>
+</text>
+<g opacity="1">
+<text x="126.74" y="27.03124333333333" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">2.99</text>
+<text x="269.14" y="42.49038666666665" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">2.78</text>
+<text x="411.54" y="132.34471666666667" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">1.61</text>
+<text x="553.94" y="156.5042233333333" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">1.3</text>
+<text x="696.34" y="149.33328333333333" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">1.39</text>
+</g>
+</g>
+</svg></div></div><div class="portable-chart-data portable-chart-data-has-vector"><div class="portable-table-scroll"><table><caption>The renderer rewrite, not a micro-optimization, changes the CPU envelope data</caption><thead><tr><th scope="col">Configuration</th><th scope="col" class="portable-table-number">Average CPU cores</th><th scope="col" class="portable-table-number">Emulated FPS</th><th scope="col" class="portable-table-number">Presentation FPS</th><th scope="col" class="portable-table-number">CPU vs stock</th></tr></thead><tbody><tr><td>Stock v0.300</td><td class="portable-table-number">2.99</td><td class="portable-table-number">59.98</td><td class="portable-table-number">59.86</td><td class="portable-table-number">0%</td></tr><tr><td>Stock + atlas gate</td><td class="portable-table-number">2.78</td><td class="portable-table-number">60</td><td class="portable-table-number">59.88</td><td class="portable-table-number">-6.8%</td></tr><tr><td>CPU framebuffer</td><td class="portable-table-number">1.61</td><td class="portable-table-number">59.98</td><td class="portable-table-number">59.82</td><td class="portable-table-number">-46%</td></tr><tr><td>Framebuffer + retained BG</td><td class="portable-table-number">1.3</td><td class="portable-table-number">60.01</td><td class="portable-table-number">59.82</td><td class="portable-table-number">-56.5%</td></tr><tr><td>Retained BG + optional suite</td><td class="portable-table-number">1.39</td><td class="portable-table-number">60.01</td><td class="portable-table-number">59.91</td><td class="portable-table-number">-53.4%</td></tr></tbody></table></div></div></figure></div>
+<div class="portable-block portable-layout-full" data-artifact-block-id="renderer_chart" data-artifact-block-type="chart" data-layout="full"><figure class="portable-content-card portable-chart-summary" data-artifact-id="renderer_stage_comparison" data-artifact-kind="chart" data-chart-id="renderer_stage_comparison" data-portable-visual-title="Retained backgrounds halve the background stage" data-portable-source-host="true" tabindex="0" aria-label="Retained backgrounds halve the background stage" aria-describedby="portable-source-tooltip-19"><figcaption class="portable-visual-header"><strong>Retained backgrounds halve the background stage</strong></figcaption><div class="portable-inline-source" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-tooltip-content" id="portable-source-tooltip-19" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Retained backgrounds halve the background stage</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div><div class="portable-static-chart" data-static-chart-id="renderer_stage_comparison" data-static-chart-block-id="renderer_chart" role="img" aria-label="Retained backgrounds halve the background stage chart" style="max-width:768px"><div class="portable-static-chart-variant portable-static-chart-light" aria-hidden="true"><svg width="768" height="284" viewBox="0 0 768 284" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="portable-static-chart-svg" focusable="false" preserveAspectRatio="xMidYMid meet">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<line x1="50" y1="246" x2="768" y2="246" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="50" y1="193" x2="768" y2="193" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="50" y1="140" x2="768" y2="140" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="50" y1="87" x2="768" y2="87" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="50" y1="34" x2="768" y2="34" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<defs>
+<clipPath id="portable-1-light-0">
+<rect x="50" y="34" height="212" width="718" clip-path="none" clip-rule="nonzero" fill="rgb(0, 0, 0)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</rect>
+</clipPath>
+</defs>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g id="portable-1-light-1" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M85.9,50.6159A 6,6,0,0,1,91.9,44.6159L 220.9,44.6159A 6,6,0,0,1,
+        226.9,50.6159L 226.9,246L 85.9,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M444.9,90.0709A 6,6,0,0,1,450.9,84.0709L 579.9,84.0709A 6,6,0,0,1,
+        585.9,90.0709L 585.9,246L 444.9,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g id="portable-1-light-2" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M230.9,183.7024A 6,6,0,0,1,236.9,177.7024L 365.9,177.7024A 6,6,0,0,1,
+        371.9,183.7024L 371.9,246L 230.9,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(146, 59, 15)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M589.9,217.5217A 6,6,0,0,1,595.9,211.5217L 724.9,211.5217A 6,6,0,0,1,
+        730.9,217.5217L 730.9,246L 589.9,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(146, 59, 15)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<text x="229.5" y="254" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="229.5" dy="0.71em" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Cache off</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="588.5" y="254" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="588.5" dy="0.71em" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Retained BG</tspan>
+</text>
+</g>
+</g>
+<text x="409" y="280" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="409" dy="0em" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Framebuffer configuration</tspan>
+</text>
+<g opacity="1">
+<g opacity="1">
+<text x="42" y="246" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">0</text>
+</g>
+<g opacity="1">
+<text x="42" y="193" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">1.5</text>
+</g>
+<g opacity="1">
+<text x="42" y="140" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">3</text>
+</g>
+<g opacity="1">
+<text x="42" y="87" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">4.5</text>
+</g>
+<g opacity="1">
+<text x="42" y="34" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">6</text>
+</g>
+</g>
+<text transform="rotate(-90, 4, 140)" x="4" y="140" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="4" dy="0.355em" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Average milliseconds</tspan>
+</text>
+<g opacity="1">
+<text x="156.4" y="36.615899999999996" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">5.7</text>
+<text x="515.4" y="76.07086666666666" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">4.58</text>
+</g>
+<g opacity="1">
+<text x="301.4" y="169.70243333333335" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">1.93</text>
+<text x="660.4" y="203.52173333333332" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">0.98</text>
+</g>
+</g>
+</svg><div class="portable-static-chart-legend-wrap portable-static-chart-legend-bottom"><ul class="portable-static-chart-legend"><li><span class="portable-static-chart-legend-marker portable-static-chart-legend-marker-dot" style="--portable-legend-color:rgb(0, 63, 122)"></span><span>Complete renderer</span></li><li><span class="portable-static-chart-legend-marker portable-static-chart-legend-marker-dot" style="--portable-legend-color:rgb(146, 59, 15)"></span><span>Background stage</span></li></ul></div></div><div class="portable-static-chart-variant portable-static-chart-dark" aria-hidden="true"><svg width="768" height="284" viewBox="0 0 768 284" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="portable-static-chart-svg" focusable="false" preserveAspectRatio="xMidYMid meet">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<line x1="50" y1="246" x2="768" y2="246" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="50" y1="193" x2="768" y2="193" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="50" y1="140" x2="768" y2="140" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="50" y1="87" x2="768" y2="87" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="50" y1="34" x2="768" y2="34" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<defs>
+<clipPath id="portable-1-dark-0">
+<rect x="50" y="34" height="212" width="718" clip-path="none" clip-rule="nonzero" fill="rgb(0, 0, 0)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</rect>
+</clipPath>
+</defs>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g id="portable-1-dark-1" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M85.9,50.6159A 6,6,0,0,1,91.9,44.6159L 220.9,44.6159A 6,6,0,0,1,
+        226.9,50.6159L 226.9,246L 85.9,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M444.9,90.0709A 6,6,0,0,1,450.9,84.0709L 579.9,84.0709A 6,6,0,0,1,
+        585.9,90.0709L 585.9,246L 444.9,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g id="portable-1-dark-2" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M230.9,183.7024A 6,6,0,0,1,236.9,177.7024L 365.9,177.7024A 6,6,0,0,1,
+        371.9,183.7024L 371.9,246L 230.9,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(251, 106, 34)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M589.9,217.5217A 6,6,0,0,1,595.9,211.5217L 724.9,211.5217A 6,6,0,0,1,
+        730.9,217.5217L 730.9,246L 589.9,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(251, 106, 34)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<text x="229.5" y="254" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="229.5" dy="0.71em" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Cache off</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="588.5" y="254" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="588.5" dy="0.71em" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Retained BG</tspan>
+</text>
+</g>
+</g>
+<text x="409" y="280" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="409" dy="0em" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Framebuffer configuration</tspan>
+</text>
+<g opacity="1">
+<g opacity="1">
+<text x="42" y="246" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">0</text>
+</g>
+<g opacity="1">
+<text x="42" y="193" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">1.5</text>
+</g>
+<g opacity="1">
+<text x="42" y="140" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">3</text>
+</g>
+<g opacity="1">
+<text x="42" y="87" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">4.5</text>
+</g>
+<g opacity="1">
+<text x="42" y="34" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">6</text>
+</g>
+</g>
+<text transform="rotate(-90, 4, 140)" x="4" y="140" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="4" dy="0.355em" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Average milliseconds</tspan>
+</text>
+<g opacity="1">
+<text x="156.4" y="36.615899999999996" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">5.7</text>
+<text x="515.4" y="76.07086666666666" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">4.58</text>
+</g>
+<g opacity="1">
+<text x="301.4" y="169.70243333333335" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">1.93</text>
+<text x="660.4" y="203.52173333333332" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">0.98</text>
+</g>
+</g>
+</svg><div class="portable-static-chart-legend-wrap portable-static-chart-legend-bottom"><ul class="portable-static-chart-legend"><li><span class="portable-static-chart-legend-marker portable-static-chart-legend-marker-dot" style="--portable-legend-color:rgb(51, 156, 255)"></span><span>Complete renderer</span></li><li><span class="portable-static-chart-legend-marker portable-static-chart-legend-marker-dot" style="--portable-legend-color:rgb(251, 106, 34)"></span><span>Background stage</span></li></ul></div></div></div><div class="portable-chart-data portable-chart-data-has-vector"><div class="portable-table-scroll"><table><caption>Retained backgrounds halve the background stage data</caption><thead><tr><th scope="col">Framebuffer configuration</th><th scope="col" class="portable-table-number">Average milliseconds</th><th scope="col">Measured stage</th><th scope="col" class="portable-table-number">Cache hit rate</th><th scope="col" class="portable-table-number">Process CPU cores</th></tr></thead><tbody><tr><td>Cache off</td><td class="portable-table-number">5.7</td><td>Complete renderer</td><td class="portable-table-number">0%</td><td class="portable-table-number">1.61</td></tr><tr><td>Cache off</td><td class="portable-table-number">1.93</td><td>Background stage</td><td class="portable-table-number">0%</td><td class="portable-table-number">1.61</td></tr><tr><td>Retained BG</td><td class="portable-table-number">4.58</td><td>Complete renderer</td><td class="portable-table-number">79.1%</td><td class="portable-table-number">1.3</td></tr><tr><td>Retained BG</td><td class="portable-table-number">0.98</td><td>Background stage</td><td class="portable-table-number">79.1%</td><td class="portable-table-number">1.3</td></tr></tbody></table></div></div></figure></div>
+<div class="portable-block portable-layout-full" data-artifact-block-id="hitch_chart" data-artifact-block-type="chart" data-layout="full"><figure class="portable-content-card portable-chart-summary" data-artifact-id="hitch_recovery" data-artifact-kind="chart" data-chart-id="hitch_recovery" data-portable-visual-title="Bounded backlog recovery preserves the emulated timeline after a hitch" data-portable-source-host="true" tabindex="0" aria-label="Bounded backlog recovery preserves the emulated timeline after a hitch" aria-describedby="portable-source-tooltip-20"><figcaption class="portable-visual-header"><strong>Bounded backlog recovery preserves the emulated timeline after a hitch</strong></figcaption><div class="portable-inline-source" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-tooltip-content" id="portable-source-tooltip-20" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Bounded backlog recovery preserves the emulated timeline after a hitch</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div><div class="portable-static-chart" data-static-chart-id="hitch_recovery" data-static-chart-block-id="hitch_chart" role="img" aria-label="Bounded backlog recovery preserves the emulated timeline after a hitch chart" style="max-width:768px"><div class="portable-static-chart-variant portable-static-chart-light" aria-hidden="true"><svg width="768" height="284" viewBox="0 0 768 284" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="portable-static-chart-svg" focusable="false" preserveAspectRatio="xMidYMid meet">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<line x1="47" y1="246" x2="768" y2="246" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="47" y1="193" x2="768" y2="193" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="47" y1="140" x2="768" y2="140" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="47" y1="87" x2="768" y2="87" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="47" y1="34" x2="768" y2="34" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(26, 28, 31, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<defs>
+<clipPath id="portable-2-light-0">
+<rect x="47" y="34" height="212" width="721" clip-path="none" clip-rule="nonzero" fill="rgb(0, 0, 0)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</rect>
+</clipPath>
+</defs>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g id="portable-2-light-1" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M83.05,44.3054A 6,6,0,0,1,89.05,38.3054L 219.05,38.3054A 6,6,0,0,1,
+        225.05,44.3054L 225.05,246L 83.05,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M443.55,43.6141A 6,6,0,0,1,449.55,37.6141L 579.55,37.6141A 6,6,0,0,1,
+        585.55,43.6141L 585.55,246L 443.55,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(0, 63, 122)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g id="portable-2-light-2" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M229.05,41.7312A 6,6,0,0,1,235.05,35.7312L 365.05,35.7312A 6,6,0,0,1,
+        371.05,41.7312L 371.05,246L 229.05,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(146, 59, 15)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M589.55,41.4324A 6,6,0,0,1,595.55,35.4324L 725.55,35.4324A 6,6,0,0,1,
+        731.55,41.4324L 731.55,246L 589.55,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(146, 59, 15)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<text x="227.25" y="254" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="227.25" dy="0.71em" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Pair 1</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="587.75" y="254" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="587.75" dy="0.71em" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Pair 3</tspan>
+</text>
+</g>
+</g>
+<text x="407.5" y="280" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="407.5" dy="0em" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Controlled pair</tspan>
+</text>
+<g opacity="1">
+<g opacity="1">
+<text x="39" y="246" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">0</text>
+</g>
+<g opacity="1">
+<text x="39" y="193" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">15</text>
+</g>
+<g opacity="1">
+<text x="39" y="140" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">30</text>
+</g>
+<g opacity="1">
+<text x="39" y="87" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">45</text>
+</g>
+<g opacity="1">
+<text x="39" y="34" clip-path="none" clip-rule="nonzero" fill="rgba(26, 28, 31, 0.7)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">60</text>
+</g>
+</g>
+<text transform="rotate(-90, 4, 140)" x="4" y="140" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="4" dy="0.355em" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Emulated FPS</tspan>
+</text>
+<g opacity="1">
+<text x="154.05" y="30.30541613333334" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">58.78</text>
+<text x="514.55" y="29.61407706666666" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">58.98</text>
+</g>
+<g opacity="1">
+<text x="300.05" y="27.73121673333334" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">59.51</text>
+<text x="660.55" y="27.4323992" clip-path="none" clip-rule="nonzero" fill="rgb(26, 28, 31)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">59.59</text>
+</g>
+</g>
+</svg><div class="portable-static-chart-legend-wrap portable-static-chart-legend-bottom"><ul class="portable-static-chart-legend"><li><span class="portable-static-chart-legend-marker portable-static-chart-legend-marker-dot" style="--portable-legend-color:rgb(0, 63, 122)"></span><span>Stock</span></li><li><span class="portable-static-chart-legend-marker portable-static-chart-legend-marker-dot" style="--portable-legend-color:rgb(146, 59, 15)"></span><span>Bounded recovery</span></li></ul></div></div><div class="portable-static-chart-variant portable-static-chart-dark" aria-hidden="true"><svg width="768" height="284" viewBox="0 0 768 284" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="portable-static-chart-svg" focusable="false" preserveAspectRatio="xMidYMid meet">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<line x1="47" y1="246" x2="768" y2="246" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="47" y1="193" x2="768" y2="193" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="47" y1="140" x2="768" y2="140" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="47" y1="87" x2="768" y2="87" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+<line x1="47" y1="34" x2="768" y2="34" clip-path="none" clip-rule="nonzero" fill="none" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="rgba(255, 255, 255, 0.05)" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</line>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<defs>
+<clipPath id="portable-2-dark-0">
+<rect x="47" y="34" height="212" width="721" clip-path="none" clip-rule="nonzero" fill="rgb(0, 0, 0)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</rect>
+</clipPath>
+</defs>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g id="portable-2-dark-1" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M83.05,44.3054A 6,6,0,0,1,89.05,38.3054L 219.05,38.3054A 6,6,0,0,1,
+        225.05,44.3054L 225.05,246L 83.05,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M443.55,43.6141A 6,6,0,0,1,449.55,37.6141L 579.55,37.6141A 6,6,0,0,1,
+        585.55,43.6141L 585.55,246L 443.55,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(51, 156, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g id="portable-2-dark-2" opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<path d="M229.05,41.7312A 6,6,0,0,1,235.05,35.7312L 365.05,35.7312A 6,6,0,0,1,
+        371.05,41.7312L 371.05,246L 229.05,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(251, 106, 34)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<path d="M589.55,41.4324A 6,6,0,0,1,595.55,35.4324L 725.55,35.4324A 6,6,0,0,1,
+        731.55,41.4324L 731.55,246L 589.55,246Z" clip-path="none" clip-rule="nonzero" fill="rgb(251, 106, 34)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none">
+</path>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+</g>
+</g>
+</g>
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+</g>
+<g opacity="1">
+<g opacity="1">
+<g opacity="1">
+<text x="227.25" y="254" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="227.25" dy="0.71em" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Pair 1</tspan>
+</text>
+</g>
+<g opacity="1">
+<text x="587.75" y="254" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="587.75" dy="0.71em" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="400" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Pair 3</tspan>
+</text>
+</g>
+</g>
+<text x="407.5" y="280" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="407.5" dy="0em" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Controlled pair</tspan>
+</text>
+<g opacity="1">
+<g opacity="1">
+<text x="39" y="246" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">0</text>
+</g>
+<g opacity="1">
+<text x="39" y="193" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">15</text>
+</g>
+<g opacity="1">
+<text x="39" y="140" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">30</text>
+</g>
+<g opacity="1">
+<text x="39" y="87" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">45</text>
+</g>
+<g opacity="1">
+<text x="39" y="34" clip-path="none" clip-rule="nonzero" fill="rgb(205, 205, 205)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="middle" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="400" letter-spacing="normal" text-anchor="end" word-spacing="0px">60</text>
+</g>
+</g>
+<text transform="rotate(-90, 4, 140)" x="4" y="140" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">
+<tspan x="4" dy="0.355em" clip-path="none" clip-rule="nonzero" fill="rgb(255, 255, 255)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="normal" font-variant-numeric="normal" font-weight="500" letter-spacing="normal" text-anchor="middle" word-spacing="0px">Emulated FPS</tspan>
+</text>
+<g opacity="1">
+<text x="154.05" y="30.30541613333334" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">58.78</text>
+<text x="514.55" y="29.61407706666666" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">58.98</text>
+</g>
+<g opacity="1">
+<text x="300.05" y="27.73121673333334" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">59.51</text>
+<text x="660.55" y="27.4323992" clip-path="none" clip-rule="nonzero" fill="rgb(223, 223, 223)" fill-opacity="1" fill-rule="nonzero" opacity="1" paint-order="normal" shape-rendering="auto" stroke="none" stroke-dasharray="none" stroke-dashoffset="0px" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="4" stroke-opacity="1" stroke-width="1px" vector-effect="none" alignment-baseline="auto" baseline-shift="0px" dominant-baseline="auto" font-family="-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif" font-size="12px" font-style="normal" font-variant="tabular-nums" font-variant-numeric="tabular-nums" font-weight="600" letter-spacing="normal" text-anchor="middle" word-spacing="0px">59.59</text>
+</g>
+</g>
+</svg><div class="portable-static-chart-legend-wrap portable-static-chart-legend-bottom"><ul class="portable-static-chart-legend"><li><span class="portable-static-chart-legend-marker portable-static-chart-legend-marker-dot" style="--portable-legend-color:rgb(51, 156, 255)"></span><span>Stock</span></li><li><span class="portable-static-chart-legend-marker portable-static-chart-legend-marker-dot" style="--portable-legend-color:rgb(251, 106, 34)"></span><span>Bounded recovery</span></li></ul></div></div></div><div class="portable-chart-data portable-chart-data-has-vector"><div class="portable-table-scroll"><table><caption>Bounded backlog recovery preserves the emulated timeline after a hitch data</caption><thead><tr><th scope="col">Controlled pair</th><th scope="col" class="portable-table-number">Emulated FPS</th><th scope="col">Scheduler</th><th scope="col" class="portable-table-number">Delta vs paired stock</th><th scope="col" class="portable-table-number">Recovery batches</th><th scope="col" class="portable-table-number">Injected stall (ms)</th></tr></thead><tbody><tr><td>Pair 1</td><td class="portable-table-number">58.78</td><td>Stock</td><td class="portable-table-number">0</td><td class="portable-table-number">0</td><td class="portable-table-number">500</td></tr><tr><td>Pair 1</td><td class="portable-table-number">59.51</td><td>Bounded recovery</td><td class="portable-table-number">0.73</td><td class="portable-table-number">4</td><td class="portable-table-number">500</td></tr><tr><td>Pair 3</td><td class="portable-table-number">58.98</td><td>Stock</td><td class="portable-table-number">0</td><td class="portable-table-number">0</td><td class="portable-table-number">500</td></tr><tr><td>Pair 3</td><td class="portable-table-number">59.59</td><td>Bounded recovery</td><td class="portable-table-number">0.62</td><td class="portable-table-number">4</td><td class="portable-table-number">500</td></tr></tbody></table></div></div></figure></div>
 <div class="portable-block portable-layout-full" data-artifact-block-id="scope" data-artifact-block-type="markdown" data-layout="full"><section class="portable-markdown"><h2>Scope, Data, and Metrics</h2>
 <p>The benchmark covers the verified <span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-21"><span class="portable-source-value-text">32</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-21" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 32</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span>-bit SuperZSNES v0.300 IL2CPP executable, its matching <code>GameAssembly.dll</code>, and the verified <span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-22"><span class="portable-source-value-text">358</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-22" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 358</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span>×<span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-23"><span class="portable-source-value-text">224</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-23" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 224</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span> DKC widescreen ROM. Each ordinary configuration used two fresh processes, <span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-24"><span class="portable-source-value-text">12</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-24" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 12</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span> seconds of warmup, and roughly <span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-25"><span class="portable-source-value-text">20</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-25" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 20</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span>–<span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-26"><span class="portable-source-value-text">21</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-26" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 21</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span> seconds of measurement with VSync left at the emulator&#39;s value of <span class="portable-source-tooltip portable-source-value" data-portable-source-host="true" tabindex="0" aria-describedby="portable-source-tooltip-27"><span class="portable-source-value-text">1</span><span class="portable-source-tooltip-content" id="portable-source-tooltip-27" role="tooltip"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for 1</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span></span></span>.</p>
 <p>The primary metric is <strong>process CPU cores</strong> (<code>process CPU seconds / monotonic wall seconds</code>). Supporting metrics are host Update cadence, emulated <code>RunFrame</code> cadence, presentation cadence, renderer-native stage timing, background-cache hit rate, and endpoint memory.</p></section><div class="portable-inline-source portable-source-summary" data-source-id="benchmark_data"><div class="portable-inline-source-content portable-source-summary-content"><span class="portable-source-tooltip-heading" aria-hidden="true">Source for Scope, Data, and Metrics</span><strong>Source: Reviewed SuperZSNES v0.300 benchmark aggregate</strong><span class="portable-source-meta">Table: valid_benchmark_trials</span><p class="portable-source-description-data">Fresh-process A/B harness with hash gating, plugin monotonic counters, Windows process CPU/memory, and arithmetic-mean aggregation of valid trials.</p><pre class="portable-source-query-data" aria-hidden="true"><code>SELECT scenario, COUNT(*) AS trials, AVG(cpuCores) AS cpuCores, AVG(updateHz) AS updateHz, AVG(runFrameHz) AS runFrameHz, AVG(presentationHz) AS presentationHz, AVG(workingSetBytes) / 1048576.0 AS workingSetMiB FROM valid_benchmark_trials WHERE errors = 0 AND trial_is_valid = TRUE GROUP BY scenario</code></pre></div></div></div>
