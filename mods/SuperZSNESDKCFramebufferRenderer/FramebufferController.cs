@@ -260,6 +260,14 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static bool BeginFallback(PPURenderer renderer, string reason)
         {
             reason = string.IsNullOrEmpty(reason) ? "unsupported" : reason;
+            // DKC's Nintendo Presents sequence is a native-width Mode 5 scene.
+            // The CPU framebuffer intentionally fails closed for Mode 5, but
+            // letting the stock renderer inherit the gameplay guard width makes
+            // its 256-pixel tilemap repeat into the widescreen extensions. Keep
+            // the fallback, while asking the stock renderer to render this
+            // canonical DKC scene at its authored native width.
+            if (IsNativeWidthFallbackReason(reason))
+                ApplyNativeFallbackWidescreenSettings();
             _fallbackFrames++;
             _lastFallback = reason;
             _frameReady = false;
@@ -285,6 +293,13 @@ namespace SuperZSNESDKCFramebufferRenderer
             _pendingFallbackMetric = metric;
             _fallbackRendererStarted = Stopwatch.GetTimestamp();
             return true;
+        }
+
+        private static bool IsNativeWidthFallbackReason(string reason)
+        {
+            // TryRender reaches this reason only after the canonical DKC ROM
+            // hash and supported framebuffer geometry gates have passed.
+            return string.Equals(reason, "unsupported-bg-mode-5", StringComparison.Ordinal);
         }
 
         private static FallbackMetric GetFallbackMetric(string reason)
@@ -432,6 +447,32 @@ namespace SuperZSNESDKCFramebufferRenderer
             settings.widescreenCOL = 0;
         }
 
+        private static void ApplyNativeFallbackWidescreenSettings()
+        {
+            MainMenuManager.GameSpecificSettings settings = MainMenuManager.Instance?.GetGameSettings();
+            if (settings == null) return;
+
+            // ApplyFallbackWidescreenSettings normally established the saved
+            // values earlier in this same GenerateBackgrounds call. Retain a
+            // defensive save path so this helper remains correct if call order
+            // changes later.
+            if (_overriddenGameSettings != settings)
+            {
+                RestoreFallbackWidescreenSettings();
+                _overriddenGameSettings = settings;
+                _savedWidescreenOverride = settings.widescreenOverride;
+                _savedWideScreenBg = settings.wideScreenBG;
+                _savedWidescreenObj = settings.widescreenOBJ;
+                _savedWidescreenM7 = settings.widescreenM7;
+                _savedWidescreenCol = settings.widescreenCOL;
+            }
+            settings.widescreenOverride = true;
+            settings.wideScreenBG = 0;
+            settings.widescreenOBJ = 0;
+            settings.widescreenM7 = 0;
+            settings.widescreenCOL = 0;
+        }
+
         private static void RestoreFallbackWidescreenSettings()
         {
             if (_overriddenGameSettings == null) return;
@@ -513,9 +554,9 @@ namespace SuperZSNESDKCFramebufferRenderer
             double stageDivisor = stageFrames == 0 ? 1 : stageFrames;
             string json = "{" +
 #if IL2CPP
-                          "\"version\":\"0.1.9-il2cpp\"," +
+                          "\"version\":\"0.1.10-il2cpp\"," +
 #else
-                          "\"version\":\"0.4.14\"," +
+                          "\"version\":\"0.4.15\"," +
 #endif
                           "\"state\":\"" + Escape(state) + "\"," +
                           "\"geometryProfile\":\"" + Escape(_effectiveProfile) + "\"," +

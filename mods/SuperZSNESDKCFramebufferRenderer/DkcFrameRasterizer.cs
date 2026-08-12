@@ -350,7 +350,11 @@ namespace SuperZSNESDKCFramebufferRenderer
             // splash maps it at $7C00. Both use character bank zero and native
             // 32-tile maps, so neither has authored data for the side margins.
             bool animated = bg1sc == 0x74 && bg2sc == 0x00 && bg3sc == 0x7C;
-            bool settled = bg1sc == 0x7C && bg2sc == 0x78 && bg3sc == 0x00;
+            // The final splash enables BG3's native map at $7000 while the
+            // logo settles. Some adjacent fade frames disable that plane and
+            // report zero instead. Both are the same fixed-width title asset.
+            bool settled = bg1sc == 0x7C && bg2sc == 0x78 &&
+                           (bg3sc == 0x00 || bg3sc == 0x70);
             return animated || settled;
         }
 
@@ -1268,6 +1272,15 @@ namespace SuperZSNESDKCFramebufferRenderer
                           "\"cgwsel\":" + s.Cgwsel + "," +
                           "\"cgadsub\":" + s.Cgadsub + "," +
                           "\"fixedColor\":" + s.FixedColor + "," +
+                          "\"bg1sc\":" + s.Bg1sc + "," +
+                          "\"bg2sc\":" + s.Bg2sc + "," +
+                          "\"bg3sc\":" + s.Bg3sc + "," +
+                          "\"bg12nba\":" + s.Bg12nba + "," +
+                          "\"bg34nba\":" + s.Bg34nba + "," +
+                          "\"sx1\":" + (s.ScrollX1 & 0xFFFF) + "," +
+                          "\"sy1\":" + (s.ScrollY1 & 0xFFFF) + "," +
+                          "\"sx2\":" + (s.ScrollX2 & 0xFFFF) + "," +
+                          "\"sy2\":" + (s.ScrollY2 & 0xFFFF) + "," +
                           "\"sx3\":" + (s.ScrollX3 & 0xFFFF) + "," +
                           "\"sy3\":" + (s.ScrollY3 & 0xFFFF) + "}";
             }

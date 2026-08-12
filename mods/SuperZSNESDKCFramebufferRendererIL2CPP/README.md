@@ -79,6 +79,11 @@ v0.1.9 also masks only the extensions during the short Mode 9 level-loader
 state where DKC's camera bounds are still `$0000/$0000`. Full widescreen
 returns immediately when the level installs its real bounds.
 
+v0.1.10 fixes the remaining optional 398x224 intro repetition. Canonical DKC
+Mode 5 fallback frames render at native width for the Nintendo Presents scene,
+and the settled title layout recognizes BG3's `$7000` map. Live save-state
+captures confirm both scenes retain their center image with black sidebars.
+
 Install into a closed disposable copy and explicitly arm presentation:
 
 ```powershell

@@ -5,7 +5,7 @@ It validates a user-supplied, headerless Donkey Kong Country USA v1.0 ROM,
 applies an embedded standards-compatible BPS patch, verifies the exact output
 SHA-256, and writes a new ROM without modifying the original.
 
-The release build embeds three legal delta patches:
+The release build embeds six legal delta patches:
 
 - standard 358x224 widescreen with original SPC music;
 - optional near-exact 16:9 398x224 widescreen with original SPC music;

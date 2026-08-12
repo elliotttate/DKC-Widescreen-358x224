@@ -1003,3 +1003,28 @@ reported `398x224`, left extension 71, fallback margin 9, and produced a raw
 398x224 PNG continuous across both widened edges. A reciprocal launch of the
 published 358x224 Deluxe ROM reported 358/51/7, confirming automatic profile
 selection did not replace the default geometry.
+
+## 2026-08-12 398x224 Nintendo and title splash regression
+
+An immediate screenshot/status burst after loading user-supplied intro states
+separated the two remaining repeated-margin cases. Nintendo Presents runs in
+SNES Mode 5, which the CPU framebuffer deliberately rejects. Its stock-renderer
+fallback inherited the 398 profile's nine-tile gameplay guard and repeated the
+native 256-pixel map. Renderer v0.4.15 / IL2CPP v0.1.10 now temporarily selects
+zero stock-renderer margin only for the canonical DKC
+`unsupported-bg-mode-5` fallback; the saved game-specific settings are restored
+in the existing postfix. Mode 3, Mode 7, active-display-write, and gameplay
+fallbacks retain their established settings.
+
+The settled title was a supported Mode 1 frame whose exact PPU state used BG1
+map `$7C00`, BG2 map `$7800`, BG3 map `$7000`, and zero character banks. The
+title signature previously covered the adjacent zero-BG3 fade phase but not
+the active `$7000` plane. That exact layout is now included. A 24-frame burst
+after state load reported `fixedNativePillarboxActive=true` on every sampled
+line and captured a centered title with black extensions. The user separately
+confirmed the Nintendo and title fixes in the live 398x224 Deluxe session.
+
+Both IL2CPP and Mono builds complete with zero warnings/errors. The v0.230
+verifier additionally checks the new title layout and proves that only Mode 5,
+not Mode 3 or active-display gameplay fallbacks, selects native-width stock
+rendering.

@@ -7,7 +7,7 @@ param(
     [Parameter(Mandatory=$true)][string]$Deluxe16x9RomPath,
     [Parameter(Mandatory=$true)][string]$Restoration16x9RomPath,
     [string]$SuperZSNESRoot,
-    [string]$Version = 'v1.1.0',
+    [string]$Version = 'v1.1.1',
     [string]$OutputDirectory
 )
 
@@ -133,8 +133,8 @@ Compress-Archive -Path (Join-Path $packageDirectory '*') -DestinationPath $zip -
 $releaseNotes = @"
 # DKC Widescreen $Version
 
-This first packaged release provides a one-click Windows ROM patcher, standard
-BPS patches, and the SuperZSNES v0.300 IL2CPP framebuffer renderer.
+This bugfix release provides a one-click Windows ROM patcher, standard BPS
+patches, and the SuperZSNES v0.300 IL2CPP framebuffer renderer.
 
 ## Included
 
@@ -142,7 +142,8 @@ BPS patches, and the SuperZSNES v0.300 IL2CPP framebuffer renderer.
 - Optional 60-track Deluxe MSU-1 compatibility patch
 - Optional 27-track Restoration MSU-1 compatibility patch
 - Optional 398x224 near-exact 16:9 profile in all three music modes
-- SuperZSNES v0.300 IL2CPP framebuffer renderer v0.1.9 with automatic profile detection
+- SuperZSNES v0.300 IL2CPP framebuffer renderer v0.1.10 with automatic profile detection
+- Native-width black sidebars for the Nintendo Presents and title splash scenes
 - Exact source and output checksum verification
 
 No ROM, game assets, music, emulator, or BepInEx runtime is included. Supply a

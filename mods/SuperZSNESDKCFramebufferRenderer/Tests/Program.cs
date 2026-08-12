@@ -24,8 +24,9 @@ internal static class Program
             TestFixedNativePillarbox(rasterizer);
             TestGeometryProfiles(rasterizer);
             TestFallbackTelemetry(plugin);
+            TestNativeWidthFallbackReason(plugin);
             TestRuntimeShape();
-            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache and raster-partial equivalence, fixed-native pillarbox, 358/398 geometry profiles, fallback telemetry, and v0.230 patch targets.");
+            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache and raster-partial equivalence, fixed-native pillarbox, native-width fallback, 358/398 geometry profiles, fallback telemetry, and v0.230 patch targets.");
             return 0;
         }
         catch (Exception exception)
@@ -33,6 +34,20 @@ internal static class Program
             Console.Error.WriteLine("FAIL: " + exception);
             return 1;
         }
+    }
+
+    private static void TestNativeWidthFallbackReason(Assembly plugin)
+    {
+        Type controller = plugin.GetType(
+            "SuperZSNESDKCFramebufferRenderer.FramebufferController", true);
+        MethodInfo nativeFallback = Required(controller, "IsNativeWidthFallbackReason");
+        bool IsNative(string reason) => (bool)nativeFallback.Invoke(null, new object[] { reason });
+        Require(IsNative("unsupported-bg-mode-5"),
+            "DKC Mode 5 intro fallback must use native width");
+        Require(!IsNative("unsupported-bg-mode-3"),
+            "Rare Mode 3 fallback must retain its normal renderer settings");
+        Require(!IsNative("active-display-vram-write"),
+            "gameplay fallback must retain widescreen settings");
     }
 
     private static void TestPlanar(Type type)
@@ -224,6 +239,8 @@ internal static class Program
             "animated DKC title layout must be pillarboxed");
         Require(Title(1, 0x7C, 0x78, 0x00, 0x00, 0x00),
             "settled DKC title layout must be pillarboxed");
+        Require(Title(1, 0x7C, 0x78, 0x70, 0x00, 0x00),
+            "settled DKC title BG3 layout must be pillarboxed");
         Require(!Title(1, 0x7C, 0x78, 0x00, 0x01, 0x00),
             "game-over character bank must not match title");
         Require(!Title(9, 0x7C, 0x78, 0x00, 0x00, 0x00),
