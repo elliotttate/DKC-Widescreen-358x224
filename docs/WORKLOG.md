@@ -1152,3 +1152,49 @@ the component worker; it is consistent with the already documented stock
 palette/material churn during repeated fades. Re-enabling F6 rebuilt the table
 normally. This isolation does not excuse the emulator-side growth, but it keeps
 it separate from the retained depth implementation.
+
+## 2026-08-12 object depth authoring studio
+
+The first v0.300 authoring UI decoded all 128 hardware OAM entries from a live
+frame, reconstructed their 4bpp graphics and scanline palettes, and grouped
+touching compatible entries into logical objects. Two exact native
+`PPURenderer.RenderLines` hooks apply one authored Z offset and perspective
+compensation to every 8x8 cell emitted for an OAM slot. This produced useful
+cards for Kong, bananas, barrels, and other actors, but it could not show the
+trees and landscape because those are SNES background tilemaps rather than OAM.
+
+Object Depth Studio v0.2 adds a background catalog without introducing another
+classifier. Layer Depth Controller v0.5 exposes a read-only authoring export of
+its latest connected-component map, including the configured spacing. A capture
+now preserves the exact 64-byte PPU start-register block, BG1/BG2/BG3 scrolls,
+64 KiB VRAM, 224 scanline CGRAM palettes, OAM/OBJSEL visibility, and a fresh
+component report. The desktop editor rasterizes the visible 368x224 portion of
+each component from its exact tilemap addresses, 2bpp/4bpp planar characters,
+palette, flips, BG size, map geometry, and scroll position.
+
+The resulting **All objects** view contains both logical sprites and BG scenery;
+dedicated filters isolate either category. A live opening capture showed a
+single coherent 721-tile BG1 foliage/landscape card, plus separate BG2 sky,
+bridge/terrain, and small scenery cards. This directly addresses the missing
+tree/landscape authoring surface while retaining the conservative rule that
+opaque edge-connected art stays together. Large components can now be authored
+even though the automatic mapper intentionally leaves components over 64 tiles
+on their stock plane.
+
+Scenery values are stored in the existing per-level
+`profiles/level-XXXX.json` component-depth dictionary. Cards default to
+**automatic**; unchecking it writes `layer * componentSpacing`, and checking it
+again removes the override. The mapper already includes the profile timestamp
+in its rebuild key, so edits hot-reload without a ROM or emulator-state change.
+Sprite profiles remain ROM-hash scoped and independent. Capture requests now
+remain pending during early startup until the expected 544-byte OAM buffer is
+available instead of being lost after a transient initialization failure.
+
+Verification covers visible background cropping, 4bpp tile/palette decoding,
+sprite grouping and rule scopes, the connected-component model, and all four
+exact native hook windows. Both projects build with zero warnings/errors. The
+live installed v0.300 run loaded Layer Depth Controller 0.5.0 and Object Depth
+Studio 0.2.0, exported fresh components, and displayed decoded scenery cards in
+the resizable scrollable editor. Mid-frame BG scroll/layout effects are still an
+explicit future preview enhancement; authored runtime depths continue to use
+the mapper's exact render-time address table.

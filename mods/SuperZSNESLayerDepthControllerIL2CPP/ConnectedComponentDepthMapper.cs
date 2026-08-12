@@ -51,6 +51,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         internal int ProbeCount => _probes;
         internal int TableUpdates => _tableUpdates;
         internal bool BuildPending => _activeBuild != null || _queuedSnapshot != null;
+        internal float Spacing => Math.Max(0f, Math.Min(1f, _spacing.Value));
 
         internal ConnectedComponentDepthMapper(NativeTileDepthPatcher nativePatcher,
             ManualLogSource log, ConfigEntry<int> depthBands,
@@ -510,16 +511,29 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         private string ProfilePath(int level) => Path.Combine(_profilesDirectory,
             "level-" + level.ToString("X4") + ".json");
 
-        private void WriteComponents(int level, List<ComponentInfo> components)
+        internal bool ExportComponents(string path)
+        {
+            if (_lastLevel < 0 || _lastComponents == null || _lastComponents.Count == 0 ||
+                string.IsNullOrWhiteSpace(path)) return false;
+            WriteComponents(_lastLevel, _lastComponents, path);
+            return true;
+        }
+
+        private void WriteComponents(int level, List<ComponentInfo> components,
+            string path = null)
         {
             var report = new ComponentReport
             {
                 Version = 1,
                 Level = level.ToString("X4"),
+                Spacing = Spacing,
                 SafetyRule = "Components join only across touching opaque edge pixels; no palette/tile-number cuts.",
                 Components = components
             };
-            File.WriteAllText(Path.Combine(_directory, "components-current.json"),
+            string output = string.IsNullOrWhiteSpace(path)
+                ? Path.Combine(_directory, "components-current.json") : path;
+            Directory.CreateDirectory(Path.GetDirectoryName(output) ?? _directory);
+            File.WriteAllText(output,
                 JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true,
                     IncludeFields = true }));
         }
@@ -580,6 +594,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         {
             public int Version;
             public string Level;
+            public float Spacing;
             public string SafetyRule;
             public List<ComponentInfo> Components;
         }

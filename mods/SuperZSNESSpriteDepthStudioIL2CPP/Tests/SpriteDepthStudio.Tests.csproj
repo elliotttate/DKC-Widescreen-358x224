@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><LangVersion>10.0</LangVersion><Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SpriteDepthSchema.cs" Link="SpriteDepthSchema.cs" />
+    <Compile Include="..\SpriteDecoder.cs" Link="SpriteDecoder.cs" />
+    <Compile Include="..\SpriteGroupBuilder.cs" Link="SpriteGroupBuilder.cs" />
+    <Compile Include="..\BackgroundObjectDecoder.cs" Link="BackgroundObjectDecoder.cs" />
+    <Compile Include="..\SpriteDepthNativePatcher.cs" Link="SpriteDepthNativePatcher.cs" />
+  </ItemGroup>
+</Project>

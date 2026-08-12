@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms><LangVersion>10.0</LangVersion>
+    <Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>SpriteDepthStudio</AssemblyName><RootNamespace>SuperZSNESSpriteDepthStudio</RootNamespace>
+    <Version>0.2.0</Version><Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SpriteDepthSchema.cs" Link="SpriteDepthSchema.cs" />
+    <Compile Include="..\SpriteDecoder.cs" Link="SpriteDecoder.cs" />
+    <Compile Include="..\SpriteGroupBuilder.cs" Link="SpriteGroupBuilder.cs" />
+    <Compile Include="..\BackgroundObjectDecoder.cs" Link="BackgroundObjectDecoder.cs" />
+  </ItemGroup>
+</Project>

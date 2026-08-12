@@ -1,22 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>10.0</LangVersion>
-    <Nullable>disable</Nullable>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyName>SuperZSNESLayerDepthControllerIL2CPP</AssemblyName>
-    <RootNamespace>SuperZSNESLayerDepthControllerIL2CPP</RootNamespace>
-    <Version>0.5.0</Version>
-    <Deterministic>true</Deterministic>
-    <DebugType>portable</DebugType>
+    <TargetFramework>net6.0</TargetFramework><LangVersion>10.0</LangVersion>
+    <Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings><AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>SuperZSNESSpriteDepthStudioIL2CPP</AssemblyName><RootNamespace>SuperZSNESSpriteDepthStudio</RootNamespace>
+    <Version>0.2.0</Version><Deterministic>true</Deterministic><DebugType>portable</DebugType>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <BepInExIl2CppRoot Condition="'$(BepInExIl2CppRoot)' == ''">$(RepoRoot).deps\SuperZSNES_v0.300</BepInExIl2CppRoot>
     <InteropDir Condition="'$(InteropDir)' == ''">$(BepInExIl2CppRoot)\BepInEx\interop</InteropDir>
     <CoreDir Condition="'$(CoreDir)' == ''">$(BepInExIl2CppRoot)\BepInEx\core</CoreDir>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Tests\**\*.cs" />
+    <Compile Remove="Studio\**\*.cs" /><Compile Remove="Tests\**\*.cs" />
     <Reference Include="Assembly-CSharp"><HintPath>$(InteropDir)\Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx.Core"><HintPath>$(CoreDir)\BepInEx.Core.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx.Unity.IL2CPP"><HintPath>$(CoreDir)\BepInEx.Unity.IL2CPP.dll</HintPath><Private>false</Private></Reference>

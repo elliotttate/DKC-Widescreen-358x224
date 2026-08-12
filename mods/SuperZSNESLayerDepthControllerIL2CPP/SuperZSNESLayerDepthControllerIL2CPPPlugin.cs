@@ -16,7 +16,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
     {
         public const string PluginGuid = "dev.local.superzsnes.layerdepth.il2cpp";
         public const string PluginName = "SuperZSNES Layer Depth Controller IL2CPP";
-        public const string PluginVersion = "0.4.0";
+        public const string PluginVersion = "0.5.0";
         private Harmony _harmony;
         private NativeTileDepthPatcher _nativeTileDepth;
         private ConnectedComponentDepthMapper _componentMapper;
@@ -169,6 +169,12 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         }
     }
 
+    public static class LayerDepthAuthoringApi
+    {
+        public static bool ExportCurrentComponents(string path) =>
+            DepthController.ExportCurrentComponents(path);
+    }
+
     internal static class DepthController
     {
         private static ManualLogSource _log;
@@ -314,6 +320,17 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             _componentMapper = mapper;
         }
 
+        internal static bool ExportCurrentComponents(string path)
+        {
+            try { return _componentMapper?.ExportComponents(path) == true; }
+            catch (Exception exception)
+            {
+                _log?.LogWarning("Could not export component authoring snapshot: " +
+                    exception.Message);
+                return false;
+            }
+        }
+
         internal static void SetNativeDetailStatus(bool applied, string moduleBase,
             string trampolineBase, string depthTableBase)
         {
@@ -427,7 +444,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 string gaps = _gapsText?.Value ?? string.Empty;
                 string scales = _scalesText?.Value ?? string.Empty;
                 string json = "{" +
-                    "\"version\":\"0.4.0\"," +
+                    "\"version\":\"0.5.0\"," +
                     "\"state\":\"" + Escape(state) + "\"," +
                     "\"active\":" + (_active ? "true" : "false") + "," +
                     "\"appliedFrames\":" + _appliedFrames + "," +

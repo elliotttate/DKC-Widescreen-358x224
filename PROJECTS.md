@@ -19,6 +19,7 @@ The repository preserves accepted work, diagnostic tooling, and rejected experim
 | `SuperZSNESPerformanceSuiteIL2CPP` | Optional, all switches default off | Native-code audit probes, bounded backlog recovery, reversible history/rewind guards, and a rejected atlas-upload experiment retained for reproducibility. |
 | `SuperZSNESNativeAtlasDirtyFixIL2CPP` | Verified reference, keep disabled | Exact hash/byte-gated native correction for the atlas dirty-flag bug. It removes managed hot callbacks but showed no measurable performance benefit in four matched trials. |
 | `SuperZSNESLayerDepthControllerIL2CPP` | Experimental, default off | Exposes v0.300's hidden perspective renderer and optionally adds connected-opaque-component sublayers with per-level authored depth overrides; continuous painted objects are never palette-sliced. |
+| `SuperZSNESSpriteDepthStudioIL2CPP` | Experimental authoring tool | Resizable live catalog for whole OAM sprites and visible connected BG1/BG2/BG3 scenery; writes hot-reloaded sprite and per-level component depth profiles. |
 
 The v0.300 benchmark and port decision matrix are in
 [the v0.300 optimization report](docs/V0300_OPTIMIZATION_PORT.md). Do not copy

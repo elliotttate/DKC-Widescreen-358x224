@@ -45,7 +45,7 @@ Prerequisites:
 
 The same paths can be supplied through `BEPINEX_ROOT`, `SUPERZSNES_ROOT`, and `SUPERZSNES_MANAGED_DIR`. Build output remains under each project's ignored `bin/` directory.
 
-For SuperZSNES v0.300, use [the separate IL2CPP renderer project](mods/SuperZSNESDKCFramebufferRendererIL2CPP/README.md). It pins the 32-bit BepInEx IL2CPP build that supports v0.300 metadata version 39. The companion [IL2CPP performance suite](mods/SuperZSNESPerformanceSuiteIL2CPP/README.md) contains only the old fixes that still map safely to current native methods; all switches default off. Do not install the v0.230 performance/debug plugins into v0.300 because the Mono and IL2CPP ABIs are incompatible.
+For SuperZSNES v0.300, use [the separate IL2CPP renderer project](mods/SuperZSNESDKCFramebufferRendererIL2CPP/README.md). It pins the 32-bit BepInEx IL2CPP build that supports v0.300 metadata version 39. The companion [IL2CPP performance suite](mods/SuperZSNESPerformanceSuiteIL2CPP/README.md) contains only the old fixes that still map safely to current native methods; all switches default off. The experimental [Object Depth Studio](mods/SuperZSNESSpriteDepthStudioIL2CPP/README.md) catalogs both complete OAM sprites and conservatively connected BG1/BG2/BG3 scenery for authored 3D placement. Do not install the v0.230 performance/debug plugins into v0.300 because the Mono and IL2CPP ABIs are incompatible.
 
 ## Validate the source-only tree
 

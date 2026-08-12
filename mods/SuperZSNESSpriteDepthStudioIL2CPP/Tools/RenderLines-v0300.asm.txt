@@ -1,0 +1,685 @@
+10392470  55                                  push    ebp
+10392471  8B EC                               mov     ebp, esp
+10392473  81 EC 54 01 00 00                   sub     esp, 154h
+10392479  80 3D AF 62 2F 12 00                cmp     byte_122F62AF, 0
+10392480  56                                  push    esi
+10392481  57                                  push    edi
+10392482  75 6E                               jnz     short loc_103924F2
+10392484  68 8C 81 23 12                      push    offset MethodInfo::System::Collections::Generic::List<UnityEngine::Material>::Add(UnityEngine::Material)
+10392489  E8 02 EA F2 FF                      call    sub_102C0E90
+1039248E  68 B0 6D 21 12                      push    offset MethodInfo::System::Collections::Generic::List<TileMeshData>::Add(TileMeshData)
+10392493  E8 F8 E9 F2 FF                      call    sub_102C0E90
+10392498  68 4C 82 23 12                      push    offset MethodInfo::System::Collections::Generic::List<UnityEngine::Material>::get_Count(void)
+1039249D  E8 EE E9 F2 FF                      call    sub_102C0E90
+103924A2  68 28 6E 21 12                      push    offset MethodInfo::System::Collections::Generic::List<TileMeshData>::get_Count(void)
+103924A7  E8 E4 E9 F2 FF                      call    sub_102C0E90
+103924AC  68 64 6E 21 12                      push    offset MethodInfo::System::Collections::Generic::List<TileMeshData>::get_Item(int)
+103924B1  E8 DA E9 F2 FF                      call    sub_102C0E90
+103924B6  68 8C 82 23 12                      push    offset MethodInfo::System::Collections::Generic::List<UnityEngine::Material>::get_Item(int)
+103924BB  E8 D0 E9 F2 FF                      call    sub_102C0E90
+103924C0  68 A4 66 21 12                      push    offset TypeInfo::UnityEngine::Material
+103924C5  E8 C6 E9 F2 FF                      call    sub_102C0E90
+103924CA  68 CC 43 21 12                      push    offset MethodInfo::UnityEngine::Object::Instantiate<TileMeshData>(TileMeshData,UnityEngine::Vector3,UnityEngine::Quaternion,UnityEngine::Transform)
+103924CF  E8 BC E9 F2 FF                      call    sub_102C0E90
+103924D4  68 48 95 21 12                      push    offset TypeInfo::UnityEngine::Object
+103924D9  E8 B2 E9 F2 FF                      call    sub_102C0E90
+103924DE  68 18 9F 21 12                      push    offset TypeInfo::PPURenderer
+103924E3  E8 A8 E9 F2 FF                      call    sub_102C0E90
+103924E8  83 C4 28                            add     esp, 28h
+103924EB  C6 05 AF 62 2F 12 01                mov     byte_122F62AF, 1
+103924F2  8B 55 10                            mov     edx, [ebp+priaddr]
+103924F5  F7 C2 00 80 00 00                   test    edx, 8000h
+103924FB  74 07                               jz      short loc_10392504
+103924FD  D1 FA                               sar     edx, 1
+103924FF  83 E2 7F                            and     edx, 7Fh
+10392502  EB 02                               jmp     short loc_10392506
+10392504  33 D2                               xor     edx, edx
+10392506  89 55 10                            mov     [ebp+priaddr], edx
+10392509  0F 1F 80 00 00 00 00                nop     dword ptr [eax+00000000h]
+10392510  8B 4D 0C                            mov     ecx, [ebp+oam]
+10392513  33 C0                               xor     eax, eax
+10392515  89 45 DC                            mov     [ebp+var_24], eax
+10392518  85 C9                               test    ecx, ecx
+1039251A  0F 84 C3 18 00 00                   jz      loc_10393DE3
+10392520  8B 75 08                            mov     esi, [ebp+this]
+10392523  8D 04 95 00 00 00 00                lea     eax, ds:0[edx*4]
+1039252A  3B 41 0C                            cmp     eax, [ecx+0Ch]
+1039252D  0F 83 AB 18 00 00                   jnb     loc_10393DDE
+10392533  0F B6 7C 08 10                      movzx   edi, byte ptr [eax+ecx+10h]
+10392538  8D 04 95 01 00 00 00                lea     eax, ds:1[edx*4]
+1039253F  89 7D BC                            mov     [ebp+var_44], edi
+10392542  3B 41 0C                            cmp     eax, [ecx+0Ch]
+10392545  0F 83 93 18 00 00                   jnb     loc_10393DDE
+1039254B  0F B6 44 08 10                      movzx   eax, byte ptr [eax+ecx+10h]
+10392550  40                                  inc     eax
+10392551  89 45 C4                            mov     [ebp+var_3C], eax
+10392554  8D 04 95 02 00 00 00                lea     eax, ds:2[edx*4]
+1039255B  3B 41 0C                            cmp     eax, [ecx+0Ch]
+1039255E  0F 83 7A 18 00 00                   jnb     loc_10393DDE
+10392564  0F B6 44 08 10                      movzx   eax, byte ptr [eax+ecx+10h]
+10392569  89 45 B0                            mov     [ebp+var_50], eax
+1039256C  8D 04 95 03 00 00 00                lea     eax, ds:3[edx*4]
+10392573  3B 41 0C                            cmp     eax, [ecx+0Ch]
+10392576  0F 83 62 18 00 00                   jnb     loc_10393DDE
+1039257C  0F B6 44 08 10                      movzx   eax, byte ptr [eax+ecx+10h]
+10392581  8B 8E F8 01 00 00                   mov     ecx, [esi+1F8h]
+10392587  89 45 CC                            mov     [ebp+var_34], eax
+1039258A  85 C9                               test    ecx, ecx
+1039258C  0F 84 51 18 00 00                   jz      loc_10393DE3
+10392592  C1 E8 04                            shr     eax, 4
+10392595  83 E0 03                            and     eax, 3
+10392598  3B 41 0C                            cmp     eax, [ecx+0Ch]
+1039259B  0F 83 3D 18 00 00                   jnb     loc_10393DDE
+103925A1  8B 4C 81 10                         mov     ecx, [ecx+eax*4+10h]
+103925A5  8B 86 A4 01 00 00                   mov     eax, [esi+1A4h]
+103925AB  89 4D F4                            mov     [ebp+var_C], ecx
+103925AE  85 C0                               test    eax, eax
+103925B0  0F 84 2D 18 00 00                   jz      loc_10393DE3
+103925B6  3B 48 0C                            cmp     ecx, [eax+0Ch]
+103925B9  0F 83 1F 18 00 00                   jnb     loc_10393DDE
+103925BF  F3 0F 10 44 88 10                   movss   xmm0, dword ptr [eax+ecx*4+10h]
+103925C5  8B 86 A8 01 00 00                   mov     eax, [esi+1A8h]
+103925CB  F3 0F 11 45 90                      movss   [ebp+var_70], xmm0
+103925D0  85 C0                               test    eax, eax
+103925D2  0F 84 0B 18 00 00                   jz      loc_10393DE3
+103925D8  3B 48 0C                            cmp     ecx, [eax+0Ch]
+103925DB  0F 83 FD 17 00 00                   jnb     loc_10393DDE
+103925E1  F3 0F 10 44 88 10                   movss   xmm0, dword ptr [eax+ecx*4+10h]
+103925E7  8B 86 AC 01 00 00                   mov     eax, [esi+1ACh]
+103925ED  F3 0F 11 45 98                      movss   [ebp+var_68], xmm0
+103925F2  85 C0                               test    eax, eax
+103925F4  0F 84 E9 17 00 00                   jz      loc_10393DE3
+103925FA  3B 48 0C                            cmp     ecx, [eax+0Ch]
+103925FD  0F 83 DB 17 00 00                   jnb     loc_10393DDE
+10392603  8B 4D 0C                            mov     ecx, [ebp+oam]
+10392606  8B C2                               mov     eax, edx
+10392608  C1 E8 02                            shr     eax, 2
+1039260B  05 00 02 00 00                      add     eax, 200h
+10392610  3B 41 0C                            cmp     eax, [ecx+0Ch]
+10392613  0F 83 C5 17 00 00                   jnb     loc_10393DDE
+10392619  8B CA                               mov     ecx, edx
+1039261B  8B 55 0C                            mov     edx, [ebp+oam]
+1039261E  83 E1 03                            and     ecx, 3
+10392621  03 C9                               add     ecx, ecx
+10392623  0F B6 44 10 10                      movzx   eax, byte ptr [eax+edx+10h]
+10392628  D3 E8                               shr     eax, cl
+1039262A  89 45 B4                            mov     [ebp+var_4C], eax
+1039262D  A8 01                               test    al, 1
+1039262F  74 16                               jz      short loc_10392647
+10392631  83 FF 7F                            cmp     edi, 7Fh
+10392634  77 08                               ja      short loc_1039263E
+10392636  81 C7 00 01 00 00                   add     edi, 100h
+1039263C  EB 06                               jmp     short loc_10392644
+1039263E  81 EF 00 01 00 00                   sub     edi, 100h
+10392644  89 7D BC                            mov     [ebp+var_44], edi
+10392647  8B 45 C4                            mov     eax, [ebp+var_3C]
+1039264A  3D EF 00 00 00                      cmp     eax, 0EFh
+1039264F  8B 96 F8 00 00 00                   mov     edx, [esi+0F8h]
+10392655  8D B8 00 FF FF FF                   lea     edi, [eax-100h]
+1039265B  0F 46 F8                            cmovbe  edi, eax
+1039265E  8B CF                               mov     ecx, edi
+10392660  83 FF 01                            cmp     edi, 1
+10392663  7C 0F                               jl      short loc_10392674
+10392665  8B 86 98 01 00 00                   mov     eax, [esi+198h]
+1039266B  48                                  dec     eax
+1039266C  3B F8                               cmp     edi, eax
+1039266E  7E 09                               jle     short loc_10392679
+10392670  8B C8                               mov     ecx, eax
+10392672  EB 05                               jmp     short loc_10392679
+10392674  B9 01 00 00 00                      mov     ecx, 1
+10392679  85 D2                               test    edx, edx
+1039267B  0F 84 62 17 00 00                   jz      loc_10393DE3
+10392681  51                                  push    ecx
+10392682  8B CA                               mov     ecx, edx
+10392684  E8 57 0F C7 FF                      call    sub_100035E0
+10392689  0F B6 50 04                         movzx   edx, byte ptr [eax+4]
+1039268D  8B 86 D4 01 00 00                   mov     eax, [esi+1D4h]
+10392693  8B CA                               mov     ecx, edx
+10392695  C1 E9 05                            shr     ecx, 5
+10392698  89 96 E4 02 00 00                   mov     [esi+2E4h], edx
+1039269E  89 BE E8 02 00 00                   mov     [esi+2E8h], edi
+103926A4  85 C0                               test    eax, eax
+103926A6  0F 84 37 17 00 00                   jz      loc_10393DE3
+103926AC  3B 48 0C                            cmp     ecx, [eax+0Ch]
+103926AF  0F 83 29 17 00 00                   jnb     loc_10393DDE
+103926B5  8B 44 88 10                         mov     eax, [eax+ecx*4+10h]
+103926B9  89 86 E8 01 00 00                   mov     [esi+1E8h], eax
+103926BF  8B 86 D8 01 00 00                   mov     eax, [esi+1D8h]
+103926C5  85 C0                               test    eax, eax
+103926C7  0F 84 16 17 00 00                   jz      loc_10393DE3
+103926CD  3B 48 0C                            cmp     ecx, [eax+0Ch]
+103926D0  0F 83 08 17 00 00                   jnb     loc_10393DDE
+103926D6  8B 44 88 10                         mov     eax, [eax+ecx*4+10h]
+103926DA  89 86 EC 01 00 00                   mov     [esi+1ECh], eax
+103926E0  8B 86 DC 01 00 00                   mov     eax, [esi+1DCh]
+103926E6  85 C0                               test    eax, eax
+103926E8  0F 84 F5 16 00 00                   jz      loc_10393DE3
+103926EE  3B 48 0C                            cmp     ecx, [eax+0Ch]
+103926F1  0F 83 E7 16 00 00                   jnb     loc_10393DDE
+103926F7  8B 44 88 10                         mov     eax, [eax+ecx*4+10h]
+103926FB  89 86 F0 01 00 00                   mov     [esi+1F0h], eax
+10392701  8B 86 E0 01 00 00                   mov     eax, [esi+1E0h]
+10392707  85 C0                               test    eax, eax
+10392709  0F 84 D4 16 00 00                   jz      loc_10393DE3
+1039270F  3B 48 0C                            cmp     ecx, [eax+0Ch]
+10392712  0F 83 C6 16 00 00                   jnb     loc_10393DDE
+10392718  8B 44 88 10                         mov     eax, [eax+ecx*4+10h]
+1039271C  8B 4D CC                            mov     ecx, [ebp+var_34]
+1039271F  89 86 F4 01 00 00                   mov     [esi+1F4h], eax
+10392725  8B C1                               mov     eax, ecx
+10392727  D1 E8                               shr     eax, 1
+10392729  83 E0 07                            and     eax, 7
+1039272C  83 C0 08                            add     eax, 8
+1039272F  C1 E0 04                            shl     eax, 4
+10392732  89 45 9C                            mov     [ebp+var_64], eax
+10392735  8B C2                               mov     eax, edx
+10392737  83 E0 03                            and     eax, 3
+1039273A  C1 E0 0E                            shl     eax, 0Eh
+1039273D  F6 C1 01                            test    cl, 1
+10392740  74 0B                               jz      short loc_1039274D
+10392742  83 E2 18                            and     edx, 18h
+10392745  83 C2 08                            add     edx, 8
+10392748  C1 E2 0A                            shl     edx, 0Ah
+1039274B  EB 02                               jmp     short loc_1039274F
+1039274D  33 D2                               xor     edx, edx
+1039274F  8B 4D B0                            mov     ecx, [ebp+var_50]
+10392752  C1 E1 05                            shl     ecx, 5
+10392755  03 C8                               add     ecx, eax
+10392757  03 CA                               add     ecx, edx
+10392759  89 4D B0                            mov     [ebp+var_50], ecx
+1039275C  8B 4D B4                            mov     ecx, [ebp+var_4C]
+1039275F  B8 00 00 00 00                      mov     eax, 0
+10392764  F6 C1 02                            test    cl, 2
+10392767  0F 95 C0                            setnz   al
+1039276A  8D 04 C5 E8 01 00 00                lea     eax, ds:1E8h[eax*8]
+10392771  8B 04 30                            mov     eax, [eax+esi]
+10392774  89 45 B8                            mov     [ebp+var_48], eax
+10392777  F6 C1 02                            test    cl, 2
+1039277A  B8 00 00 00 00                      mov     eax, 0
+1039277F  0F 95 C0                            setnz   al
+10392782  33 D2                               xor     edx, edx
+10392784  89 55 A8                            mov     [ebp+var_58], edx
+10392787  8D 04 C5 EC 01 00 00                lea     eax, ds:1ECh[eax*8]
+1039278E  8B 3C 30                            mov     edi, [eax+esi]
+10392791  8B 45 CC                            mov     eax, [ebp+var_34]
+10392794  8B C8                               mov     ecx, eax
+10392796  83 E1 40                            and     ecx, 40h
+10392799  89 7D B4                            mov     [ebp+var_4C], edi
+1039279C  25 80 00 00 00                      and     eax, 80h
+103927A1  89 4D C8                            mov     [ebp+var_38], ecx
+103927A4  89 45 CC                            mov     [ebp+var_34], eax
+103927A7  85 FF                               test    edi, edi
+103927A9  0F 8E 08 16 00 00                   jle     loc_10393DB7
+103927AF  8B 7D B8                            mov     edi, [ebp+var_48]
+103927B2  85 C0                               test    eax, eax
+103927B4  74 10                               jz      short loc_103927C6
+103927B6  8B 45 B4                            mov     eax, [ebp+var_4C]
+103927B9  2B C2                               sub     eax, edx
+103927BB  8B 55 C4                            mov     edx, [ebp+var_3C]
+103927BE  83 EA 08                            sub     edx, 8
+103927C1  8D 04 C2                            lea     eax, [edx+eax*8]
+103927C4  EB 06                               jmp     short loc_103927CC
+103927C6  8B 45 C4                            mov     eax, [ebp+var_3C]
+103927C9  8D 04 D0                            lea     eax, [eax+edx*8]
+103927CC  8B 4D C8                            mov     ecx, [ebp+var_38]
+103927CF  8D 90 00 FF FF FF                   lea     edx, [eax-100h]
+103927D5  3D F0 00 00 00                      cmp     eax, 0F0h
+103927DA  0F 4C D0                            cmovl   edx, eax
+103927DD  8B 45 14                            mov     eax, [ebp+startY]
+103927E0  83 C0 F9                            add     eax, 0FFFFFFF9h
+103927E3  89 55 D8                            mov     [ebp+var_28], edx
+103927E6  3B D0                               cmp     edx, eax
+103927E8  0F 8E B6 15 00 00                   jle     loc_10393DA4
+103927EE  3B 55 18                            cmp     edx, [ebp+endY]
+103927F1  0F 8D AD 15 00 00                   jge     loc_10393DA4
+103927F7  33 C0                               xor     eax, eax
+103927F9  89 45 D0                            mov     [ebp+var_30], eax
+103927FC  85 FF                               test    edi, edi
+103927FE  0F 8E A0 15 00 00                   jle     loc_10393DA4
+10392804  8B 75 08                            mov     esi, [ebp+this]
+10392807  BF F8 FF FF FF                      mov     edi, 0FFFFFFF8h
+1039280C  2B 7D 1C                            sub     edi, [ebp+wideScreen]
+1039280F  89 7D AC                            mov     [ebp+var_54], edi
+10392812  85 C9                               test    ecx, ecx
+10392814  8B 4D BC                            mov     ecx, [ebp+var_44]
+10392817  74 11                               jz      short loc_1039282A
+10392819  8B 45 B8                            mov     eax, [ebp+var_48]
+1039281C  2B 45 D0                            sub     eax, [ebp+var_30]
+1039281F  8D 0C C1                            lea     ecx, [ecx+eax*8]
+10392822  8B 45 D0                            mov     eax, [ebp+var_30]
+10392825  83 C1 F8                            add     ecx, 0FFFFFFF8h
+10392828  EB 03                               jmp     short loc_1039282D
+1039282A  8D 0C C1                            lea     ecx, [ecx+eax*8]
+1039282D  89 4D D4                            mov     [ebp+var_2C], ecx
+10392830  3B CF                               cmp     ecx, edi
+10392832  0F 8E 59 15 00 00                   jle     loc_10393D91
+10392838  8B 45 1C                            mov     eax, [ebp+wideScreen]
+1039283B  05 00 01 00 00                      add     eax, 100h
+10392840  3B C8                               cmp     ecx, eax
+10392842  0F 8D 46 15 00 00                   jge     loc_10393D8E
+10392848  8B FA                               mov     edi, edx
+1039284A  89 7D F8                            mov     [ebp+var_8], edi
+1039284D  8B 86 C8 02 00 00                   mov     eax, [esi+2C8h]
+10392853  85 C0                               test    eax, eax
+10392855  0F 84 88 15 00 00                   jz      loc_10393DE3
+1039285B  8D 4F 08                            lea     ecx, [edi+8]
+1039285E  3B 48 0C                            cmp     ecx, [eax+0Ch]
+10392861  0F 83 77                            db 0Fh, 83h, 77h
+10392864  15 00 00 80 7C 01 10 00 74 07 B8 01 00 00 00 EB 11 8D 4F 0F 3B 48 0C 0F 83 5D 15 00 00 0F B6 44 01 10 89 45 94 85 C0 8B 86 CC 02 00 00 0F 95 C2 85 C0 0F 84 47 15 00 00 8D 4F 08 3B 48 0C 0F 83 36 15 00 00 80 7C 01 10 00 74 07 B8 01 00 00 00 EB 11 8D 4F 0F 3B 48 0C 0F 83 1C 15 00 00 0F B6 44 01 10 89 45 A0 85 C0 0F 95 C0 0A C2 0F 84 B1 14 00 00 8B 45 A8 C1 E0 04 03 45 D0 C1 E0 05 03 45 B0 0F B7 C8 8B 46 1C 89 4D C0 85 C0 0F 84 EC 14 00 00 6A 00 51 50 8D 85 AC FE FF FF 50 E8 A9 70 01 00 83 C4 10 0F 10 00 8B 48 10 89 4D A4 0F 11 85 24 FF FF FF 0F 10 00 8B C1 89 85 48 FF FF  dd 80000015h, 10017Ch, 1B80774h, 0EB000000h, 0F4F8D11h
+10392924  FF A1 48 95 21 12                   jmp     TypeInfo::UnityEngine::Object[ecx]
+1039292A  0F 11                               dw 110Fh
+1039292C  85 38 FF FF FF 83 78 74 00 75 09 50 E8 B3 E8 F2 FF 83 C4 04 6A 00 6A 00 FF B5 38 FF FF FF E8 01 23 45 01 83 C4 0C 84 C0 0F 84 2E 14 00 00 33 FF 89 7D EC 90 8B 4D DC 8B 45 10 89 4D E4 89 45 F0 89 4D DC 89 45 10 83 7D CC 00 8D 0C 3F 77 29 8B 45 D8 8B 75 D4 03 C7 81 C6 08 0C 00 00 8D 3C 40 8B 45 1C C1 E7 07 03 C6 03 F8 8B 45 F0 8B 55 E4 89 45 10 89 55 DC EB 26 B8 07 00 00 00 2B C7 03 45 D8 8D 3C 40 8B 45 1C 05 08 0C 00 00 C1 E7 07 03 45 D4 03 F8 B8 0E 00 00 00 2B C1 8B C8 8B 75 08 8B 45 C0 03 C1 8B 8E 2C 01 00 00 89 45 E8 85 C9 0F 84 00 14 00 00 3B 41 0C 0F 83 F2 13 00 00 8B D1 8D 70 01 89 75 E4 3B 72 0C 8B 75 08 0F 83 DE 13 00 00 8B 96 2C 01 00 00 8D 48 10 89 4D F0 3B 4A 0C 0F 83 C9 13 00 00 8D 48 11 3B 4A 0C 0F 83 BD 13 00 00 8A 4C 10 21 88 4D FF 8B 4D F0 8A 45 FF 0A 44 11 10 8B CA 8B 55 E4 0A 44 0A 10 88 45 FF 8B 45 E8 8A 55 FF 0A 54 01 10 8B 86 A4 02 00 00 88 55 FF 85 C0 0F 84 8A 13 00 00 3B 78 0C 0F 83 7C 13 00 00 0F B6 44 38 10 3B 45 F4 8B 86 A4 02 00 00 C7 45 E4 01 00 00 00 7C 07 C7 45 E4 00 00 00 00  dd 0FFFF3885h, 747883FFh, 50097500h, 0F2E8B3E8h, 4C483FFh
+10392A80  8B 96 D8 02 00 00 8D 4F 01 89 55 E8 3B 48 0C 0F 83 49 13 00 00 0F B6 44 01 10 3B 45 F4 8B 86 A4 02 00 00 7D 07 B9 02 00 00 00 EB 05 33 C9 89 55 E8 8D 57 02 3B 50 0C 0F 83 21 13 00 00 0F B6 44 02 10 0B 4D E4 3B 45 F4 8B 86 A4 02 00 00 C7 45 E4 04 00 00 00 7C 07 C7 45 E4 00 00 00 00 8D 57 03 3B 50 0C 0F 83 F4 12 00 00 0F B6 44 02 10 0B 4D E4 3B 45 F4 8B 86 A4 02 00 00 C7 45 E4 08 00 00 00 7C 07 C7 45 E4 00 00 00 00 8D 57 04 3B 50 0C 0F 83 C7 12 00 00 0F B6 44 02 10 0B 4D E4 3B 45 F4 8B 86 A4 02 00 00 C7 45 E4 10 00 00 00 7C 07 C7 45 E4 00 00 00 00  dd 2D8968Bh, 4F8D0000h, 0E8558901h, 0F0C483Bh, 134983h
+10392B38  8D 57 05 3B 50 0C 0F 83 9A 12 00 00 0F B6 44 02 10 0B 4D E4 3B 45 F4 8B 86 A4 02 00 00 C7 45 E4 20 00 00 00 7C 07 C7 45 E4 00 00 00 00 8D 57 06 3B 50 0C 0F 83 6D 12 00 00 0F B6 44 02 10 0B 4D E4 3B 45 F4 8B 86 A4 02 00 00 C7 45 E4 40 00 00 00 7C 07 C7 45 E4 00 00 00 00 8D 57 07 3B 50 0C 0F 83 40 12 00 00 0F B6 44 02 10 3B 45 F4 8B 55 E8 0F 9D C0 FE C8 24 80 85 D2 0F 84 2B 12 00 00 8B 75 EC 3B 72 0C 8B 75 08 0F 83 17 12 00 00 0A C1 8B 4D EC 0A 45 E4 83 7D C8 00 88 44 0A 10 77 21 8B 46 10 85 C0 0F 84 FF 11 00 00 0F B6 4D FF 3B 48 0C 0F 83 ED 11 00 00 8A 44 01 10 88 45 FF EB 03 8A 45 FF A8 01 74 2D 8B 96 A4 02 00 00 8B C2 85 C0 0F 84 D2 11 00 00 3B 78 0C 0F 83 C4 11 00 00 0F B6 44 38 10 8B 4D F4 3B C1 0F 4C C8 8A 45 FF 88 4C 3A 10 A8 02 74 3A 8B 96 A4 02 00 00 85 D2 0F 84 A3 11 00 00 8D 47 01 3B 42 0C 0F 83 92 11 00 00 8A 54 10 10 8B 45 F4 3A 55 F4 0F B6 C0 0F B6 CA 0F 43 C8 8B 86 A4 02 00 00 88 4C 38 11 8A 45 FF A8 04 74 3A 8B 96 A4 02 00 00 85 D2 0F 84 65 11 00 00 8D 47 02 3B 42 0C 0F 83 54 11 00 00 8A 54 10 10 8B 45 F4 3A 55 F4 0F B6 C0 0F B6 CA 0F 43 C8 8B 86 A4 02 00 00 88 4C 07 12 8A 45 FF A8 08 74 3A 8B 96 A4 02 00 00 85 D2 0F 84 27 11 00 00 8D 47 03 3B 42 0C 0F 83 16 11 00 00 8A 54 10 10 8B 45 F4 3A 55 F4 0F B6 C0 0F B6 CA 0F 43 C8 8B 86 A4 02 00 00 88 4C 07 13 8A 45 FF A8 10 74 3A 8B 96 A4 02 00 00 85 D2 0F 84 E9 10 00 00 8D 47 04 3B 42 0C 0F 83 D8 10 00 00 8A 54 10 10 8B 45 F4 3A 55 F4 0F B6 C0 0F B6 CA 0F 43 C8 8B 86 A4 02 00 00 88 4C 07 14 8A 45 FF A8 20 74 3A 8B 96 A4 02 00 00 85 D2 0F 84 AB 10 00 00 8D 47 05 3B 42 0C 0F 83 9A 10 00 00 8A 54 10 10 8B 45 F4 3A 55 F4 0F B6 C0 0F B6 CA 0F 43 C8 8B 86 A4 02 00 00 88 4C 07 15 8A 45 FF A8 40 74 3A 8B 96 A4 02 00 00 85 D2 0F 84 6D 10 00 00 8D 47 06 3B 42 0C 0F 83 5C 10 00 00 8A 54 10 10 8B 45 F4 3A 55 F4 0F B6 C0 0F B6 CA 0F 43 C8 8B 86 A4 02 00 00 88 4C 07 16 8A 45 FF 84 C0 79 37 8B 96 A4 02 00 00 85 D2 0F 84 2F 10 00 00 8D 47 07 3B 42 0C 0F 83 1E 10 00 00 8A 54 10 10 8B 45 F4 3A 55 F4 0F B6 C0 0F B6 CA 0F 43 C8 8B 86 A4 02 00 00 88 4C 07 17 83 7D C8 00 77 3F 8B 96 D8 02 00 00 8B C2 8B 4E 10 85 C0 0F 84 ED 0F 00 00 8B 7D EC 3B 78 0C 0F 83 DC 0F 00 00 85 C9 0F 84 D9 0F 00 00 0F B6 44 38 10 3B 41 0C 0F 83 C6 0F 00 00 8A 44 01 10 88 44 3A 10 EB 03 8B 7D EC 47 89 7D EC 83 FF 08 0F 8C 2E FB FF FF 8B 86 60 01 00 00 85 C0 0F 84 A3 0F 00 00 8B 7D 24 8B 40 0C 3B 07 7F 3A 8B 86 60 01 00 00  dd 3B05578Dh, 830F0C50h, 129Ah, 244B60Fh, 0E44D0B10h, 8BF4453Bh
+10392E50  FF 35                               db 0FFh, 35h
+10392E52  A4 66 21 12                         dd offset TypeInfo::UnityEngine::Material
+10392E56  8B 76                               dw 768Bh
+10392E58  38 89 45 C0 E8 8F E2 F2 FF 6A 00 8B F8 56 57 E8 E4 5A 42 01  dd 0C0458938h, 0F2E28FE8h, 8B006AFFh, 0E85756F8h, 1425AE4h
+10392E6C  FF 35                               db 0FFh, 35h
+10392E6E  8C 81 23 12                         dd offset MethodInfo::System::Collections::Generic::List<UnityEngine::Material>::Add(UnityEngine::Material)
+10392E72  57 FF                               dw 0FF57h
+10392E74  75 C0 E8 65 B3 FC FF 8B 75 08 83 C4 1C 8B 7D 24 8B 17 8B 8E 60 01 00 00 8D 42 01 89 07 85 C9 0F 84 4A 0F 00  dd 65E8C075h, 8BFFFCB3h, 0C4830875h, 247D8B1Ch, 8E8B178Bh
+10392E98  00 FF 35                            db 0, 0FFh, 35h
+10392E9B  8C 82 23 12                         dd offset MethodInfo::System::Collections::Generic::List<UnityEngine::Material>::get_Item(int)
+10392E9F  52                                  db 52h
+10392EA0  51 E8 AA B9 9F 00 83 C4 0C 89 45 E8 85 C0 0F 84 2F 0F 00 00 6A 00 FF B5 24 FF FF FF 50 E8 9E 61  dd 0B9AAE851h, 0C483009Fh, 0E845890Ch, 840FC085h, 0F2Fh
+10392EC0  42 01 A1                            db 42h, 1, 0A1h
+10392EC3  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10392EC7  83                                  db 83h
+10392EC8  C4 0C 83 78 74 00 75 0E 50 E8 1A E3  dd 78830CC4h, 0E750074h, 0E31AE850h
+10392ED4  F2 FF A1 18 9F 21 12                bnd jmp TypeInfo::PPURenderer[ecx]
+10392EDB  83                                  db 83h
+10392EDC  C4 04 8B 40 5C 8B 96 B4 01 00 00 8B 78 28 8B 86 98 01 00 00 8B 4D C4 48 3B C8 0F 4F C8 85 D2 0F 84 E2 0E 00 00 3B 4A 0C 0F 83 D4 0E 00 00 6A 00 FF 74 8A 10 57 8B 7D E8 57 E8 E6 54  dd 408B04C4h, 0B4968B5Ch, 8B000001h, 868B2878h, 198h, 48C44D8Bh
+10392F18  42 01 A1                            db 42h, 1, 0A1h
+10392F1B  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10392F1F  6A                                  db 6Ah
+10392F20  00 FF B5 28 FF FF FF 8B 40 5C FF 70 2C 57 E8 CD 54 42 01 F3 0F 10 85 2C FF FF FF 83 C4 20 F3 0F 11 85 5C FF FF FF F3 0F 10 85 30 FF FF FF F3 0F 11 85 60 FF FF FF 66 0F 6E 45 9C 0F 5B C0 6A 00 83 EC 10 C7 85 68 FF FF FF 00 00 00 00 8B C4 F3  dd 28B5FF00h, 8BFFFFFFh, 70FF5C40h, 0CDE8572Ch, 0F3014254h
+10392F70  0F 58 05                            db 0Fh, 58h, 5
+10392F73  D0 37 B4 11                         dd offset xmmword_11B437D0
+10392F77  F3                                  db 0F3h
+10392F78  0F 11 85 64 FF FF FF 0F 10 85 5C FF FF FF 0F 11  dd 6485110Fh, 0FFFFFFFh, 0FF5C8510h, 110FFFFFh
+10392F88  00 A1                               db 0, 0A1h
+10392F8A  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10392F8E  8B 40                               dw 408Bh
+10392F90  5C FF 70 30 57 E8 06 42 42 01 8B 86 E4 01 00 00 83 C4 1C 85 C0 0F 84 38 0E 00 00 8B 4D 20 8B 40 0C 3B 01 0F 8F 03 01 00 00 8B 46 2C 89 45 F0 8D 85 D0 FE FF FF 6A 00 50 E8 23 E1 FE FF 6A 00 F3 0F 7E 00 8B 40 08 89 45 C0 8D 85 C0 FE FF FF 50 66 0F D6 45 E0 E8 76 DD FE FF 83 C4 10 0F 10 00 8B 46 24 0F 11 85 3C FF FF FF 85 C0 0F 84 E1 0D 00 00 83 78 0C 04 0F 86 D2 0D 00 00 8B 40 20 85 C0 0F 84 CC 0D 00 00 6A 00 50 E8 61 B3 43 01 8B  dd 3070FF5Ch, 4206E857h, 868B0142h, 1E4h, 851CC483h, 38840FC0h
+10393020  0D                                  db 0Dh
+10393021  48 95 21 12                         dd offset TypeInfo::UnityEngine::Object
+10393025  83 C4 08                            db 83h, 0C4h, 8
+10393028  8B F8 83 79 74 00 75 09 51 E8 BA E1 F2 FF 83 C4  dd 7983F88Bh, 9750074h, 0E1BAE851h, 0C483FFF2h
+10393038  04 FF 35                            db 4, 0FFh, 35h
+1039303B  CC 43 21 12                         dd offset MethodInfo::UnityEngine::Object::Instantiate<TileMeshData>(TileMeshData,UnityEngine::Vector3,UnityEngine::Quaternion,UnityEngine::Transform)
+1039303F  0F                                  db 0Fh
+10393040  10 85 3C FF FF FF 8B 4D C0 57 83 EC 10 8B C4 83 EC 0C 0F 11 00 8B C4 F3 0F 7E 45 E0 FF 75 F0 66 0F D6 00 89 48 08 E8 D5 07 C7 FF 8B F8 83 C4 28 85 FF 0F 84 6B 0D 00 00 6A 00 57 E8 50 B2 43 01 83 C4 08 85 C0 0F 84 58 0D 00 00 6A 00 6A 01 50 E8 1B C4 44 01 8B 86 E4 01 00 00 83 C4 0C 85 C0 0F 84 3D 0D 00 00 FF 35  dd 0FF3C8510h, 4D8BFFFFh, 0EC8357C0h, 83C48B10h, 110F0CECh
+103930A8  B0 6D 21 12                         dd offset MethodInfo::System::Collections::Generic::List<TileMeshData>::Add(TileMeshData)
+103930AC  57 50 E8 2D B1 FC FF 8B 7D E8 83 C4 0C 8B 4D 20 8B 86 E4 01 00 00 85 C0 0F 84 19 0D 00 00 FF 35  dd 2DE85057h, 8BFFFCB1h, 0C483E87Dh, 204D8B0Ch, 1E4868Bh
+103930CC  64                                  db  64h ; d OFF32 SEGDEF [_data,12216E64]
+103930CD  6E                                  db  6Eh ; n
+103930CE  21                                  db  21h ; !
+103930CF  12                                  db  12h
+103930D0  FF 31 50 E8 78 B7 9F 00             dd 0E85031FFh, 9FB778h
+103930D8  8B 0D                               db 8Bh, 0Dh
+103930DA  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+103930DE  83 C4                               dw 0C483h
+103930E0  0C 89 45 E4 83 79 74 00 75 0F 51 E8 00 E1 F2 FF  dd 0E445890Ch, 747983h, 0E8510F75h, 0FFF2E100h
+103930F0  8B 0D                               db 8Bh, 0Dh
+103930F2  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+103930F6  83 C4                               dw 0C483h
+103930F8  04 83 7D C8 00 76 31 8B 86 B0 02 00 00 85 C0 0F 84 D6 0C 00 00 8B 55 D4 83 C2 40 3B 50 0C 0F 83 C2 0C 00 00 F3 0F 10 4C 90 10 8B 41 5C 8B 50 20 8B 86 B4 02 00 00 EB 2F 8B 86 A8 02 00 00 85 C0 0F 84 A5 0C 00 00 8B 55 D4 83 C2 40 3B 50 0C 0F 83 91 0C 00 00 F3 0F 10 4C 90 10 8B 41 5C 8B 50 20 8B 86 AC 02 00 00 85 C0 0F 84 7C 0C 00 00 8B 4D D4 83 C1 40 3B 48 0C 0F 83 68 0C 00 00 F3 0F 10 44 88 10 8B 45 10 89 45 10 8B 45 DC 89 45 DC 6A 00 83 EC 10 F3 0F 11 8D 4C FF FF FF 8B C4 F3 0F 11 85 54 FF FF FF C7 85 50 FF FF FF CD CC CC BD C7 85 58 FF FF FF CD CC 8C 3F 0F 10 85 4C FF FF FF 52 57 0F 11 00 E8 DC 3F 42 01 8B 45 E4 83 C4 1C 85 C0 0F 84 11 0C 00 00 8B 40 14 85 C0 0F 84 06 0C 00 00 6A 00 57 50 E8 5A EF 42 01 83 C4 0C 81 7D 9C C0 00 00 00  dd 0C87D8304h, 8B317600h, 2B086h, 0FC08500h, 0CD684h, 0D4558B00h
+103931F0  A1                                  db 0A1h
+103931F1  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+103931F5  73 44 83                            db 73h, 44h, 83h
+103931F8  78 74 00 75 0E 50 E8 ED DF F2 FF A1  dd 75007478h, 0EDE8500Eh, 0A1FFF2DFh
+10393204  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10393208  83 C4 04 8B 40 5C 8B 8E C0 02 00 00 8B 78 14 85 C9 0F 84 C4 0B 00 00 8B 45 D8 83 C0 0C 50 8D 85 08 FF FF FF 50 E8 2E F2 C6 FF 0F 10 85 08 FF FF FF EB 42 83 78 74 00 75 0E 50 E8 A9 DF F2 FF A1  dd 8B04C483h, 8E8B5C40h, 2C0h, 8514788Bh, 0C4840FC9h, 8B00000Bh
+10393248  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+1039324C  83 C4 04 8B 40 5C 8B 8E BC 02 00 00 8B 78 14 85 C9 0F 84 80 0B 00 00 8B 45 D8 83 C0 0C 50 8D 85 F8 FE FF FF 50 E8 EA F1 C6 FF 0F 10 85 F8 FE FF FF 6A 00 83 EC 10 8B C4 57 8B 7D E8 57 0F 11 00 E8 0F 3F 42 01 83 C4 1C  dd 8B04C483h, 8E8B5C40h, 2BCh, 8514788Bh, 80840FC9h, 8B00000Bh
+10393294  8B 0D                               db 8Bh, 0Dh
+10393296  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+1039329A  83 79                               dw 7983h
+1039329C  74 00 75 0F 51 E8 4A DF F2 FF 8B 0D  dd 0F750074h, 0DF4AE851h, 0D8BFFF2h
+103932A8  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+103932AC  83 C4 04 0F                         dd 0F04C483h
+103932B0  28 05                               db 28h, 5
+103932B2  40 39 B4 11                         dd offset xmmword_11B43940
+103932B6  6A 00                               dw 6Ah
+103932B8  83 EC 10 8B C4 0F 11 00 8B 41 5C FF 70 1C 57 E8 D4 3E 42 01  dd 8B10EC83h, 110FC4h, 0FF5C418Bh, 0E8571C70h, 1423ED4h
+103932CC  A1                                  db 0A1h
+103932CD  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+103932D1  83 C4 1C                            db 83h, 0C4h, 1Ch
+103932D4  8B 8E B8 02 00 00 8B 40 5C 8B 78 18 85 C9 0F 84 FB 0A 00 00 8B 45 D8 83 C0 0C 50 8D 85 E8 FE FF FF 50 E8 65 F1 C6 FF 0F 10 85 E8 FE FF FF 6A 00 83 EC 10 8B C4 57 8B 7D E8 57 0F 11 00 E8 8A 3E  dd 2B88E8Bh, 408B0000h, 18788B5Ch, 840FC985h, 0AFBh, 83D8458Bh
+10393314  42 01 A1                            db 42h, 1, 0A1h
+10393317  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+1039331B  6A                                  db 6Ah
+1039331C  00 FF 76 44 8B 40 5C FF 70 38 57 E8 D4 50 42 01 8B 46 1C 83 C4 2C 85 C0 0F 84 A9 0A 00 00 6A 00 6A 00 FF 75 A4 6A 04 FF B0 D4 00 00 00 50 E8 61 72 01 00 8B 4E 1C 83 C4 18 85 C9 0F 84 86 0A 00 00 6A 00 57 50 51 E8 19 4E 01 00 83 C4 10 83 45 F8 08 83 7D CC 00 8B 15  dd 4476FF00h, 0FF5C408Bh, 0E8573870h, 14250D4h, 831C468Bh
+10393374  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10393378  0F 87 F7 03 00 00 83 7A 74 00 75 0F 52 E8 66 DE F2 FF 8B 15  dd 3F7870Fh, 7A830000h, 0F750074h, 0DE66E852h, 158BFFF2h
+1039338C  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10393390  83 C4 04 8B 86 D8 02 00 00 85 C0 0F 84 42 0A 00 00 83 78 0C 00 0F 86 33 0A 00 00 8B C8 83 79 0C 01 0F 86 27 0A 00 00 0F B6 49 11 0F B6 40 10 C1 E1 08 0B C8 8B 42 5C 6A 00 51 FF 70 3C 57 E8 ED 46 42 01 8B 86 D8 02 00 00 83 C4 10 85 C0 0F 84 FF 09 00 00 83 78 0C 02 0F 86 F0 09 00 00 8B C8 83 79 0C 03 0F 86 E4 09 00 00 0F B6 49 13 0F B6 40 12 C1 E1 08 0B C8 A1  dd 8B04C483h, 2D886h, 0FC08500h, 0A4284h, 0C788300h, 33860F00h
+10393408  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+1039340C  6A 00 51 8B 40 5C FF 70 40 57 E8 A5 46 42 01 8B 86 D8 02 00 00 83 C4 10 85 C0 0F 84 B7 09 00 00 83 78 0C 04 0F 86 A8 09 00 00 8B C8 83 79 0C 05 0F 86 9C 09 00 00 0F B6 49 15 0F B6 40 14 C1 E1 08 0B C8 A1  dd 8B51006Ah, 70FF5C40h, 0A5E85740h, 8B014246h, 2D886h
+10393450  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10393454  6A 00 51 8B 40 5C FF 70 44 57 E8 5D 46 42 01 8B 86 D8 02 00 00 83 C4 10 85 C0 0F 84 6F 09 00 00 83 78 0C 06 0F 86 60 09 00 00 8B C8 83 79 0C 07 0F 86 54 09 00 00 0F B6 49 17 0F B6 40 16 C1 E1 08 0B C8 A1  dd 8B51006Ah, 70FF5C40h, 5DE85744h, 8B014246h, 2D886h
+10393498  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+1039349C  6A 00 51 8B 40 5C FF 70 48 57 E8 15 46 42 01 8B 86 CC 02 00 00 83 C4 10  dd 8B51006Ah, 70FF5C40h, 15E85748h, 8B014246h, 2CC86h
+103934B4  8B 0D                               db 8Bh, 0Dh
+103934B6  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+103934BA  85 C0                               dw 0C085h
+103934BC  0F 84 21 09 00 00 8B 55 F8 3B 50 0C 0F 83 10 09 00 00 80 7C 10 10 00 8B 41 5C 8B 50 4C 8B 86 CC 02 00 00 89 55 EC 74 07 BF 01 00 00 00 EB 02 33 FF 8B 4D F8 41 3B 48 0C 0F 83 E4 08 00 00 80 7C 01 10 00 8B 86 CC 02 00 00 74 07 B9 02 00 00 00 EB 05 33 C9 89 55 EC 8B 55 F8 83 C2 02 3B 50 0C 0F 83 BC 08 00 00 0B CF 80 7C 02 10 00 8B 86 CC 02 00 00 74 07 BF 04 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 03 3B 50 0C 0F 83 95 08 00 00 0B CF 80 7C 02 10 00 8B 86 CC 02 00 00 74 07 BF 08 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 04 3B 50 0C 0F 83 6E 08 00 00 0B CF 80 7C 02 10 00 8B 86 CC 02 00 00 74 07 BF 10 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 05 3B 50 0C 0F 83 47 08 00 00 0B CF 80 7C 02 10 00 8B 86 CC 02 00 00 74 07 BF 20 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 06 3B 50 0C 0F 83 20 08 00 00 0B CF C7 45 F0 40  dd 921840Fh, 558B0000h, 0C503BF8h, 910830Fh, 7C800000h
+103935C4  00 00 00 80 7C 02 10 00 8B 96 CC 02 00 00 75 07 C7 45 F0 00 00 00 00 8B 7D F8 83 C7 07 3B 7A 0C 0F 83 F4 07 00 00 80 7C 17 10 00 B8 80 00 00 00 C7 45 A4 00 00 00 00 0F 44 45 A4 0B C1 0B 45 F0 6A 00 35 FF 00 00 00 50 FF 75 EC FF 75 E8 E8 A9 44 42 01 A1  dd 80000000h, 10027Ch, 2CC968Bh, 7750000h, 0F045C7h, 8B000000h; 0200000004000000040000000800000008000000040000000400000007000000
+10393618  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+1039361C  83 C4 10                            add     esp, 10h
+1039361F  83 78 74 00                         cmp     dword ptr [eax+74h], 0
+10393623  75 0E                               jnz     short loc_10393633
+10393625  50                                  push    eax
+10393626  E8 C5 DB F2 FF                      call    il2cpp_runtime_class_init
+1039362B  A1 18 9F 21 12                      mov     eax, TypeInfo::PPURenderer
+10393630  83 C4 04                            add     esp, 4
+10393633  8B 8E C8 02 00 00                   mov     ecx, [esi+2C8h]
+10393639  85 C9                               test    ecx, ecx
+1039363B  0F 84 A2 07 00 00                   jz      loc_10393DE3
+10393641  8B 55 F8                            mov     edx, [ebp+var_8]
+10393644  3B 51 0C                            cmp     edx, [ecx+0Ch]
+10393647  0F 83 91 07 00 00                   jnb     loc_10393DDE
+1039364D  8B 40 5C                            mov     eax, [eax+5Ch]
+10393650  80 7C 11 10 00                      cmp     byte ptr [ecx+edx+10h], 0
+10393655  8B 50 50                            mov     edx, [eax+50h]
+10393658  8B C1                               mov     eax, ecx
+1039365A  89 55 EC                            mov     [ebp+nameID], edx
+1039365D  74 07                               jz      short loc_10393666
+1039365F  BF 01 00 00 00                      mov     edi, 1
+10393664  EB 02                               jmp     short loc_10393668
+10393666  33 FF                               xor     edi, edi
+10393668  8B 4D F8                            mov     ecx, [ebp+var_8]
+1039366B  41                                  inc     ecx
+1039366C  3B 48 0C                            cmp     ecx, [eax+0Ch]
+1039366F  0F 83 69 07 00 00                   jnb     loc_10393DDE
+10393675  80 7C 01 10 00                      cmp     byte ptr [ecx+eax+10h], 0
+1039367A  8B 8E C8 02 00 00                   mov     ecx, [esi+2C8h]
+10393680  74 07                               jz      short loc_10393689
+10393682  B8 02 00 00 00                      mov     eax, 2
+10393687  EB 05                               jmp     short loc_1039368E
+10393689  33 C0                               xor     eax, eax
+1039368B  89 55 EC                            mov     [ebp+nameID], edx
+1039368E  8B 55 F8                            mov     edx, [ebp+var_8]
+10393691  83 C2 02                            add     edx, 2
+10393694  3B 51 0C                            cmp     edx, [ecx+0Ch]
+10393697  0F 83 41 07 00 00                   jnb     loc_10393DDE
+1039369D  0B C7                               or      eax, edi
+1039369F  80 7C 0A 10 00                      cmp     byte ptr [edx+ecx+10h], 0
+103936A4  8B 8E C8 02 00 00                   mov     ecx, [esi+2C8h]
+103936AA  74 07                               jz      short loc_103936B3
+103936AC  BF 04 00 00 00                      mov     edi, 4
+103936B1  EB 02                               jmp     short loc_103936B5
+103936B3  33 FF                               xor     edi, edi
+103936B5  8B 55 F8                            mov     edx, [ebp+var_8]
+103936B8  83 C2 03                            add     edx, 3
+103936BB  3B 51 0C                            cmp     edx, [ecx+0Ch]
+103936BE  0F 83 1A 07 00 00                   jnb     loc_10393DDE
+103936C4  0B C7                               or      eax, edi
+103936C6  80 7C 0A 10 00                      cmp     byte ptr [edx+ecx+10h], 0
+103936CB  8B 8E C8 02 00 00                   mov     ecx, [esi+2C8h]
+103936D1  74 07                               jz      short loc_103936DA
+103936D3  BF 08 00 00 00                      mov     edi, 8
+103936D8  EB 02                               jmp     short loc_103936DC
+103936DA  33 FF                               xor     edi, edi
+103936DC  8B 55 F8                            mov     edx, [ebp+var_8]
+103936DF  83 C2 04                            add     edx, 4
+103936E2  3B 51 0C                            cmp     edx, [ecx+0Ch]
+103936E5  0F 83 F3 06 00 00                   jnb     loc_10393DDE
+103936EB  0B C7                               or      eax, edi
+103936ED  80 7C 0A 10 00                      cmp     byte ptr [edx+ecx+10h], 0
+103936F2  8B 8E C8 02 00 00                   mov     ecx, [esi+2C8h]
+103936F8  74 07                               jz      short loc_10393701
+103936FA  BF 10 00 00 00                      mov     edi, 10h
+103936FF  EB 02                               jmp     short loc_10393703
+10393701  33 FF                               xor     edi, edi
+10393703  8B 55 F8                            mov     edx, [ebp+var_8]
+10393706  83 C2 05                            add     edx, 5
+10393709  3B 51 0C                            cmp     edx, [ecx+0Ch]
+1039370C  0F 83 CC 06 00 00                   jnb     loc_10393DDE
+10393712  0B C7                               or      eax, edi
+10393714  80 7C 0A 10 00                      cmp     byte ptr [edx+ecx+10h], 0
+10393719  8B 8E C8 02 00 00                   mov     ecx, [esi+2C8h]
+1039371F  74 07                               jz      short loc_10393728
+10393721  BF 20 00 00 00                      mov     edi, 20h ; ' '
+10393726  EB 02                               jmp     short loc_1039372A
+10393728  33 FF                               xor     edi, edi
+1039372A  8B 55 F8                            mov     edx, [ebp+var_8]
+1039372D  83 C2 06                            add     edx, 6
+10393730  3B 51 0C                            cmp     edx, [ecx+0Ch]
+10393733  0F 83 A5 06 00 00                   jnb     loc_10393DDE
+10393739  0B C7                               or      eax, edi
+1039373B  80 7C 0A 10 00                      cmp     byte ptr [edx+ecx+10h], 0
+10393740  8B 96 C8 02 00 00                   mov     edx, [esi+2C8h]
+10393746  74 07                               jz      short loc_1039374F
+10393748  B9 40 00 00 00                      mov     ecx, 40h ; '@'
+1039374D  EB 02                               jmp     short loc_10393751
+1039374F  33 C9                               xor     ecx, ecx
+10393751  8B 7D F8                            mov     edi, [ebp+var_8]
+10393754  83 C7 07                            add     edi, 7
+10393757  3B 7A 0C                            cmp     edi, [edx+0Ch]
+1039375A  0F 83 7E 06 00 00                   jnb     loc_10393DDE
+10393760  80 7C 17 10 00                      cmp     byte ptr [edi+edx+10h], 0
+10393765  0F 84 D2 03 00 00                   jz      loc_10393B3D
+1039376B  BA 80 00 00 00                      mov     edx, 80h
+10393770  E9 CA 03 00 00                      jmp     loc_10393B3F
+10393775  83 7A 74                            db 83h, 7Ah, 74h
+10393778  00 75 0F 52 E8 6F DA F2             dd 520F7500h, 0F2DA6FE8h
+10393780  FF 8B 15                            db 0FFh, 8Bh, 15h
+10393783  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10393787  83                                  db 83h
+10393788  C4 04 8B BE D8 02 00 00 85 FF 0F 84 4B 06 00 00 83 7F 0C 07 0F 86 3C 06 00 00 8B C7 6A 00 0F B6 48 16 0F B6 47 17 8B 7D E8 C1 E1 08 0B C8 8B 42 5C 51 FF 70 3C 57 E8 FD 42 42 01 8B 96 D8 02 00 00 83 C4 10 85 D2 0F 84 0F 06 00 00 83 7A 0C 05 0F 86 00 06 00 00 8B C2 6A 00 0F B6 48 14 0F B6 42 15 C1 E1 08 0B C8 A1  dd 0BE8B04C4h, 2D8h, 840FFF85h, 64Bh, 70C7F83h, 63C860Fh
+103937F0  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+103937F4  51 8B 40 5C FF 70 40 57 E8 BF 42 42 01 8B 96 D8 02 00 00 83 C4 10 85 D2 0F 84 D1 05 00 00 83 7A 0C 03 0F 86 C2 05 00 00 8B C2 6A 00 0F B6 48 12 0F B6 42 13 C1 E1 08 0B  dd 5C408B51h, 574070FFh, 4242BFE8h, 0D8968B01h, 83000002h
+1039382C  C8 A1                               db 0C8h, 0A1h
+1039382E  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10393832  51 8B                               dw 8B51h
+10393834  40 5C FF 70 44 57 E8 81 42 42 01 8B 96 D8 02 00 00 83 C4 10 85 D2 0F 84 93 05 00 00 83 7A 0C 01 0F 86 84 05 00 00 8B C2 6A 00 0F B6 48 10 0F B6 42 11 C1 E1 08 0B C8 A1  dd 70FF5C40h, 81E85744h, 8B014242h, 2D896h, 10C48300h
+1039386C  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+10393870  51 8B 40 5C FF 70 48 57 E8 43 42 42 01 8B 86 CC 02 00 00 83 C4 10 8B 15  dd 5C408B51h, 574870FFh, 424243E8h, 0CC868B01h, 83000002h
+10393888  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+1039388C  85 C0 0F 84 4F 05 00 00 8B 4D F8 83 C1 07 3B 48 0C 0F 83 3B  dd 840FC085h, 54Fh, 83F84D8Bh, 483B07C1h, 3B830F0Ch
+103938A0  05 00 00 80 7C 01 10 00 8B 42 5C 8B 50 4C 8B 86 CC 02 00 00 89 55 EC 74 07 BF 01 00 00 00 EB 02 33 FF 8B 4D F8 83 C1 06 3B 48 0C 0F 83 0D 05 00 00 80 7C 01 10 00 8B 86 CC 02 00 00 74 07 B9 02 00 00 00 EB 05 33 C9 89 55 EC 8B 55 F8 83 C2 05 3B 50 0C 0F 83 E5 04 00 00 0B CF 80 7C 02 10 00 8B 86 CC 02 00 00 74 07 BF 04 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 04 3B 50 0C 0F 83 BE 04 00 00 0B CF 80 7C 02 10 00 8B 86 CC 02 00 00 74 07 BF 08 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 03 3B 50 0C 0F 83 97 04 00 00 0B CF 80 7C 02 10 00 8B 86 CC 02 00 00 74 07 BF 10 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 02 3B 50 0C 0F 83 70 04 00 00 0B CF 80 7C 02 10 00 8B 86 CC 02 00 00 74 07 BF 20 00 00 00 EB 02 33 FF 8B 55 F8 42 3B 50 0C 0F 83 4B 04 00 00 0B CF 80 7C 02 10 00 8B 96 CC 02 00 00 74 07 BF 40 00 00 00 EB 02 33 FF 8B 45 F8 3B 42 0C 0F 83 27 04 00 00 8B 75 F8 B8 80 00 00 00 6A 00 80 7C 32 10 00 BA 00 00 00 00 0F 44 C2 0B C1 0B C7 35 FF 00 00 00 50 FF 75 EC FF 75 E8 E8 DD 40 42 01 A1  dd 80000005h, 10017Ch, 8B5C428Bh, 868B4C50h, 2CCh, 74EC5589h
+103939E4  18 9F 21 12                         dd offset TypeInfo::PPURenderer
+103939E8  83 C4 10 8B 75 08 83 78 74 00 75 0E 50 E8 F6 D7  dd 8B10C483h, 78830875h, 0E750074h, 0D7F6E850h
+103939F8  F2 FF A1 18 9F 21 12                bnd jmp TypeInfo::PPURenderer[ecx]
+103939FF  83                                  db 83h
+10393A00  C4 04 8B 8E C8 02 00 00 85 C9 0F 84 D3 03 00 00 8B 55 F8 83 C2 07 3B 51 0C 0F 83 BF 03 00 00 8B 40 5C 80 7C 0A 10 00 8B 50 50 8B C1 89 55 EC 74 07 BF 01 00 00 00 EB 02 33 FF 8B 4D F8 83 C1 06 3B 48 0C 0F 83 95 03 00 00 80 7C 01 10 00 8B 86 C8 02 00 00 74 07 B9 02 00 00 00 EB 05 33 C9 89 55 EC 8B 55 F8 83 C2 05 3B 50 0C 0F 83 6D 03 00 00 0B CF 80 7C 02 10 00 8B 86 C8 02 00 00 74 07 BF 04 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 04 3B 50 0C 0F 83 46 03 00 00 0B CF 80 7C 02 10 00 8B 86 C8 02 00 00 74 07 BF 08 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 03 3B 50 0C 0F 83 1F 03 00 00 0B CF 80 7C 02 10 00 8B 86 C8 02 00 00 74 07 BF 10 00 00 00 EB 02 33 FF 8B 55 F8 83 C2 02 3B 50 0C 0F 83 F8 02 00 00 0B CF 80 7C 02 10 00 8B 86 C8 02 00 00 74 07 BF 20 00 00 00 EB 02 33 FF 8B 55 F8 42 3B 50 0C 0F 83 D3 02 00 00 0B CF 80 7C 02 10 00 8B 96 C8 02 00 00 74 07 B8 40 00 00 00 EB 02 33 C0 8B 7D F8 3B 7A 0C 0F 83 AF  dd 8E8B04C4h, 2C8h, 840FC985h, 3D3h, 83F8558Bh, 513B07C2h
+10393B2C  02 00                               add     al, [eax]; 0200000004000000040000000400000002000000020000000000000007000000
+10393B2E  00 80 7C 3A 10 00                   add     [eax+103A7Ch], al
+10393B34  74 07                               jz      short loc_10393B3D
+10393B36  BA 80 00 00 00                      mov     edx, 80h
+10393B3B  EB 02                               jmp     short loc_10393B3F
+10393B3D  33 D2                               xor     edx, edx
+10393B3F  0B C1                               or      eax, ecx
+10393B41  0B C2                               or      eax, edx
+10393B43  6A 00                               push    0; method
+10393B45  35 FF 00 00 00                      xor     eax, 0FFh
+10393B4A  50                                  push    eax; value
+10393B4B  FF 75 EC                            push    [ebp+nameID]; nameID
+10393B4E  FF 75 E8                            push    [ebp+var_18]; this
+10393B51  E8 6A 3F 42 01                      call    UnityEngine::Material::SetInt(int,int); Void SetInt(Int32, Int32)
+10393B56  8B 7D E4                            mov     edi, [ebp+var_1C]
+10393B59  6A 00                               push    0; method
+10393B5B  57                                  push    edi; this
+10393B5C  E8 6F A7 43 01                      call    UnityEngine::Component::get_gameObject(void); GameObject get_gameObject()
+10393B61  83 C4 18                            add     esp, 18h
+10393B64  85 C0                               test    eax, eax
+10393B66  0F 84 77 02 00 00                   jz      loc_10393DE3
+10393B6C  6A 00                               push    0; method
+10393B6E  6A 01                               push    1; value
+10393B70  50                                  push    eax; this
+10393B71  E8 3A B9 44 01                      call    UnityEngine::GameObject::SetActive(bool); Void SetActive(Boolean)
+10393B76  6A 00                               push    0; value
+10393B78  57                                  push    edi; this
+10393B79  E8 02 A8 43 01                      call    UnityEngine::Component::get_transform(void); Transform get_transform()
+10393B7E  66 0F 6E 4D D8                      movd    xmm1, [ebp+var_28]
+10393B83  8B D0                               mov     edx, eax
+10393B85  66 0F 6E 45 D4                      movd    xmm0, [ebp+var_2C]
+10393B8A  83 C4 14                            add     esp, 14h
+10393B8D  F3 0F 10 55 98                      movss   xmm2, [ebp+var_68]
+10393B92  0F 5B C9                            cvtdq2ps xmm1, xmm1
+10393B95  0F 5B C0                            cvtdq2ps xmm0, xmm0
+10393B98  0F 57 0D B0 37 B4 11                xorps   xmm1, xmmword ptr ds:_0A9F3E3C5D0A97455E553C0473DF9177BB69F4839C8EC7A38EF03247A3DFB945_Field_839
+10393B9F  F3 0F 59 0D 20 37 B4 11             mulss   xmm1, dword ptr ds:xmmword_11B4371C+4
+10393BA7  F3 0F 59 05 20 37 B4 11             mulss   xmm0, dword ptr ds:xmmword_11B4371C+4
+10393BAF  F3 0F 5C 0D 28 37 B4 11             subss   xmm1, dword ptr ds:xmmword_11B4371C+0Ch
+10393BB7  F3 0F 58 05 28 37 B4 11             addss   xmm0, dword ptr ds:xmmword_11B4371C+0Ch
+10393BBF  F3 0F 58 0D CC 38 B4 11             addss   xmm1, ds:dword_11B438CC
+10393BC7  F3 0F 5C 05 D8 38 B4 11             subss   xmm0, ds:dword_11B438D8
+10393BCF  F3 0F 58 0D 1C 37 B4 11             addss   xmm1, dword ptr ds:xmmword_11B4371C
+10393BD7  F3 0F 59 C2                         mulss   xmm0, xmm2
+10393BDB  F3 0F 59 CA                         mulss   xmm1, xmm2
+10393BDF  F3 0F 11 45 84                      movss   dword ptr [ebp+var_7C], xmm0
+10393BE4  0F 28 C2                            movaps  xmm0, xmm2
+10393BE7  F3 0F 11 4D 88                      movss   dword ptr [ebp+var_7C+4], xmm1
+10393BEC  0F 57 C9                            xorps   xmm1, xmm1
+10393BEF  F3 0F 59 C1                         mulss   xmm0, xmm1
+10393BF3  F3 0F 11 45 8C                      movss   [ebp+var_74], xmm0
+10393BF8  85 D2                               test    edx, edx
+10393BFA  0F 84 E3 01 00 00                   jz      loc_10393DE3
+10393C00  F3 0F 7E 45 84                      movq    xmm0, [ebp+var_7C]
+10393C05  8B 45 8C                            mov     eax, [ebp+var_74]
+10393C08  6A 00                               push    0; method
+10393C0A  83 EC 0C                            sub     esp, 0Ch
+10393C0D  8B CC                               mov     ecx, esp
+10393C0F  52                                  push    edx; this
+10393C10  66 0F D6 01                         movq    qword ptr [ecx], xmm0
+10393C14  89 41 08                            mov     [ecx+8], eax
+10393C17  E8 14 DF 45 01                      call    UnityEngine::Transform::set_localPosition(UnityEngine::Vector3); Void set_localPosition(Vector3)
+10393C1C  6A 00                               push    0; method
+10393C1E  57                                  push    edi; this
+10393C1F  E8 5C A7 43 01                      call    UnityEngine::Component::get_transform(void); Transform get_transform()
+10393C24  8B F8                               mov     edi, eax
+10393C26  83 C4 1C                            add     esp, 1Ch
+10393C29  85 FF                               test    edi, edi
+10393C2B  0F 84 B2 01 00 00                   jz      loc_10393DE3
+10393C31  6A 00                               push    0
+10393C33  8D 85 DC FE FF FF                   lea     eax, [ebp+var_124]
+10393C39  57                                  push    edi
+10393C3A  50                                  push    eax
+10393C3B  E8 50 D6 45 01                      call    UnityEngine::Transform::get_localPosition(void); Vector3 get_localPosition()
+10393C40  66 0F 6E 4D DC                      movd    xmm1, [ebp+var_24]
+10393C45  83 C4 0C                            add     esp, 0Ch
+10393C48  0F 5B C9                            cvtdq2ps xmm1, xmm1
+10393C4B  6A 00                               push    0; method
+10393C4D  83 EC 0C                            sub     esp, 0Ch
+10393C50  F3 0F 7E 00                         movq    xmm0, qword ptr [eax]
+10393C54  0F 57 DB                            xorps   xmm3, xmm3
+10393C57  F3 0F 59 0D AC 38 B4 11             mulss   xmm1, dword ptr ds:xmmword_11B438A0+0Ch
+10393C5F  8B CC                               mov     ecx, esp
+10393C61  8B 40 08                            mov     eax, [eax+8]
+10393C64  66 0F D6 85 78 FF FF FF             movq    [ebp+var_88], xmm0
+10393C6C  F3 0F 10 95 78 FF FF FF             movss   xmm2, dword ptr [ebp+var_88]
+10393C74  F3 0F 58 4D 90                      addss   xmm1, [ebp+var_70]
+10393C79  F3 0F 10 85 7C FF FF FF             movss   xmm0, dword ptr [ebp+var_88+4]
+10393C81  F3 0F 58 D3                         addss   xmm2, xmm3
+10393C85  89 45 80                            mov     [ebp+var_80], eax
+10393C88  F3 0F 58 C3                         addss   xmm0, xmm3
+10393C8C  57                                  push    edi; this
+10393C8D  F3 0F 58 4D 80                      addss   xmm1, [ebp+var_80]
+10393C92  0F 14 D0                            unpcklps xmm2, xmm0
+10393C95  66 0F D6 11                         movq    qword ptr [ecx], xmm2
+10393C99  F3 0F 11 8D 20 FF FF FF             movss   [ebp+var_E0], xmm1
+10393CA1  8B 85 20 FF FF FF                   mov     eax, [ebp+var_E0]
+10393CA7  89 41 08                            mov     [ecx+8], eax
+10393CAA  E8 81 DE 45 01                      call    UnityEngine::Transform::set_localPosition(UnityEngine::Vector3); Void set_localPosition(Vector3)
+10393CAF  8B 7D E4                            mov     edi, [ebp+var_1C]
+10393CB2  6A 00                               push    0; method
+10393CB4  57                                  push    edi; this
+10393CB5  E8 C6 A6 43 01                      call    UnityEngine::Component::get_transform(void); Transform get_transform()
+10393CBA  83 C4 1C                            add     esp, 1Ch
+10393CBD  8B D0                               mov     edx, eax
+10393CBF  33 C0                               xor     eax, eax
+10393CC1  F3 0F 10 55 98                      movss   xmm2, [ebp+var_68]
+10393CC6  3B 45 C8                            cmp     eax, [ebp+var_38]
+10393CC9  F3 0F 11 95 74 FF FF FF             movss   [ebp+var_8C], xmm2
+10393CD1  1B C9                               sbb     ecx, ecx
+10393CD3  83 E1 02                            and     ecx, 2
+10393CD6  49                                  dec     ecx
+10393CD7  3B 45 CC                            cmp     eax, [ebp+var_34]
+10393CDA  1B C0                               sbb     eax, eax
+10393CDC  83 E0 02                            and     eax, 2
+10393CDF  48                                  dec     eax
+10393CE0  66 0F 6E C9                         movd    xmm1, ecx
+10393CE4  0F 5B C9                            cvtdq2ps xmm1, xmm1
+10393CE7  66 0F 6E C0                         movd    xmm0, eax
+10393CEB  F3 0F 59 CA                         mulss   xmm1, xmm2
+10393CEF  0F 5B C0                            cvtdq2ps xmm0, xmm0
+10393CF2  F3 0F 11 8D 6C FF FF FF             movss   dword ptr [ebp+var_94], xmm1
+10393CFA  F3 0F 59 C2                         mulss   xmm0, xmm2
+10393CFE  F3 0F 11 85 70 FF FF FF             movss   dword ptr [ebp+var_94+4], xmm0
+10393D06  85 D2                               test    edx, edx
+10393D08  0F 84 D5 00 00 00                   jz      loc_10393DE3
+10393D0E  F3 0F 7E 85 6C FF FF FF             movq    xmm0, [ebp+var_94]
+10393D16  8B 85 74 FF FF FF                   mov     eax, [ebp+var_8C]
+10393D1C  6A 00                               push    0; method
+10393D1E  83 EC 0C                            sub     esp, 0Ch
+10393D21  8B CC                               mov     ecx, esp
+10393D23  52                                  push    edx; this
+10393D24  66 0F D6 01                         movq    qword ptr [ecx], xmm0
+10393D28  89 41 08                            mov     [ecx+8], eax
+10393D2B  E8 40 DF 45 01                      call    UnityEngine::Transform::set_localScale(UnityEngine::Vector3); Void set_localScale(Vector3)
+10393D30  6A 00                               push    0; method
+10393D32  57                                  push    edi; this
+10393D33  E8 98 A5 43 01                      call    UnityEngine::Component::get_gameObject(void); GameObject get_gameObject()
+10393D38  83 C4 1C                            add     esp, 1Ch
+10393D3B  83 7D 94 00                         cmp     [ebp+var_6C], 0
+10393D3F  74 11                               jz      short loc_10393D52
+10393D41  33 C9                               xor     ecx, ecx
+10393D43  39 4D A0                            cmp     [ebp+var_60], ecx
+10393D46  0F 95 C1                            setnz   cl
+10393D49  8D 0C 8D 07 00 00 00                lea     ecx, ds:7[ecx*4]
+10393D50  EB 05                               jmp     short loc_10393D57
+10393D52  B9 08 00 00 00                      mov     ecx, 8
+10393D57  85 C0                               test    eax, eax
+10393D59  0F 84 84 00 00 00                   jz      loc_10393DE3
+10393D5F  6A 00                               push    0; method
+10393D61  51                                  push    ecx; value
+10393D62  50                                  push    eax; this
+10393D63  E8 18 C0 44 01                      call    UnityEngine::GameObject::set_layer(int); Void set_layer(Int32)
+10393D68  8B 47 10                            mov     eax, [edi+10h]
+10393D6B  83 C4 0C                            add     esp, 0Ch
+10393D6E  85 C0                               test    eax, eax
+10393D70  74 71                               jz      short loc_10393DE3
+10393D72  6A 00                               push    0; method
+10393D74  FF B6 F4 00 00 00                   push    dword ptr [esi+0F4h]; value
+10393D7A  50                                  push    eax; this
+10393D7B  E8 A0 55 42 01                      call    UnityEngine::MeshFilter::set_mesh(UnityEngine::Mesh); Void set_mesh(Mesh)
+10393D80  8B 45 20                            mov     eax, [ebp+sprObjIdx]
+10393D83  83 C4 0C                            add     esp, 0Ch
+10393D86  FF 00                               inc     dword ptr [eax]
+10393D88  8B 7D AC                            mov     edi, [ebp+var_54]
+10393D8B  8B 55 D8                            mov     edx, [ebp+var_28]
+10393D8E  8B 45 D0                            mov     eax, [ebp+var_30]
+10393D91  8B 4D C8                            mov     ecx, [ebp+var_38]
+10393D94  40                                  inc     eax
+10393D95  89 45 D0                            mov     [ebp+var_30], eax
+10393D98  3B 45 B8                            cmp     eax, [ebp+var_48]
+10393D9B  0F 8C 71 EA FF FF                   jl      loc_10392812
+10393DA1  8B 7D B8                            mov     edi, [ebp+var_48]
+10393DA4  8B 55 A8                            mov     edx, [ebp+var_58]
+10393DA7  8B 45 CC                            mov     eax, [ebp+var_34]
+10393DAA  42                                  inc     edx
+10393DAB  89 55 A8                            mov     [ebp+var_58], edx
+10393DAE  3B 55 B4                            cmp     edx, [ebp+var_4C]
+10393DB1  0F 8C FB E9 FF FF                   jl      loc_103927B2
+10393DB7  8B 55 10                            mov     edx, [ebp+priaddr]
+10393DBA  8B 4D DC                            mov     ecx, [ebp+var_24]
+10393DBD  42                                  inc     edx
+10393DBE  41                                  inc     ecx
+10393DBF  83 E2 7F                            and     edx, 7Fh
+10393DC2  89 55 10                            mov     [ebp+priaddr], edx
+10393DC5  89 4D DC                            mov     [ebp+var_24], ecx
+10393DC8  81 F9 80 00 00 00                   cmp     ecx, 80h
+10393DCE  7F 08                               jg      short loc_10393DD8
+10393DD0  8B 4D 0C                            mov     ecx, [ebp+oam]
+10393DD3  E9 4B E7 FF FF                      jmp     loc_10392523
+10393DD8  5F                                  pop     edi
+10393DD9  5E                                  pop     esi
+10393DDA  8B E5                               mov     esp, ebp
+10393DDC  5D                                  pop     ebp
+10393DDD  C3                                  retn
+10393DDE  E8 4D D3 F2 FF                      call    sub_102C1130
+10393DE3  E8 58 D3 F2 FF                      call    sub_102C1140
+10393DE8  CC CC CC CC CC CC CC CC             align 10h
