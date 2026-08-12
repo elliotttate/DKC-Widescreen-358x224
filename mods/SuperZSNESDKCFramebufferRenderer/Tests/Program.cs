@@ -18,8 +18,9 @@ internal static class Program
             TestRegionModes(rasterizer);
             TestStockPaletteExpansion(rasterizer);
             TestCachePrimitives(rasterizer);
+            TestDecodedTileAtlas(rasterizer);
             TestRuntimeShape();
-            Console.WriteLine("PASS: planar decode, tilemap addressing, color math, window regions, retained-cache primitives, and v0.230 patch targets.");
+            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, color math, window regions, retained-cache primitives, and v0.230 patch targets.");
             return 0;
         }
         catch (Exception exception)
@@ -113,6 +114,47 @@ internal static class Program
         Require(E(25, 15) == 199, "stock palette c/32 conversion");
         Require(E(31, 15) == 247, "stock palette maximum");
         Require(E(31, 0) == 0, "zero brightness");
+    }
+
+    private static void TestDecodedTileAtlas(Type type)
+    {
+        object rasterizer = Activator.CreateInstance(type, BindingFlags.Instance |
+            BindingFlags.NonPublic, null, new object[] { true }, null);
+        Type cacheType = type.GetNestedType("BackgroundCache", BindingFlags.NonPublic);
+        object cache = Activator.CreateInstance(cacheType, true);
+        MethodInfo prepare = type.GetMethod("PrepareDecodedTileFrame", BindingFlags.Static |
+            BindingFlags.NonPublic);
+        MethodInfo read = type.GetMethod("ReadDecodedTileColor", BindingFlags.Instance |
+            BindingFlags.NonPublic);
+        MethodInfo decode = Required(type, "DecodePlanar");
+        byte[] vram = new byte[65536];
+        for (int i = 0; i < vram.Length; i++) vram[i] = (byte)((i * 37 + 11) & 0xFF);
+
+        prepare.Invoke(null, new object[] { cache, 0xFFF0, 4 });
+        foreach (int tile in new[] { 0, 1, 127, 511, 1023 })
+        foreach (int y in new[] { 0, 3, 7 })
+        foreach (int x in new[] { 0, 4, 7 })
+        {
+            int expected = (int)decode.Invoke(null, new object[] { vram, 0xFFF0, tile, 4, x, y });
+            int actual = (int)read.Invoke(rasterizer,
+                new object[] { vram, cache, 0xFFF0, tile, 4, x, y, 0 });
+            Require(actual == expected,
+                "decoded atlas mismatch at tile=" + tile + " x=" + x + " y=" + y);
+        }
+
+        prepare.Invoke(null, new object[] { cache, 0xFFF0, 4 });
+        foreach (int tile in new[] { 0, 1, 127, 511, 1023 })
+            read.Invoke(rasterizer, new object[] { vram, cache, 0xFFF0, tile, 4, 0, 0, 0 });
+        long[] hits = (long[])type.GetField("PerBgDecodedTileHits", BindingFlags.Instance |
+            BindingFlags.NonPublic).GetValue(rasterizer);
+        long[] misses = (long[])type.GetField("PerBgDecodedTileMisses", BindingFlags.Instance |
+            BindingFlags.NonPublic).GetValue(rasterizer);
+        Require(hits[0] == 5 && misses[0] == 5, "decoded atlas hit/miss accounting");
+
+        vram[0xFFF0] ^= 0x80;
+        prepare.Invoke(null, new object[] { cache, 0xFFF0, 4 });
+        read.Invoke(rasterizer, new object[] { vram, cache, 0xFFF0, 0, 4, 0, 0, 0 });
+        Require(misses[0] == 6, "decoded atlas VRAM invalidation");
     }
 
     private static void TestRuntimeShape()

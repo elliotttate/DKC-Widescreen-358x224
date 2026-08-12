@@ -7,7 +7,7 @@ The project has two complementary parts:
 - `rom/`: an Asar overlay for the USA v1.0 DKC disassembly. It expands streaming, camera/object ranges, banana formations, player endpoints, and grouped-object retry behavior.
 - `mods/`: BepInEx plugins and scripts for SuperZSNES v0.230, including the accepted CPU framebuffer renderer, frame pacing fixes, automation, capture, and diagnostic tooling.
 
-The final renderer keeps the SNES core near 60 FPS while replacing SuperZSNES's expensive per-tile Unity presentation path for supported DKC Mode 1 frames. In the deterministic moving-Jungle benchmark, the accepted parallel framebuffer renderer improved presentation cadence from 72.17 to 96.35 updates/s and reduced two-frame batches from 11.01% to 0.04%.
+The final renderer keeps the SNES core near 60 FPS while replacing SuperZSNES's expensive per-tile Unity presentation path for supported DKC Mode 1 frames. The accepted v0.4.2 retained-tile rewrite raised the difficult Millstone Mayhem scrolling case from 86-90 to 119.4-119.7 presentation updates/s, while eliminating every multi-frame batch in the controlled 1,800-frame test.
 
 ## What is intentionally absent
 

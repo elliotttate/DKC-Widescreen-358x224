@@ -591,3 +591,27 @@ Validation used the exact user state `<workspace>\DKC_Widescreen_358x224.data.sz
 Because the framebuffer renderer deliberately accepts only a canonical ROM hash, `SuperZSNESDKCFramebufferRenderer` was rebuilt as v0.3.1 with the new ROM SHA. Source and installed DLL SHA-256 are `36C4968CED5585D2FE6F4213B50311BE3FC48419C1AA33C730D36DB8EE295943`; its full verifier and renderer tests passed. Live status reports `presenting` with no fallback. The accepted live framebuffer capture is `<superzsnes>\BepInEx\plugins\SuperZSNESDKCFramebufferRenderer\candidate-20260811-220321-201.png`.
 
 The durable automation case is `<superzsnes-source>\Mods\DKCLevelAutomation\recipes\barrel-cannon-group-retry.json`. It asserts the exact level/entrance, nonzero `$8A/$8B/$8C` bookkeeping, Zinger/barrel IDs and target coordinates after two frames, then checks persistence after 300 frames. At handoff, the emulator was running the rebuilt canonical ROM with the exact state loaded, the two missing children spawned, controller schedules cleared, and framebuffer presentation active.
+
+## 2026-08-11 Millstone Mayhem scrolling performance fix
+
+The user's test spot was identified from a full debugger capture as Millstone Mayhem (`level $0028`, entrance `$0058`, Layer1/camera X `$2295`, Y `$00D0`). The CPU framebuffer was presenting with no fallback, but live cadence varied from 36-70 Unity updates/second while the SNES core stayed near 60 frames/second. In the worst five-second window, 97 of 181 Unity updates consumed two or more emulated frames, explaining the reported near-30-FPS motion.
+
+The remaining content-dependent cost was the retained background miss path. Each eight-pixel scrolling bucket miss rebuilt a 374x240 guarded plane pixel-by-pixel. Every pixel repeated tilemap addressing, descriptor decoding, flip/priority work, and planar bit extraction. Broad CHR snapshots also treated unrelated DKC VRAM streaming as a reason to invalidate a background.
+
+`SuperZSNESDKCFramebufferRenderer` v0.4.2 replaces that path with exact per-tile retention and tile-block construction:
+
+- only tile graphics referenced by the retained plane participate in its CHR validity key;
+- a referenced 2bpp/4bpp tile is validated once per frame and decoded only when its own bytes changed;
+- uniform planes are filled in clipped 8x8 blocks, computing one tilemap descriptor per block instead of once per pixel;
+- circular VRAM ranges retain exact wrap behavior but use eight-byte comparisons and block copies;
+- out-of-range 16x16 subtile indices fail closed to direct decoding and make the plane non-cacheable.
+
+An intermediate v0.4.0 whole-atlas prototype was rejected. It improved host cadence in one run but decoded all 1,024 tiles whenever any byte in the nominal CHR range changed. Millstone counters showed 450 whole-atlas rebuilds for BG1/BG2 and 775 for BG3 in 1,800 frames because DKC stores unrelated streamed data inside those broad ranges. v0.4.1 introduced per-tile validity but still rebuilt planes pixel-by-pixel; it was used only as the correctness oracle for the final tile-block rewrite.
+
+The controlled comparison used the immutable state `<workspace>\DKC_Widescreen_358x224.data.szsnes\DKC_Widescreen_358x224.szst-perf-millstone-20260811` and the same 1,800-frame macro alternating 90 frames of Right+Y and Left+Y. Results:
+
+- v0.3.1 baseline: sustained 86-90 Unity updates/second during the aligned moving windows, with occasional two-frame batches; cumulative framebuffer background/total averages were about 4.27/7.50 ms.
+- v0.4.2: 119.4-119.7 Unity updates/second in every full moving window, 59.90-60.15 emulated FPS, and zero 2+ frame batches; framebuffer background/total averages were about 0.31/3.20 ms.
+- The saved Millstone framebuffer before and after the rewrite is byte-identical, SHA-256 `6C69F18BCC6B0F7ACB78E68F85B70118BDC894284AD40AD0B89C91F5D115F8A6`.
+
+The v0.4.2 source/build verifier passes with zero warnings/errors. Installed DLL SHA-256 is `BDD6029BBC138B234E02F5888BAF62F8AD020FD42850C862AE06F0E8F32F12D2`; `Assembly-CSharp.dll` remains pristine. Old framebuffer backups must not retain a `.dll` suffix in an active BepInEx plugin directory: BepInEx scans them and may select an older same-GUID plugin. At handoff, the original Millstone performance state was restored, controller schedules were cleared, and gameplay was resumed with v0.4.2 active.

@@ -258,7 +258,7 @@ namespace SuperZSNESDKCFramebufferRenderer
             long stageFrames = _rasterizer?.StageFrames ?? 0;
             double stageDivisor = stageFrames == 0 ? 1 : stageFrames;
             string json = "{" +
-                          "\"version\":\"0.3.1\"," +
+                          "\"version\":\"0.4.2\"," +
                           "\"state\":\"" + Escape(state) + "\"," +
                           "\"present\":" + ((_present != null && _present.Value) ? "true" : "false") + "," +
                           "\"retainedBackgrounds\":" + ((_retainedBackgrounds != null && _retainedBackgrounds.Value) ? "true" : "false") + "," +
@@ -272,6 +272,8 @@ namespace SuperZSNESDKCFramebufferRenderer
                           "\"perBgHits\":" + LongArray(_rasterizer?.PerBgHits) + "," +
                           "\"perBgMisses\":" + LongArray(_rasterizer?.PerBgMisses) + "," +
                           "\"perBgRasterRebuilds\":" + LongArray(_rasterizer?.PerBgRasterRebuilds) + "," +
+                          "\"perBgDecodedTileHits\":" + LongArray(_rasterizer?.PerBgDecodedTileHits) + "," +
+                          "\"perBgDecodedTileMisses\":" + LongArray(_rasterizer?.PerBgDecodedTileMisses) + "," +
                           "\"perBgAveragePrepareMs\":" + BackgroundAverages(_rasterizer) + "," +
                           "\"stageAverageMs\":{" +
                           "\"lineState\":" + Number((_rasterizer?.LineStateMs ?? 0) / stageDivisor) + "," +

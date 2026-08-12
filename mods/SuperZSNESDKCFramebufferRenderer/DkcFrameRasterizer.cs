@@ -45,6 +45,8 @@ namespace SuperZSNESDKCFramebufferRenderer
         internal readonly long[] PerBgHits = new long[3];
         internal readonly long[] PerBgMisses = new long[3];
         internal readonly long[] PerBgRasterRebuilds = new long[3];
+        internal readonly long[] PerBgDecodedTileHits = new long[3];
+        internal readonly long[] PerBgDecodedTileMisses = new long[3];
         internal readonly double[] PerBgPrepareMs = new double[3];
         internal readonly long[] PerBgPrepareCalls = new long[3];
         internal long StageFrames { get; private set; }
@@ -240,6 +242,13 @@ namespace SuperZSNESDKCFramebufferRenderer
             int planeHeight = height + guard * 2;
             cache.EnsurePixels(planeWidth, planeHeight);
 
+            // Reuse decoded SNES character tiles across plane rebuilds. DKC's
+            // nominal CHR ranges also contain unrelated streamed data, so each
+            // tile is validated independently on first use in a frame.
+            LineState decodeState = _line[Math.Min(1, height - 1)];
+            int decodeBits = bg == 2 ? 2 : 4;
+            PrepareDecodedTileFrame(cache, GetChrBase(decodeState, bg), decodeBits);
+
             if (!_enableRetainedBackgrounds)
             {
                 cache.Valid = false;
@@ -262,7 +271,7 @@ namespace SuperZSNESDKCFramebufferRenderer
             // DKC commonly has a frame-start scroll latch on line 0, followed by
             // one stable value for lines 1..223. Keep that first output row exact
             // without letting it defeat retained reuse for the other 223 rows.
-            LineState first = _line[Math.Min(1, height - 1)];
+            LineState first = decodeState;
             int scrollX = GetScrollX(first, bg) & 0xFFFF;
             int scrollY = GetScrollY(first, bg) & 0xFFFF;
             byte bgsc = GetBgsc(first, bg);
@@ -322,12 +331,11 @@ namespace SuperZSNESDKCFramebufferRenderer
             int bucketY = TileBucket(scrollY);
             int mapBase = (bgsc & 0xFC) << 9;
             int mapLength = 2048 << (((bgsc & 3) == 3) ? 2 : ((bgsc & 3) == 0 ? 0 : 1));
-            int chrLength = bg == 2 ? 16384 : 32768;
             bool keyMatches = cache.Valid && cache.Bgsc == bgsc && cache.Bgmode == bgmode &&
                               cache.ChrBase == chrBase && cache.BucketX == bucketX &&
                               cache.BucketY == bucketY &&
                               CircularRangeEquals(vram, mapBase, mapLength, cache.MapSnapshot) &&
-                              CircularRangeEquals(vram, chrBase, chrLength, cache.ChrSnapshot);
+                              UsedTileGraphicsEqual(vram, cache, chrBase, decodeBits);
 
             cache.SampleX = guard + (scrollX & 7);
             cache.SampleY = guard + (scrollY & 7);
@@ -336,16 +344,16 @@ namespace SuperZSNESDKCFramebufferRenderer
                 return PrepareOutcome.Hit;
             }
 
-            for (int py = 0; py < planeHeight; py++)
+            BeginPlaneBuild(cache);
+            try
             {
-                int screenY = py - guard;
-                int row = py * planeWidth;
-                for (int px = 0; px < planeWidth; px++)
-                {
-                    int screenX = px - guard - leftExtension;
-                    cache.Pixels[row + px] = ReadBackgroundPixelAt(vram, first, bg,
-                        screenX, screenY, bucketX, bucketY);
-                }
+                FillUniformPlane(vram, first, bg, cache, planeWidth, planeHeight,
+                    guard, leftExtension, bucketX, bucketY, decodeBits, chrBase);
+                CommitPlaneBuild(vram, cache, chrBase, decodeBits);
+            }
+            finally
+            {
+                cache.RecordUsedTiles = false;
             }
 
             cache.Bgsc = bgsc;
@@ -354,7 +362,6 @@ namespace SuperZSNESDKCFramebufferRenderer
             cache.BucketX = bucketX;
             cache.BucketY = bucketY;
             SnapshotCircularRange(vram, mapBase, mapLength, ref cache.MapSnapshot);
-            SnapshotCircularRange(vram, chrBase, chrLength, ref cache.ChrSnapshot);
             cache.Valid = true;
             return PrepareOutcome.Miss;
         }
@@ -362,6 +369,225 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static double ElapsedMilliseconds(long started)
         {
             return (Stopwatch.GetTimestamp() - started) * 1000.0 / Stopwatch.Frequency;
+        }
+
+        private static void PrepareDecodedTileFrame(BackgroundCache cache, int chrBase, int bits)
+        {
+            int tileBytes = bits * 8;
+            if (cache.DecodedTiles == null || cache.DecodedTiles.Length != 1024 * 64)
+                cache.DecodedTiles = new byte[1024 * 64];
+            if (cache.DecodedTileSnapshot == null || cache.DecodedTileSnapshot.Length != 1024 * tileBytes)
+                cache.DecodedTileSnapshot = new byte[1024 * tileBytes];
+            if (cache.DecodedTileValid == null || cache.DecodedTileValid.Length != 1024)
+                cache.DecodedTileValid = new byte[1024];
+            if (cache.DecodedTileEpoch == null || cache.DecodedTileEpoch.Length != 1024)
+                cache.DecodedTileEpoch = new int[1024];
+
+            if (cache.DecodedChrBase != chrBase || cache.DecodedBits != bits)
+            {
+                Array.Clear(cache.DecodedTileValid, 0, cache.DecodedTileValid.Length);
+                cache.DecodedChrBase = chrBase;
+                cache.DecodedBits = bits;
+            }
+
+            if (cache.DecodeEpoch == int.MaxValue)
+            {
+                Array.Clear(cache.DecodedTileEpoch, 0, cache.DecodedTileEpoch.Length);
+                cache.DecodeEpoch = 1;
+            }
+            else
+            {
+                cache.DecodeEpoch++;
+            }
+        }
+
+        private int ReadDecodedTileColor(byte[] vram, BackgroundCache cache, int chrBase,
+            int tile, int bits, int x, int y, int bg)
+        {
+            if (!EnsureDecodedTile(vram, cache, chrBase, tile, bits, bg))
+                return DecodePlanar(vram, chrBase, tile, bits, x, y);
+
+            return cache.DecodedTiles[tile * 64 + y * 8 + x];
+        }
+
+        private bool EnsureDecodedTile(byte[] vram, BackgroundCache cache, int chrBase,
+            int tile, int bits, int bg)
+        {
+            if (tile < 0 || tile >= 1024 || cache.DecodedChrBase != chrBase ||
+                cache.DecodedBits != bits)
+                return false;
+
+            if (cache.DecodedTileEpoch[tile] != cache.DecodeEpoch)
+            {
+                cache.DecodedTileEpoch[tile] = cache.DecodeEpoch;
+                int tileBytes = bits * 8;
+                int address = (chrBase + tile * tileBytes) & 0xFFFF;
+                int snapshotOffset = tile * tileBytes;
+                bool unchanged = cache.DecodedTileValid[tile] != 0 &&
+                    TileRangeEquals(vram, address, cache.DecodedTileSnapshot,
+                        snapshotOffset, tileBytes);
+                if (!unchanged)
+                {
+                    int tileOffset = tile * 64;
+                    for (int py = 0; py < 8; py++)
+                    for (int px = 0; px < 8; px++)
+                        cache.DecodedTiles[tileOffset + py * 8 + px] =
+                            (byte)DecodePlanarAtAddress(vram, address, bits, px, py);
+                    SnapshotTileRange(vram, address, cache.DecodedTileSnapshot,
+                        snapshotOffset, tileBytes);
+                    cache.DecodedTileValid[tile] = 1;
+                    PerBgDecodedTileMisses[bg]++;
+                }
+                else
+                {
+                    PerBgDecodedTileHits[bg]++;
+                }
+            }
+            return true;
+        }
+
+        private void FillUniformPlane(byte[] vram, LineState state, int bg,
+            BackgroundCache cache, int planeWidth, int planeHeight, int guard,
+            int leftExtension, int bucketX, int bucketY, int bits, int chrBase)
+        {
+            byte bgsc = GetBgsc(state, bg);
+            bool size16 = ((state.Bgmode >> (4 + bg)) & 1) != 0;
+            int mapBase = (bgsc & 0xFC) << 9;
+
+            int py = 0;
+            while (py < planeHeight)
+            {
+                int worldY = py - guard + bucketY;
+                int tileY = FloorDiv8(worldY);
+                int pixelY = worldY & 7;
+                int rows = Math.Min(8 - pixelY, planeHeight - py);
+
+                int px = 0;
+                while (px < planeWidth)
+                {
+                    int worldX = px - guard - leftExtension + bucketX;
+                    int tileX = FloorDiv8(worldX);
+                    int pixelX = worldX & 7;
+                    int columns = Math.Min(8 - pixelX, planeWidth - px);
+                    int address = mapBase + GetTileAddress(tileX, tileY, bgsc, size16);
+                    int descriptor = vram[address & 0xFFFF] |
+                        (vram[(address + 1) & 0xFFFF] << 8);
+                    int tile = descriptor & 0x3FF;
+                    bool xflip = (descriptor & 0x4000) != 0;
+                    bool yflip = (descriptor & 0x8000) != 0;
+                    if (size16)
+                    {
+                        if (((tileX & 1) != 0) ^ xflip) tile++;
+                        if (((tileY & 1) != 0) ^ yflip) tile += 16;
+                    }
+
+                    if (tile >= 0 && tile < 1024) cache.BuildingUsedTiles[tile] = 1;
+                    else cache.BuildingUncacheableTile = true;
+                    bool decoded = EnsureDecodedTile(vram, cache, chrBase, tile, bits, bg);
+                    int palette = (descriptor >> 10) & 7;
+                    bool high = (descriptor & 0x2000) != 0;
+                    int priority = high ? BgHigh[bg] : BgLow[bg];
+                    if (bg == 2 && high && (state.Bgmode & 8) != 0) priority = 12;
+
+                    for (int dy = 0; dy < rows; dy++)
+                    {
+                        int sourceY = yflip ? 7 - (pixelY + dy) : pixelY + dy;
+                        int destinationRow = (py + dy) * planeWidth + px;
+                        for (int dx = 0; dx < columns; dx++)
+                        {
+                            int sourceX = xflip ? 7 - (pixelX + dx) : pixelX + dx;
+                            int color = decoded
+                                ? cache.DecodedTiles[tile * 64 + sourceY * 8 + sourceX]
+                                : DecodePlanar(vram, chrBase, tile, bits, sourceX, sourceY);
+                            if (color == 0)
+                            {
+                                cache.Pixels[destinationRow + dx] = default(LayerPixel);
+                                continue;
+                            }
+                            int paletteIndex = bits == 4 ? palette * 16 + color : palette * 4 + color;
+                            cache.Pixels[destinationRow + dx] = new LayerPixel((byte)paletteIndex,
+                                (byte)priority, (byte)bg, false, true);
+                        }
+                    }
+                    px += columns;
+                }
+                py += rows;
+            }
+        }
+
+        private static void BeginPlaneBuild(BackgroundCache cache)
+        {
+            if (cache.BuildingUsedTiles == null || cache.BuildingUsedTiles.Length != 1024)
+                cache.BuildingUsedTiles = new byte[1024];
+            if (cache.PlaneUsedTiles == null || cache.PlaneUsedTiles.Length != 1024)
+                cache.PlaneUsedTiles = new byte[1024];
+            Array.Clear(cache.BuildingUsedTiles, 0, cache.BuildingUsedTiles.Length);
+            cache.BuildingUncacheableTile = false;
+            cache.RecordUsedTiles = true;
+        }
+
+        private static void CommitPlaneBuild(byte[] vram, BackgroundCache cache,
+            int chrBase, int bits)
+        {
+            cache.RecordUsedTiles = false;
+            byte[] previous = cache.PlaneUsedTiles;
+            cache.PlaneUsedTiles = cache.BuildingUsedTiles;
+            cache.BuildingUsedTiles = previous;
+            cache.PlaneTilesCacheable = !cache.BuildingUncacheableTile;
+            cache.PlaneChrBase = chrBase;
+            cache.PlaneBits = bits;
+
+            int tileBytes = bits * 8;
+            int length = 1024 * tileBytes;
+            if (cache.ChrSnapshot == null || cache.ChrSnapshot.Length != length)
+                cache.ChrSnapshot = new byte[length];
+            for (int tile = 0; tile < 1024; tile++)
+            {
+                if (cache.PlaneUsedTiles[tile] == 0) continue;
+                int address = (chrBase + tile * tileBytes) & 0xFFFF;
+                SnapshotTileRange(vram, address, cache.ChrSnapshot,
+                    tile * tileBytes, tileBytes);
+            }
+        }
+
+        private static bool UsedTileGraphicsEqual(byte[] vram, BackgroundCache cache,
+            int chrBase, int bits)
+        {
+            if (!cache.PlaneTilesCacheable || cache.PlaneUsedTiles == null ||
+                cache.ChrSnapshot == null || cache.PlaneChrBase != chrBase ||
+                cache.PlaneBits != bits)
+                return false;
+            int tileBytes = bits * 8;
+            for (int tile = 0; tile < 1024; tile++)
+            {
+                if (cache.PlaneUsedTiles[tile] == 0) continue;
+                int address = (chrBase + tile * tileBytes) & 0xFFFF;
+                if (!TileRangeEquals(vram, address, cache.ChrSnapshot,
+                    tile * tileBytes, tileBytes)) return false;
+            }
+            return true;
+        }
+
+        private static bool TileRangeEquals(byte[] source, int sourceStart, byte[] snapshot,
+            int snapshotOffset, int length)
+        {
+            sourceStart &= 0xFFFF;
+            int first = Math.Min(length, 65536 - sourceStart);
+            if (!RangeEquals(source, sourceStart, snapshot, snapshotOffset, first)) return false;
+            int remainder = length - first;
+            return remainder <= 0 || RangeEquals(source, 0, snapshot,
+                snapshotOffset + first, remainder);
+        }
+
+        private static void SnapshotTileRange(byte[] source, int sourceStart, byte[] snapshot,
+            int snapshotOffset, int length)
+        {
+            sourceStart &= 0xFFFF;
+            int first = Math.Min(length, 65536 - sourceStart);
+            Buffer.BlockCopy(source, sourceStart, snapshot, snapshotOffset, first);
+            int remainder = length - first;
+            if (remainder > 0)
+                Buffer.BlockCopy(source, 0, snapshot, snapshotOffset + first, remainder);
         }
 
         private LayerPixel ReadPreparedBackgroundPixel(int bg, int x, int y)
@@ -483,15 +709,39 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static bool CircularRangeEquals(byte[] source, int start, int length, byte[] snapshot)
         {
             if (snapshot == null || snapshot.Length != length) return false;
-            for (int i = 0; i < length; i++)
-                if (source[(start + i) & 0xFFFF] != snapshot[i]) return false;
-            return true;
+            start &= 0xFFFF;
+            int first = Math.Min(length, 65536 - start);
+            if (!RangeEquals(source, start, snapshot, 0, first)) return false;
+            int remainder = length - first;
+            return remainder <= 0 || RangeEquals(source, 0, snapshot, first, remainder);
         }
 
         private static void SnapshotCircularRange(byte[] source, int start, int length, ref byte[] snapshot)
         {
             if (snapshot == null || snapshot.Length != length) snapshot = new byte[length];
-            for (int i = 0; i < length; i++) snapshot[i] = source[(start + i) & 0xFFFF];
+            start &= 0xFFFF;
+            int first = Math.Min(length, 65536 - start);
+            Buffer.BlockCopy(source, start, snapshot, 0, first);
+            int remainder = length - first;
+            if (remainder > 0) Buffer.BlockCopy(source, 0, snapshot, first, remainder);
+        }
+
+        private static unsafe bool RangeEquals(byte[] left, int leftOffset, byte[] right,
+            int rightOffset, int length)
+        {
+            if (length <= 0) return true;
+            fixed (byte* leftBase = left)
+            fixed (byte* rightBase = right)
+            {
+                byte* lp = leftBase + leftOffset;
+                byte* rp = rightBase + rightOffset;
+                int wide = length & ~7;
+                for (int i = 0; i < wide; i += 8)
+                    if (*(ulong*)(lp + i) != *(ulong*)(rp + i)) return false;
+                for (int i = wide; i < length; i++)
+                    if (lp[i] != rp[i]) return false;
+            }
+            return true;
         }
 
         private bool VerifyCanonicalRom(string loadedFilename)
@@ -681,7 +931,14 @@ namespace SuperZSNESDKCFramebufferRenderer
 
             int bits = bg == 2 ? 2 : 4;
             int chrBase = GetChrBase(state, bg);
-            int color = DecodePlanar(vram, chrBase, tile, bits, pixelX, pixelY);
+            BackgroundCache cache = _background[bg];
+            if (cache.RecordUsedTiles)
+            {
+                if (tile >= 0 && tile < 1024) cache.BuildingUsedTiles[tile] = 1;
+                else cache.BuildingUncacheableTile = true;
+            }
+            int color = ReadDecodedTileColor(vram, cache, chrBase, tile, bits,
+                pixelX, pixelY, bg);
             if (color == 0) return default(LayerPixel);
             int palette = (descriptor >> 10) & 7;
             int paletteIndex = bits == 4 ? palette * 16 + color : palette * 4 + color;
@@ -941,6 +1198,20 @@ namespace SuperZSNESDKCFramebufferRenderer
             internal byte Bgmode;
             internal byte[] MapSnapshot;
             internal byte[] ChrSnapshot;
+            internal byte[] DecodedTiles;
+            internal byte[] DecodedTileSnapshot;
+            internal byte[] DecodedTileValid;
+            internal int[] DecodedTileEpoch;
+            internal int DecodedChrBase;
+            internal int DecodedBits;
+            internal int DecodeEpoch;
+            internal byte[] PlaneUsedTiles;
+            internal byte[] BuildingUsedTiles;
+            internal int PlaneChrBase;
+            internal int PlaneBits;
+            internal bool PlaneTilesCacheable;
+            internal bool RecordUsedTiles;
+            internal bool BuildingUncacheableTile;
             internal int[] RasterState;
             internal byte[] RasterVramMask;
             internal byte[] RasterVramSnapshot;

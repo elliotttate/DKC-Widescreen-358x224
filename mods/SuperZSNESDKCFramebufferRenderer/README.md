@@ -45,3 +45,16 @@ The CPU implementation is the correctness reference. The next stage partitions B
 ## Accepted v0.3 timing result
 
 The same 25-second deterministic moving-camera sample improved from 72.167 Unity updates/s and 199 two-frame batches on v0.2 to 96.351 updates/s and one two-frame batch on v0.3. SNES emulation remained approximately 60 FPS. The v0.2 and v0.3 raw framebuffers at save-state frame 3372 are byte-identical; parallel background preparation changes only scheduling.
+
+## Accepted v0.4.2 tile-plane rebuild
+
+Millstone Mayhem exposed a remaining scrolling bottleneck. Each eight-pixel camera bucket miss rebuilt a 374x240 guarded background plane pixel-by-pixel, including repeated tilemap addressing and SNES planar extraction for every pixel. v0.4.2 now:
+
+- validates and decodes only the character tiles actually referenced by the retained visible plane;
+- ignores unrelated VRAM changes inside the broad nominal CHR range;
+- builds uniform planes one clipped 8x8 tile block at a time; and
+- compares contiguous VRAM snapshots eight bytes at a time while retaining circular-wrap semantics.
+
+The exact 1,800-frame Millstone left/right macro improved from 86-90 Unity updates/s on v0.3.1 to 119.4-119.7 updates/s on v0.4.2. Every full v0.4.2 window ran at about 60 emulated FPS with zero updates that consumed two or more SNES frames. Background preparation fell from about 4.27 ms to 0.31 ms per rendered frame, and total framebuffer work fell from about 7.5 ms to 3.2 ms. A saved Millstone frame before and after the rewrite is byte-identical (`SHA-256 6C69F18BCC6B0F7ACB78E68F85B70118BDC894284AD40AD0B89C91F5D115F8A6`).
+
+The installed v0.4.2 DLL used for that result has SHA-256 `BDD6029BBC138B234E02F5888BAF62F8AD020FD42850C862AE06F0E8F32F12D2`. A rejected v0.4.0 prototype decoded all 1,024 tiles whenever any byte in a nominal CHR range changed; DKC stores unrelated streamed data in portions of those ranges, so that version rebuilt atlases unnecessarily and was superseded by per-tile validation.
