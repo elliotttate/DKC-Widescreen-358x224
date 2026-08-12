@@ -49,6 +49,7 @@ coverage and its validated IDA database. Relevant current native entry points:
 | Tile-material and draw-loop dictionary rewrites | **Not ported** | Old controlled runs showed no benefit or visual risk. Supported framebuffer frames bypass those paths. |
 | Mesh bounds, material scratch pools, and 128-OBJ loop | **Not ported** | These target the legacy renderer that supported framebuffer frames skip. The OBJ correction is less than 1% of one loop and is not a multi-Hz fix. |
 | Old stock-background cache | **Superseded** | The framebuffer renderer owns exact background planes, so it can safely retain them without the shared Unity mesh-pool hazards of the old cache. |
+| Scroll-only raster row refresh | **Accepted** | Slow-event attribution found BG2's line-81 scroll band rebuilding all 224 rows every four frames. Exact row refresh reduced the background stage 63.9% and complete framebuffer work 16.2% across two long trials. |
 
 ## Benchmark results
 
@@ -75,6 +76,26 @@ renderer-native total for those rows.
 The cache-on runs recorded 2,134.5 background hits and 565.5 misses on average,
 or a 79.1% hit rate. This reduced the framebuffer background stage from 1.933
 to 0.976 ms (49.5%) and the renderer's total from 5.700 to 4.583 ms (19.6%).
+
+### Scroll-only raster-effect follow-up
+
+Bounded slow-event telemetry showed that unsupported-mode fallback was almost
+entirely a single startup/menu burst and was not the gameplay stutter source.
+The recurring slow gameplay updates instead aligned with BG2 raster rebuilds
+every four frames. At line 81, DKC changes BG2 horizontal scroll from its
+animated upper-band value to zero; the retained renderer conservatively rebuilt
+all 224 rows whenever that upper value advanced.
+
+IL2CPP renderer v0.1.3 (Mono v0.4.8) refreshes only rows whose X/Y scroll
+changed when relevant VRAM is byte-identical and BGSC, BGMODE, and character
+base are unchanged. Any other change takes the original full rebuild. Across
+two long before/after trials, average background work fell from 0.9041 to
+0.3265 ms (-63.9%), complete framebuffer work from 4.3574 to 3.6507 ms
+(-16.2%), and Unity Update from 6.2920 to 5.5456 ms (-11.9%). In both accepted
+runs, 700 of 715 raster-effect rebuilds used the partial path. The executable
+fixture compares every prepared pixel against a clean full rebuild and verifies
+that a relevant VRAM write rejects the shortcut. Reviewed data is in
+[`raster-partial-results.json`](benchmarks/v0300/raster-partial-results.json).
 
 ### Native atlas follow-up
 
@@ -158,3 +179,5 @@ The full reviewed aggregate is preserved in
 5. Expand the deterministic benchmark suite to one fade-heavy scene, one
    fallback frame sequence, one Mode 7 scene, and a long memory soak before a
    binary release.
+6. Keep the accepted scroll-only raster row refresh enabled; use its bounded
+   slow-event ring to identify the next recurring background/composition spike.

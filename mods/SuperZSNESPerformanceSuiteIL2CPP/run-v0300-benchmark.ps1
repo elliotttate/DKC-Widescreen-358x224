@@ -195,6 +195,9 @@ try {
             fallbackFrames = [long]$endRenderer.fallbackFrames - [long]$startRenderer.fallbackFrames
             backgroundCacheHits = [long]$endRenderer.backgroundCacheHits - [long]$startRenderer.backgroundCacheHits
             backgroundCacheMisses = [long]$endRenderer.backgroundCacheMisses - [long]$startRenderer.backgroundCacheMisses
+            rasterEffectRebuilds = [long]$endRenderer.rasterEffectRebuilds - [long]$startRenderer.rasterEffectRebuilds
+            rasterPartialRebuilds = [long]$endRenderer.rasterPartialRebuilds - [long]$startRenderer.rasterPartialRebuilds
+            rasterPartialRows = [long]$endRenderer.rasterPartialRows - [long]$startRenderer.rasterPartialRows
             averageRenderMs = [double]$endRenderer.averageRenderMs
             averageBackgroundMs = [double]$endRenderer.stageAverageMs.backgrounds
             maxRenderMs = [double]$endRenderer.maxRenderMs

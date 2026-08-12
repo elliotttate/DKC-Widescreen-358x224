@@ -883,3 +883,40 @@ These differences are smaller than trial noise, so the native correction has
 no measurable performance benefit in the tested DKC workload. It remains a
 disabled reference/correctness implementation, is disabled again in the
 disposable copy, and was not installed into the production v0.300 directory.
+
+## 2026-08-12 v0.300 gameplay-spike attribution and raster-row optimization
+
+Fallback telemetry was measured over a 65-second v0.300 launch/gameplay run.
+The 655 fallback frames formed essentially one 649-frame startup/menu burst.
+Mode 5 accounted for 315 frames (1.817 ms average stock renderer), Mode 3 for
+225 (0.899 ms), Mode 7 for 47 (0.478 ms), Mode 0 for 40, active-display VRAM
+writes for 27, and a mid-frame OAM write for one. The maximum measured stock
+fallback was 8.603 ms. Extending the CPU framebuffer to these modes was rejected
+as the next performance task: the burst is not normal gameplay, every fallback
+was under one 16.7 ms frame budget, and the plugin compositor is usually more
+expensive than these stock paths.
+
+Performance suite v0.1.2 and renderer diagnostic v0.1.2 added bounded slow-event
+rings. They retain only slow RunFrame/Update calls and supported framebuffer
+renders, with frame/video/dirty context and line/background/sprite/composition
+stage deltas. This exposed a recurring four-frame rhythm: BG2's line-81
+horizontal-scroll raster effect invalidated a full 224-row plane whenever its
+animated upper-band scroll advanced.
+
+Renderer v0.4.8 / IL2CPP v0.1.3 now performs a strict scroll-only partial
+refresh. It first proves relevant VRAM byte-identical and every row's BGSC,
+BGMODE, and CHR base unchanged; it then redraws only rows whose X/Y scroll
+changed. All other cases retain the full path. The emulator-free verifier
+compares every resulting pixel with a clean full raster rebuild and proves a
+relevant map write forces the full path. Builds complete with zero warnings or
+errors and the complete v0.230 rasterizer verifier passes.
+
+Two long trials per side measured background preparation 0.9041 -> 0.3265 ms
+(-63.9%), complete framebuffer rendering 4.3574 -> 3.6507 ms (-16.2%), average
+Unity Update 6.2920 -> 5.5456 ms (-11.9%), and multi-RunFrame Update share
+0.717% -> 0.222%. Both accepted runs used partial refresh on 700 of 715 raster
+effects (65,216 rows rather than 156,800 rows). Final IL2CPP DLL SHA-256 is
+`07450217A493CB4CBEE2086B4FD804D59A1479A589B317DC3D626ED898194067`.
+It was installed into the closed production v0.300 copy without altering its
+existing widescreen configuration. Reviewed aggregates are in
+`docs/benchmarks/v0300/raster-partial-results.json`.

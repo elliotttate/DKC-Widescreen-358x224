@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine;
 
 namespace SuperZSNESPerformanceSuiteIL2CPP
@@ -19,7 +21,7 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
     {
         public const string PluginGuid = "dev.local.superzsnes.performance.il2cpp";
         public const string PluginName = "SuperZSNES Performance Suite IL2CPP";
-        public const string PluginVersion = "0.1.1";
+        public const string PluginVersion = "0.1.2";
 
         private Harmony _harmony;
 
@@ -43,6 +45,8 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
                 "Test-only: inject one stall after this many Update calls; zero disables it.");
             ConfigEntry<int> injectMilliseconds = Config.Bind("Diagnostics", "InjectStallMilliseconds", 0,
                 "Test-only stall duration. Leave zero outside a controlled scheduler test.");
+            ConfigEntry<double> slowEventThreshold = Config.Bind("Diagnostics", "SlowEventThresholdMs", 8.0,
+                "Record bounded diagnostics for RunFrame/Update calls at or above this duration.");
             Config.Save();
 
             if (!enabled.Value)
@@ -57,6 +61,7 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
                 Math.Max(30, statusEvery.Value), recoverBacklog.Value,
                 Math.Max(0, maxBacklog.Value), disableHistory.Value, disableRewind.Value,
                 gateAtlas.Value, Math.Max(0, injectAfter.Value), Math.Max(0, injectMilliseconds.Value));
+            PerformanceState.SetSlowEventThreshold(Math.Max(1.0, slowEventThreshold.Value));
 
             try
             {
@@ -137,9 +142,9 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
             PerformanceState.BeginRunFrame();
         }
 
-        internal static void RunFramePostfix()
+        internal static void RunFramePostfix(MasterExecutor __instance)
         {
-            PerformanceState.EndRunFrame();
+            PerformanceState.EndRunFrame(__instance);
         }
 
         internal static void GenerateBackgroundsPrefix()
@@ -178,6 +183,9 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
         private static MainMenuManager.MainMenuSettings _guardedSettings;
         private static bool _savedHistoryDisabled;
         private static bool _savedRewindDisabled;
+        private static double _slowEventThresholdMs = 8.0;
+        private static readonly List<SlowRunFrameEvent> SlowRunFrameEvents = new List<SlowRunFrameEvent>();
+        private static readonly List<SlowUpdateEvent> SlowUpdateEvents = new List<SlowUpdateEvent>();
 
         internal static long Updates;
         internal static long RunFrames;
@@ -213,6 +221,13 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
             _injectAfterUpdates = injectAfterUpdates;
             _injectMilliseconds = injectMilliseconds;
             _stallRequestPath = Path.Combine(Path.GetDirectoryName(statusPath) ?? string.Empty, "stall.request");
+        }
+
+        internal static void SetSlowEventThreshold(double value)
+        {
+            _slowEventThresholdMs = value;
+            SlowRunFrameEvents.Clear();
+            SlowUpdateEvents.Clear();
         }
 
         internal static void BeginUpdate(MasterExecutor executor)
@@ -264,6 +279,8 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
             MaxUpdateMilliseconds = Math.Max(MaxUpdateMilliseconds, elapsed);
             int bucket = Math.Min(Math.Max(_runsThisUpdate, 0), RunHistogram.Length - 1);
             RunHistogram[bucket]++;
+            if (elapsed >= _slowEventThresholdMs)
+                AddSlowUpdate(executor, elapsed);
             if ((Updates % _statusEvery) == 0) WriteStatus("active");
         }
 
@@ -273,12 +290,107 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
             if (_insideUpdate) _runsThisUpdate++;
         }
 
-        internal static void EndRunFrame()
+        internal static void EndRunFrame(MasterExecutor executor)
         {
             double elapsed = Milliseconds(Stopwatch.GetTimestamp() - _runFrameStart);
             RunFrames++;
             RunFrameMilliseconds += elapsed;
             MaxRunFrameMilliseconds = Math.Max(MaxRunFrameMilliseconds, elapsed);
+            if (elapsed >= _slowEventThresholdMs)
+                AddSlowRunFrame(executor, elapsed);
+        }
+
+        private static void AddSlowUpdate(MasterExecutor executor, double elapsed)
+        {
+            SlowUpdateEvent item = new SlowUpdateEvent
+            {
+                Update = Updates,
+                Frame = SafeFrameNo(executor),
+                Milliseconds = elapsed,
+                DeltaTimeMs = Time.deltaTime * 1000.0,
+                AccumulatedMs = (executor?._accumulatedDT ?? 0f) * 1000.0,
+                RunFrames = _runsThisUpdate
+            };
+            AddSlowestUpdate(item, 64);
+        }
+
+        private static void AddSlowRunFrame(MasterExecutor executor, double elapsed)
+        {
+            int mode = -1;
+            int ppuChanges = -1;
+            int cgramChanges = -1;
+            int dirty2 = -1;
+            int dirty4 = -1;
+            int dirty8 = -1;
+            try
+            {
+                SNESPPU ppu = executor?.CorePPU;
+                if (ppu != null)
+                {
+                    mode = ppu._ppuStartFrame != null && ppu._ppuStartFrame.Length > 5
+                        ? ppu._ppuStartFrame[5] & 7 : -1;
+                    ppuChanges = ppu._curPPUChangeIdx;
+                    cgramChanges = ppu._cgChangeIdx;
+                    dirty2 = CountNonZero(ppu._dirty2bpp);
+                    dirty4 = CountNonZero(ppu._dirty4bpp);
+                    dirty8 = CountNonZero(ppu._dirty8bpp);
+                }
+            }
+            catch
+            {
+                Errors++;
+            }
+            SlowRunFrameEvent item = new SlowRunFrameEvent
+            {
+                RunFrame = RunFrames,
+                Update = Updates + (_insideUpdate ? 1 : 0),
+                Frame = SafeFrameNo(executor),
+                Milliseconds = elapsed,
+                Mode = mode,
+                PpuChanges = ppuChanges,
+                CgramChanges = cgramChanges,
+                Dirty2 = dirty2,
+                Dirty4 = dirty4,
+                Dirty8 = dirty8,
+                Overscan = executor?.IsOverscan ?? false
+            };
+            AddBounded(SlowRunFrameEvents, item, 64);
+        }
+
+        private static int CountNonZero(Il2CppStructArray<byte> values)
+        {
+            if (values == null) return -1;
+            int count = 0;
+            for (int i = 0; i < values.Length; i++)
+                if (values[i] != 0) count++;
+            return count;
+        }
+
+        private static long SafeFrameNo(MasterExecutor executor)
+        {
+            try { return executor?.GetFrameNo() ?? -1; }
+            catch { return -1; }
+        }
+
+        private static void AddBounded<T>(List<T> values, T item, int maximum)
+        {
+            if (values.Count >= maximum) values.RemoveAt(0);
+            values.Add(item);
+        }
+
+        private static void AddSlowestUpdate(SlowUpdateEvent item, int maximum)
+        {
+            if (SlowUpdateEvents.Count < maximum)
+            {
+                SlowUpdateEvents.Add(item);
+                return;
+            }
+            int minimumIndex = 0;
+            for (int i = 1; i < SlowUpdateEvents.Count; i++)
+                if (SlowUpdateEvents[i].Milliseconds < SlowUpdateEvents[minimumIndex].Milliseconds)
+                    minimumIndex = i;
+            if (item.Milliseconds > SlowUpdateEvents[minimumIndex].Milliseconds)
+                SlowUpdateEvents[minimumIndex] = item;
         }
 
         internal static void BeginPresentation()
@@ -350,7 +462,7 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
                 double updateDivisor = Updates == 0 ? 1 : Updates;
                 double frameDivisor = RunFrames == 0 ? 1 : RunFrames;
                 double presentationDivisor = Presentations == 0 ? 1 : Presentations;
-                StringBuilder json = new StringBuilder(1200);
+                StringBuilder json = new StringBuilder(8192);
                 json.Append('{');
                 Append(json, "version", PerformanceSuitePlugin.PluginVersion).Append(',');
                 Append(json, "state", state).Append(',');
@@ -368,6 +480,7 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
                 Append(json, "maxRunFrameMs", MaxRunFrameMilliseconds).Append(',');
                 Append(json, "maxPresentationMs", MaxPresentationMilliseconds).Append(',');
                 Append(json, "maxUpdateGapMs", MaxUpdateGapMilliseconds).Append(',');
+                Append(json, "slowEventThresholdMs", _slowEventThresholdMs).Append(',');
                 json.Append("\"runFramesPerUpdate\":[");
                 for (int i = 0; i < RunHistogram.Length; i++)
                 {
@@ -388,6 +501,8 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
                 Append(json, "privateBytes", process.PrivateMemorySize64).Append(',');
                 Append(json, "qualityVSyncCount", QualitySettings.vSyncCount).Append(',');
                 Append(json, "targetFrameRate", Application.targetFrameRate).Append(',');
+                json.Append("\"slowRunFrameEvents\":").Append(SlowRunFrameEventsJson()).Append(',');
+                json.Append("\"slowUpdateEvents\":").Append(SlowUpdateEventsJson()).Append(',');
                 Append(json, "errors", Errors).Append(',');
                 Append(json, "error", error);
                 json.Append('}');
@@ -438,6 +553,74 @@ namespace SuperZSNESPerformanceSuiteIL2CPP
         private static double Milliseconds(long ticks)
         {
             return ticks * 1000.0 / Frequency;
+        }
+
+        private static string SlowRunFrameEventsJson()
+        {
+            StringBuilder json = new StringBuilder("[");
+            for (int i = 0; i < SlowRunFrameEvents.Count; i++)
+            {
+                if (i != 0) json.Append(',');
+                SlowRunFrameEvent item = SlowRunFrameEvents[i];
+                json.Append('{');
+                Append(json, "runFrame", item.RunFrame).Append(',');
+                Append(json, "update", item.Update).Append(',');
+                Append(json, "frame", item.Frame).Append(',');
+                Append(json, "milliseconds", item.Milliseconds).Append(',');
+                Append(json, "mode", item.Mode).Append(',');
+                Append(json, "ppuChanges", item.PpuChanges).Append(',');
+                Append(json, "cgramChanges", item.CgramChanges).Append(',');
+                Append(json, "dirty2bpp", item.Dirty2).Append(',');
+                Append(json, "dirty4bpp", item.Dirty4).Append(',');
+                Append(json, "dirty8bpp", item.Dirty8).Append(',');
+                Append(json, "overscan", item.Overscan);
+                json.Append('}');
+            }
+            return json.Append(']').ToString();
+        }
+
+        private static string SlowUpdateEventsJson()
+        {
+            StringBuilder json = new StringBuilder("[");
+            for (int i = 0; i < SlowUpdateEvents.Count; i++)
+            {
+                if (i != 0) json.Append(',');
+                SlowUpdateEvent item = SlowUpdateEvents[i];
+                json.Append('{');
+                Append(json, "update", item.Update).Append(',');
+                Append(json, "frame", item.Frame).Append(',');
+                Append(json, "milliseconds", item.Milliseconds).Append(',');
+                Append(json, "deltaTimeMs", item.DeltaTimeMs).Append(',');
+                Append(json, "accumulatedMs", item.AccumulatedMs).Append(',');
+                Append(json, "runFrames", item.RunFrames);
+                json.Append('}');
+            }
+            return json.Append(']').ToString();
+        }
+
+        private sealed class SlowRunFrameEvent
+        {
+            internal long RunFrame;
+            internal long Update;
+            internal long Frame;
+            internal double Milliseconds;
+            internal int Mode;
+            internal int PpuChanges;
+            internal int CgramChanges;
+            internal int Dirty2;
+            internal int Dirty4;
+            internal int Dirty8;
+            internal bool Overscan;
+        }
+
+        private sealed class SlowUpdateEvent
+        {
+            internal long Update;
+            internal long Frame;
+            internal double Milliseconds;
+            internal double DeltaTimeMs;
+            internal double AccumulatedMs;
+            internal int RunFrames;
         }
     }
 

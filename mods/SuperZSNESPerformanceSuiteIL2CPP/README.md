@@ -36,6 +36,7 @@ Configuration:
 [Diagnostics]
 Enabled = false
 StatusEveryUpdates = 120
+SlowEventThresholdMs = 8.0
 InjectStallAfterUpdates = 0
 InjectStallMilliseconds = 0
 
@@ -54,7 +55,9 @@ enables the six-site native correction, and verifies its runtime status before
 sampling. Four matched trials found no measurable presentation improvement, so
 the native plugin also remains disabled outside controlled tests.
 
-`status.json` reports Update, RunFrame, and presentation totals/timings; the
+`status.json` reports Update, RunFrame, and presentation totals/timings; bounded
+`slowRunFrameEvents` and `slowUpdateEvents` rings include video-mode/change/dirty
+tile context only for calls at or above `SlowEventThresholdMs`; the
 0/1/2/3/4/5/6+ RunFrame-per-Update histogram; backlog recovery batches and
 cumulative retained-backlog frame charges; service-guard activity; atlas
 suppression; memory; VSync/target frame rate; and hook errors. A retained frame

@@ -44,6 +44,22 @@ v0.300 startup runs, it reduced the background stage from 2.5847 ms to
 (10.3%), with a 77.41% per-layer cache-hit rate. This cache is part of this
 renderer and is independent of the old v0.230 Mono performance plugins.
 
+## Slow-event attribution and partial raster rows (v0.1.3)
+
+v0.1.2 added bounded diagnostics for supported renders at or above 8 ms. The
+stage breakdown identified BG2's line-81 horizontal-scroll effect as a
+four-frame recurring full-plane rebuild. v0.1.3 keeps the exact retained state
+but refreshes only rows whose scroll changed when relevant VRAM is byte-equal
+and BGSC, BGMODE, and CHR base are unchanged. Every other case still performs
+the full build.
+
+Two 60-second trials per side measured average background preparation at
+0.9041 ms before and 0.3265 ms after (-63.9%), with total framebuffer work at
+4.3574 versus 3.6507 ms (-16.2%). The verifier compares the partial plane with
+a clean full build pixel-for-pixel and confirms a relevant VRAM write rejects
+the fast path. `status.json` reports `rasterPartialRebuilds`,
+`rasterPartialRows`, and bounded `slowRenderEvents` evidence.
+
 Install into a closed disposable copy and explicitly arm presentation:
 
 ```powershell

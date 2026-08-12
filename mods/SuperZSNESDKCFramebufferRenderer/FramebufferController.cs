@@ -45,6 +45,7 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static int _maxFallbackStreak;
         private static int _currentReasonStreak;
         private static string _currentFallbackReason = string.Empty;
+        private static readonly List<SlowRenderEvent> SlowRenderEvents = new List<SlowRenderEvent>();
 #if !IL2CPP
         private static readonly FieldInfo TransferMaterialUsed = AccessTools.Field(typeof(MainScreenBlit), "_transferMaterialUsed");
 #endif
@@ -85,6 +86,12 @@ namespace SuperZSNESDKCFramebufferRenderer
                 return BeginFallback(renderer, "active-display-vram-write");
 
             EnsureSurface();
+            double lineStateBefore = _rasterizer.LineStateMs;
+            double backgroundsBefore = _rasterizer.BackgroundMs;
+            double spritesBefore = _rasterizer.SpriteMs;
+            double compositeBefore = _rasterizer.CompositeMs;
+            long cacheHitsBefore = _rasterizer.BackgroundCacheHits;
+            long cacheMissesBefore = _rasterizer.BackgroundCacheMisses;
             Stopwatch stopwatch = Stopwatch.StartNew();
             bool ok;
             string reason;
@@ -108,6 +115,9 @@ namespace SuperZSNESDKCFramebufferRenderer
             _renderedFrames++;
             _totalMs += ms;
             if (ms > _maxMs) _maxMs = ms;
+            if (ms >= 8.0)
+                AddSlowRender(ms, lineStateBefore, backgroundsBefore, spritesBefore,
+                    compositeBefore, cacheHitsBefore, cacheMissesBefore);
             bool endedFallbackStreak = _currentFallbackStreak > 0;
             ResetFallbackStreak();
             _lastFallback = string.Empty;
@@ -295,6 +305,27 @@ namespace SuperZSNESDKCFramebufferRenderer
             _currentReasonStreak = 0;
             _currentFallbackReason = string.Empty;
             FallbackMetrics.Clear();
+            SlowRenderEvents.Clear();
+        }
+
+        private static void AddSlowRender(double milliseconds, double lineStateBefore,
+            double backgroundsBefore, double spritesBefore, double compositeBefore,
+            long cacheHitsBefore, long cacheMissesBefore)
+        {
+            if (SlowRenderEvents.Count >= 32) SlowRenderEvents.RemoveAt(0);
+            SlowRenderEvents.Add(new SlowRenderEvent
+            {
+                FrameCall = _frameCalls,
+                Milliseconds = milliseconds,
+                LineStateMs = _rasterizer.LineStateMs - lineStateBefore,
+                BackgroundMs = _rasterizer.BackgroundMs - backgroundsBefore,
+                SpriteMs = _rasterizer.SpriteMs - spritesBefore,
+                CompositeMs = _rasterizer.CompositeMs - compositeBefore,
+                RebuiltLayers = _rasterizer.LastRebuiltLayers,
+                CacheHits = _rasterizer.BackgroundCacheHits - cacheHitsBefore,
+                CacheMisses = _rasterizer.BackgroundCacheMisses - cacheMissesBefore,
+                RasterEffect = _rasterizer.LastRasterEffect ?? string.Empty
+            });
         }
 
         private static void EnsureSurface()
@@ -402,9 +433,9 @@ namespace SuperZSNESDKCFramebufferRenderer
             double stageDivisor = stageFrames == 0 ? 1 : stageFrames;
             string json = "{" +
 #if IL2CPP
-                          "\"version\":\"0.1.1-il2cpp\"," +
+                          "\"version\":\"0.1.3-il2cpp\"," +
 #else
-                          "\"version\":\"0.4.6\"," +
+                          "\"version\":\"0.4.8\"," +
 #endif
                           "\"state\":\"" + Escape(state) + "\"," +
                           "\"present\":" + ((_present != null && _present.Value) ? "true" : "false") + "," +
@@ -421,6 +452,8 @@ namespace SuperZSNESDKCFramebufferRenderer
                           "\"backgroundCacheHits\":" + (_rasterizer?.BackgroundCacheHits ?? 0) + "," +
                           "\"backgroundCacheMisses\":" + (_rasterizer?.BackgroundCacheMisses ?? 0) + "," +
                           "\"rasterEffectRebuilds\":" + (_rasterizer?.RasterEffectRebuilds ?? 0) + "," +
+                          "\"rasterPartialRebuilds\":" + (_rasterizer?.RasterPartialRebuilds ?? 0) + "," +
+                          "\"rasterPartialRows\":" + (_rasterizer?.RasterPartialRows ?? 0) + "," +
                           "\"fixedNativePillarboxFrames\":" + (_rasterizer?.FixedNativePillarboxFrames ?? 0) + "," +
                           "\"fixedNativePillarboxActive\":" + ((_rasterizer?.FixedNativePillarboxActive ?? false) ? "true" : "false") + "," +
                           "\"lastRebuiltLayers\":" + (_rasterizer?.LastRebuiltLayers ?? 0) + "," +
@@ -436,6 +469,7 @@ namespace SuperZSNESDKCFramebufferRenderer
                           "\"sprites\":" + Number((_rasterizer?.SpriteMs ?? 0) / stageDivisor) + "," +
                           "\"composite\":" + Number((_rasterizer?.CompositeMs ?? 0) / stageDivisor) + "}," +
                           "\"lastRasterEffect\":\"" + Escape(_rasterizer?.LastRasterEffect) + "\"," +
+                          "\"slowRenderEvents\":" + SlowRenderEventsJson() + "," +
                           "\"lineDiagnostics\":" + (_rasterizer?.LineDiagnosticsJson ?? "[]") + "," +
                           "\"averageRenderMs\":" + average.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) + "," +
                           "\"maxRenderMs\":" + _maxMs.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) + "," +
@@ -462,6 +496,26 @@ namespace SuperZSNESDKCFramebufferRenderer
                             "\"averageStockRendererMs\":" + Number(average) + "," +
                             "\"maxStockRendererMs\":" + Number(metric.MaxRendererMs) + "," +
                             "\"maxConsecutiveFrames\":" + metric.MaxConsecutiveFrames + "}";
+            }
+            return "[" + string.Join(",", values) + "]";
+        }
+
+        private static string SlowRenderEventsJson()
+        {
+            string[] values = new string[SlowRenderEvents.Count];
+            for (int i = 0; i < SlowRenderEvents.Count; i++)
+            {
+                SlowRenderEvent item = SlowRenderEvents[i];
+                values[i] = "{\"frameCall\":" + item.FrameCall + "," +
+                            "\"milliseconds\":" + Number(item.Milliseconds) + "," +
+                            "\"lineStateMs\":" + Number(item.LineStateMs) + "," +
+                            "\"backgroundMs\":" + Number(item.BackgroundMs) + "," +
+                            "\"spriteMs\":" + Number(item.SpriteMs) + "," +
+                            "\"compositeMs\":" + Number(item.CompositeMs) + "," +
+                            "\"rebuiltLayers\":" + item.RebuiltLayers + "," +
+                            "\"cacheHits\":" + item.CacheHits + "," +
+                            "\"cacheMisses\":" + item.CacheMisses + "," +
+                            "\"rasterEffect\":\"" + Escape(item.RasterEffect) + "\"}";
             }
             return "[" + string.Join(",", values) + "]";
         }
@@ -497,6 +551,20 @@ namespace SuperZSNESDKCFramebufferRenderer
             internal double RendererMs;
             internal double MaxRendererMs;
             internal int MaxConsecutiveFrames;
+        }
+
+        private sealed class SlowRenderEvent
+        {
+            internal int FrameCall;
+            internal double Milliseconds;
+            internal double LineStateMs;
+            internal double BackgroundMs;
+            internal double SpriteMs;
+            internal double CompositeMs;
+            internal int RebuiltLayers;
+            internal long CacheHits;
+            internal long CacheMisses;
+            internal string RasterEffect;
         }
     }
 }

@@ -20,10 +20,11 @@ internal static class Program
             TestStockPaletteExpansion(rasterizer);
             TestCachePrimitives(rasterizer);
             TestDecodedTileAtlas(rasterizer);
+            TestRasterPartialModel(rasterizer);
             TestFixedNativePillarbox(rasterizer);
             TestFallbackTelemetry(plugin);
             TestRuntimeShape();
-            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache primitives, fixed-native pillarbox, fallback telemetry, and v0.230 patch targets.");
+            Console.WriteLine("PASS: planar decode, decoded-tile atlas, tilemap addressing, SNES and legacy-shader color math, window regions, retained-cache and raster-partial equivalence, fixed-native pillarbox, fallback telemetry, and v0.230 patch targets.");
             return 0;
         }
         catch (Exception exception)
@@ -121,6 +122,13 @@ internal static class Program
         source[0] = 5;
         Require(!(bool)equal.Invoke(null, new object[] { source, 65534, 4, snapshot }),
             "circular VRAM change invalidation");
+    }
+
+    private static void TestRasterPartialModel(Type type)
+    {
+        MethodInfo test = Required(type, "RasterPartialModelSelfTest");
+        Require((bool)test.Invoke(null, null),
+            "scroll-only raster partial refresh must equal a clean full rebuild and reject changed VRAM");
     }
 
     private static void TestStockPaletteExpansion(Type type)

@@ -81,6 +81,17 @@ on every fallback frame; status is sampled at burst boundaries and every 120
 fallback frames instead. The same instrumentation is shared with the v0.300
 IL2CPP port.
 
+v0.4.7 (IL2CPP v0.1.2) also retains the last 32 supported framebuffer renders
+at or above 8 ms. Each event breaks the cost into line-state, background,
+sprite, and composition stages and records cache activity/rebuilt layers, so a
+rare spike can be diagnosed without instrumenting every frame.
+
+v0.4.8 (IL2CPP v0.1.3) uses that evidence to optimize scroll-only raster
+effects. When a retained raster plane has identical relevant VRAM, tilemap,
+character base, and mode, only scanlines whose X/Y scroll changed are rebuilt.
+Any other state or memory change still takes the exact full rebuild path.
+`rasterPartialRebuilds` and `rasterPartialRows` expose the accepted fast path.
+
 ## Deluxe MSU-1 ROM identity in v0.4.5
 
 v0.4.5 adds the reproducible widescreen + Deluxe MSU-1 ROM hash to the same

@@ -48,6 +48,8 @@ namespace SuperZSNESDKCFramebufferRenderer
         internal long BackgroundCacheHits { get; private set; }
         internal long BackgroundCacheMisses { get; private set; }
         internal long RasterEffectRebuilds { get; private set; }
+        internal long RasterPartialRebuilds { get; private set; }
+        internal long RasterPartialRows { get; private set; }
         internal int LastRebuiltLayers { get; private set; }
         internal readonly long[] PerBgHits = new long[3];
         internal readonly long[] PerBgMisses = new long[3];
@@ -332,7 +334,18 @@ namespace SuperZSNESDKCFramebufferRenderer
                         RasterEffectRebuilds++;
                         PerBgRasterRebuilds[bg]++;
                         LastRebuiltLayers++;
-                        LastRasterEffect = "BG" + (bg + 1) + "-line" + _prepareDifferingLines[bg];
+                        LastRasterEffect = DescribeRasterEffect(bg, _prepareDifferingLines[bg]);
+                        break;
+                    case PrepareOutcome.RasterPartial:
+                        BackgroundCacheMisses++;
+                        PerBgMisses[bg]++;
+                        RasterEffectRebuilds++;
+                        RasterPartialRebuilds++;
+                        RasterPartialRows += _background[bg].LastPartialRows;
+                        PerBgRasterRebuilds[bg]++;
+                        LastRebuiltLayers++;
+                        LastRasterEffect = DescribeRasterEffect(bg, _prepareDifferingLines[bg]) +
+                            "-partialRows" + _background[bg].LastPartialRows;
                         break;
                     case PrepareOutcome.CacheDisabled:
                         RasterEffectRebuilds++;
@@ -407,18 +420,17 @@ namespace SuperZSNESDKCFramebufferRenderer
                 cache.FirstLineDirect = false;
                 cache.SampleX = guard;
                 cache.SampleY = guard;
-                if (cache.RasterValid && RasterStateEquals(cache, bg, height) &&
-                    MaskedVramEquals(vram, cache.RasterVramMask, cache.RasterVramSnapshot))
+                cache.LastPartialRows = 0;
+                if (cache.RasterValid &&
+                    TryRefreshRasterScrollRows(vram, cache, bg, width, height,
+                        leftExtension, guard, out int changedRows))
                 {
-                    return PrepareOutcome.Hit;
+                    cache.LastPartialRows = changedRows;
+                    return changedRows == 0 ? PrepareOutcome.Hit : PrepareOutcome.RasterPartial;
                 }
                 for (int y = 0; y < height; y++)
                 {
-                    LineState state = _line[y];
-                    int row = (y + guard) * planeWidth + guard;
-                    for (int x = 0; x < width; x++)
-                        cache.Pixels[row + x] = ReadBackgroundPixel(vram, state, bg,
-                            x - leftExtension, y);
+                    FillRasterRow(vram, cache, bg, width, leftExtension, guard, y);
                 }
                 SnapshotRasterState(cache, bg, height);
                 BuildRasterVramMask(cache, bg, height);
@@ -476,6 +488,45 @@ namespace SuperZSNESDKCFramebufferRenderer
             SnapshotCircularRange(vram, mapBase, mapLength, ref cache.MapSnapshot);
             cache.Valid = true;
             return PrepareOutcome.Miss;
+        }
+
+        private bool TryRefreshRasterScrollRows(byte[] vram, BackgroundCache cache,
+            int bg, int width, int height, int leftExtension, int guard, out int changedRows)
+        {
+            changedRows = 0;
+            if (cache.RasterState == null || cache.RasterState.Length != height * 5 ||
+                !MaskedVramEquals(vram, cache.RasterVramMask, cache.RasterVramSnapshot))
+                return false;
+
+            for (int y = 0; y < height; y++)
+            {
+                int index = y * 5;
+                LineState state = _line[y];
+                int scrollX = GetScrollX(state, bg) & 0xFFFF;
+                int scrollY = GetScrollY(state, bg) & 0xFFFF;
+                bool changed = cache.RasterState[index] != scrollX ||
+                               cache.RasterState[index + 1] != scrollY;
+                if (cache.RasterState[index + 2] != GetBgsc(state, bg) ||
+                    cache.RasterState[index + 3] != state.Bgmode ||
+                    cache.RasterState[index + 4] != GetChrBase(state, bg))
+                    return false;
+                if (!changed) continue;
+                FillRasterRow(vram, cache, bg, width, leftExtension, guard, y);
+                changedRows++;
+            }
+
+            if (changedRows != 0) SnapshotRasterState(cache, bg, height);
+            return true;
+        }
+
+        private void FillRasterRow(byte[] vram, BackgroundCache cache, int bg,
+            int width, int leftExtension, int guard, int y)
+        {
+            LineState state = _line[y];
+            int row = (y + guard) * cache.Width + guard;
+            for (int x = 0; x < width; x++)
+                cache.Pixels[row + x] = ReadBackgroundPixel(vram, state, bg,
+                    x - leftExtension, y);
         }
 
         private static double ElapsedMilliseconds(long started)
@@ -733,6 +784,21 @@ namespace SuperZSNESDKCFramebufferRenderer
             return bg == 0 ? state.Bg1sc : bg == 1 ? state.Bg2sc : state.Bg3sc;
         }
 
+        private string DescribeRasterEffect(int bg, int line)
+        {
+            int currentLine = Math.Max(0, Math.Min(Lines - 1, line));
+            int previousLine = Math.Max(0, currentLine - 1);
+            LineState before = _line[previousLine];
+            LineState after = _line[currentLine];
+            return "BG" + (bg + 1) + "-line" + currentLine +
+                   "-x" + (GetScrollX(before, bg) & 0xFFFF) + ">" +
+                   (GetScrollX(after, bg) & 0xFFFF) +
+                   "-y" + (GetScrollY(before, bg) & 0xFFFF) + ">" +
+                   (GetScrollY(after, bg) & 0xFFFF) +
+                   "-sc" + GetBgsc(before, bg) + ">" + GetBgsc(after, bg) +
+                   "-chr" + GetChrBase(before, bg) + ">" + GetChrBase(after, bg);
+        }
+
         private static int GetChrBase(LineState state, int bg)
         {
             return bg == 0 ? (state.Bg12nba & 0x0F) << 13
@@ -816,6 +882,69 @@ namespace SuperZSNESDKCFramebufferRenderer
         private static int TileBucket(int value)
         {
             return value & 0xFFF8;
+        }
+
+        // Emulator-free equivalence fixture used by the verifier. It compares
+        // a scroll-only partial refresh with a clean full raster build and also
+        // proves that relevant VRAM changes reject the partial path.
+        private static bool RasterPartialModelSelfTest()
+        {
+            const int width = 64;
+            const int height = Lines;
+            byte[] vram = new byte[65536];
+            byte[] registers = new byte[64];
+            registers[5] = 1;
+            registers[8] = 0x40; // BG2 map at $8000, 32x32.
+            registers[11] = 0x00; // BG2 character data at $0000.
+            for (int tile = 0; tile < 1024; tile++)
+            {
+                int address = 0x8000 + tile * 2;
+                int descriptor = (tile & 31) | ((tile & 7) << 10) |
+                    ((tile & 1) != 0 ? 0x2000 : 0);
+                vram[address] = (byte)descriptor;
+                vram[address + 1] = (byte)(descriptor >> 8);
+            }
+            for (int i = 0; i < 0x8000; i++)
+                vram[i] = (byte)((i * 29 + 7) & 0xFF);
+
+            DkcFrameRasterizer partial = new DkcFrameRasterizer(true);
+            SetRasterFixtureLines(partial, registers, 1);
+            int differing;
+            PrepareOutcome initial = partial.PrepareBackgroundPlane(vram, 1,
+                width, height, 0, out differing);
+            if (initial != PrepareOutcome.RasterMiss || differing != 81) return false;
+
+            SetRasterFixtureLines(partial, registers, 2);
+            PrepareOutcome refreshed = partial.PrepareBackgroundPlane(vram, 1,
+                width, height, 0, out differing);
+            if (refreshed != PrepareOutcome.RasterPartial ||
+                partial._background[1].LastPartialRows != 81) return false;
+
+            DkcFrameRasterizer full = new DkcFrameRasterizer(true);
+            SetRasterFixtureLines(full, registers, 2);
+            if (full.PrepareBackgroundPlane(vram, 1, width, height, 0, out differing) !=
+                PrepareOutcome.RasterMiss) return false;
+            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+            {
+                LayerPixel a = partial.ReadPreparedBackgroundPixel(1, x, y);
+                LayerPixel b = full.ReadPreparedBackgroundPixel(1, x, y);
+                if (a.PaletteIndex != b.PaletteIndex || a.Priority != b.Priority ||
+                    a.Source != b.Source || a.Opaque != b.Opaque) return false;
+            }
+
+            vram[0x8000] ^= 1;
+            SetRasterFixtureLines(partial, registers, 3);
+            return partial.PrepareBackgroundPlane(vram, 1, width, height, 0,
+                out differing) == PrepareOutcome.RasterMiss;
+        }
+
+        private static void SetRasterFixtureLines(DkcFrameRasterizer rasterizer,
+            byte[] registers, int topScrollX)
+        {
+            for (int y = 0; y < Lines; y++)
+                rasterizer._line[y] = new LineState(registers, 0, 0,
+                    y < 81 ? topScrollX : 0, 15, 0, 0, 0);
         }
 
         private static bool CircularRangeEquals(byte[] source, int start, int length, byte[] snapshot)
@@ -1407,6 +1536,7 @@ namespace SuperZSNESDKCFramebufferRenderer
             internal byte[] RasterVramMask;
             internal byte[] RasterVramSnapshot;
             internal bool RasterValid;
+            internal int LastPartialRows;
             internal LayerPixel[] FirstLine;
             internal bool FirstLineDirect;
             internal bool Valid;
@@ -1432,6 +1562,7 @@ namespace SuperZSNESDKCFramebufferRenderer
             Hit,
             Miss,
             RasterMiss,
+            RasterPartial,
             CacheDisabled
         }
 

@@ -7,7 +7,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>SuperZSNESPerformanceSuiteIL2CPP</AssemblyName>
     <RootNamespace>SuperZSNESPerformanceSuiteIL2CPP</RootNamespace>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Deterministic>true</Deterministic>
     <DebugType>portable</DebugType>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
