@@ -18,6 +18,11 @@ namespace SuperZSNESSpriteDepthStudio
         private readonly CheckBox _individual;
         private readonly RadioButton _allObjects, _spritesOnly, _backgroundOnly;
         private readonly TextBox _search;
+        private readonly CheckBox _groundEnabled;
+        private readonly CheckBox _groundFollowEdge;
+        private readonly ComboBox _groundBackground;
+        private readonly NumericUpDown _groundCutY, _groundDepth, _groundOffsetY,
+            _groundSurfaceScaleX, _groundSurfaceScaleY;
         private readonly Timer _poll;
         private readonly float _uiScale;
         private DateTime _snapshotWrite;
@@ -27,6 +32,7 @@ namespace SuperZSNESSpriteDepthStudio
         private List<SpriteRecord> _sprites = new List<SpriteRecord>();
         private List<BackgroundObjectRecord> _backgrounds = new List<BackgroundObjectRecord>();
         private readonly List<Bitmap> _bitmaps = new List<Bitmap>();
+        private bool _loadingGroundControls;
 
         internal StudioForm(string root)
         {
@@ -39,7 +45,7 @@ namespace SuperZSNESSpriteDepthStudio
             Text="SuperZSNES Object Depth Studio"; MinimumSize=new Size(820,600);
             Size=new Size(S(1280),S(900)); MinimumSize=new Size(S(820),S(600)); StartPosition=FormStartPosition.CenterScreen;
             BackColor=Color.FromArgb(24,27,32); ForeColor=Color.White;
-            var toolbar=new Panel{Dock=DockStyle.Top,Height=S(145),BackColor=Color.FromArgb(31,35,42),Padding=new Padding(S(12))};
+            var toolbar=new Panel{Dock=DockStyle.Top,Height=S(184),BackColor=Color.FromArgb(31,35,42),Padding=new Padding(S(12))};
             var capture=new Button{Text="Capture current frame  (F10)",Location=new Point(S(12),S(12)),Size=new Size(S(210),S(40))};
             var refresh=new Button{Text="Reload",Location=new Point(S(230),S(12)),Size=new Size(S(88),S(40))};
             var folder=new Button{Text="Open files",Location=new Point(S(326),S(12)),Size=new Size(S(96),S(40))};
@@ -49,10 +55,28 @@ namespace SuperZSNESSpriteDepthStudio
             _individual=new CheckBox{Text="Individual OAM parts",Location=new Point(S(12),S(76)),AutoSize=true,ForeColor=Color.Gainsboro};
             _showAll=new CheckBox{Text="Show all 128 slots",Location=new Point(S(185),S(76)),AutoSize=true,ForeColor=Color.Gainsboro,Enabled=false};
             _search=new TextBox{PlaceholderText="Filter sprite, scenery, BG, slot, or tile…",Location=new Point(S(365),S(69)),Width=S(300)};
-            _captureInfo=new Label{Text="No object capture yet.",Location=new Point(S(12),S(116)),AutoSize=true,ForeColor=Color.FromArgb(172,190,218)};
+            _groundEnabled=new CheckBox{Text="Foreground ground cutout",Location=new Point(S(690),S(73)),AutoSize=true,ForeColor=Color.White};
+            var bgLabel=new Label{Text="Source",Location=new Point(S(875),S(76)),AutoSize=true,ForeColor=Color.Gainsboro};
+            _groundBackground=new ComboBox{Location=new Point(S(925),S(69)),Width=S(62),DropDownStyle=ComboBoxStyle.DropDownList};
+            _groundBackground.Items.AddRange(new object[]{"BG1","BG2","BG3"});_groundBackground.SelectedIndex=0;
+            var cutLabel=new Label{Text="Seed Y",Location=new Point(S(995),S(76)),AutoSize=true,ForeColor=Color.Gainsboro};
+            _groundCutY=new NumericUpDown{Location=new Point(S(1045),S(69)),Width=S(62),Minimum=0,Maximum=223,Value=184};
+            var depthLabel=new Label{Text="Front Z",Location=new Point(S(1120),S(76)),AutoSize=true,ForeColor=Color.Gainsboro};
+            _groundDepth=new NumericUpDown{Location=new Point(S(1172),S(69)),Width=S(72),Minimum=-8,Maximum=4,DecimalPlaces=2,Increment=0.05M,Value=-4};
+            _groundFollowEdge=new CheckBox{Text="Trace natural path edge",Checked=true,Location=new Point(S(690),S(108)),AutoSize=true,ForeColor=Color.Gainsboro};
+            var offsetLabel=new Label{Text="Offset Y",Location=new Point(S(875),S(111)),AutoSize=true,ForeColor=Color.Gainsboro};
+            _groundOffsetY=new NumericUpDown{Location=new Point(S(935),S(104)),Width=S(72),Minimum=-4,Maximum=4,DecimalPlaces=3,Increment=0.125M};
+            var scaleLabel=new Label{Text="Size X/Y",Location=new Point(S(1018),S(111)),AutoSize=true,ForeColor=Color.Gainsboro};
+            _groundSurfaceScaleX=new NumericUpDown{Location=new Point(S(1073),S(104)),Width=S(62),Minimum=0.5M,Maximum=4,DecimalPlaces=2,Increment=0.05M,Value=1.05M};
+            _groundSurfaceScaleY=new NumericUpDown{Location=new Point(S(1140),S(104)),Width=S(62),Minimum=0.5M,Maximum=3,DecimalPlaces=2,Increment=0.05M,Value=1};
+            var groundHelp=new Label{Text="Negative Y lowers it.",Location=new Point(S(1207),S(111)),AutoSize=true,ForeColor=Color.FromArgb(172,190,218)};
+            _captureInfo=new Label{Text="No object capture yet.",Location=new Point(S(12),S(151)),AutoSize=true,ForeColor=Color.FromArgb(172,190,218)};
             _status=new Label{Text="Ready",Dock=DockStyle.Bottom,Height=S(28),Padding=new Padding(S(10),S(5),0,0),BackColor=Color.FromArgb(31,35,42),ForeColor=Color.Gainsboro};
             toolbar.Controls.AddRange(new Control[]{capture,refresh,folder,_allObjects,_spritesOnly,
-                _backgroundOnly,_individual,_showAll,_search,_captureInfo});
+                _backgroundOnly,_individual,_showAll,_search,_groundEnabled,bgLabel,
+                _groundBackground,cutLabel,_groundCutY,depthLabel,_groundDepth,
+                _groundFollowEdge,offsetLabel,_groundOffsetY,scaleLabel,
+                _groundSurfaceScaleX,_groundSurfaceScaleY,groundHelp,_captureInfo});
             _cards=new FlowLayoutPanel{Dock=DockStyle.Fill,AutoScroll=true,WrapContents=true,Padding=new Padding(S(8)),BackColor=BackColor};
             Controls.Add(_cards); Controls.Add(toolbar); Controls.Add(_status);
             capture.Click+=(_,__)=>RequestCapture(); refresh.Click+=(_,__)=>LoadSnapshot(true);
@@ -62,6 +86,14 @@ namespace SuperZSNESSpriteDepthStudio
             _allObjects.CheckedChanged+=(_,__)=>RebuildCards();
             _spritesOnly.CheckedChanged+=(_,__)=>RebuildCards();
             _backgroundOnly.CheckedChanged+=(_,__)=>RebuildCards();
+            _groundEnabled.CheckedChanged+=(_,__)=>SaveGroundSettings();
+            _groundBackground.SelectedIndexChanged+=(_,__)=>SaveGroundSettings();
+            _groundCutY.ValueChanged+=(_,__)=>SaveGroundSettings();
+            _groundDepth.ValueChanged+=(_,__)=>SaveGroundSettings();
+            _groundOffsetY.ValueChanged+=(_,__)=>SaveGroundSettings();
+            _groundSurfaceScaleX.ValueChanged+=(_,__)=>SaveGroundSettings();
+            _groundSurfaceScaleY.ValueChanged+=(_,__)=>SaveGroundSettings();
+            _groundFollowEdge.CheckedChanged+=(_,__)=>SaveGroundSettings();
             _poll=new Timer{Interval=500}; _poll.Tick+=(_,__)=>LoadSnapshot(false); _poll.Start();
             FormClosed+=(_,__)=>DisposeBitmaps();
             Shown+=(_,__)=>{LoadSnapshot(true);if(_manifest==null)RequestCapture();};
@@ -108,6 +140,7 @@ namespace SuperZSNESSpriteDepthStudio
                 {RomFileName=manifest.RomFileName,RomSha256=manifest.RomSha256};
                 _backgroundProfile=SpriteDepthFiles.ReadJson<BackgroundDepthProfile>(
                     manifest.ComponentProfileFile)??new BackgroundDepthProfile();
+                LoadGroundControls();
                 int groups=SpriteGroupBuilder.Build(decoded).Count;
                 string levelName=string.IsNullOrWhiteSpace(manifest.LevelName)?
                     ("level $"+manifest.Level):manifest.LevelName+" ($"+manifest.Level+")";
@@ -191,6 +224,69 @@ namespace SuperZSNESSpriteDepthStudio
                     (card.AllMatching?" (all matching appearances)":" (this OAM slot)")+". Saved and waiting for hot reload.";
             }
             catch(Exception ex){ShowError("Could not save the sprite depth profile",ex);}
+        }
+
+        private void LoadGroundControls()
+        {
+            _loadingGroundControls=true;
+            try
+            {
+                ForegroundGroundSettings ground=_backgroundProfile?.ForegroundGround??
+                    new ForegroundGroundSettings();
+                _groundEnabled.Checked=ground.Enabled;
+                _groundBackground.SelectedIndex=Math.Max(0,Math.Min(2,ground.Background));
+                _groundCutY.Value=Math.Max(_groundCutY.Minimum,
+                    Math.Min(_groundCutY.Maximum,ground.CutY));
+                decimal depth=(decimal)ground.Depth;
+                _groundDepth.Value=Math.Max(_groundDepth.Minimum,
+                    Math.Min(_groundDepth.Maximum,depth));
+                decimal offsetY=(decimal)ground.OffsetY;
+                _groundOffsetY.Value=Math.Max(_groundOffsetY.Minimum,
+                    Math.Min(_groundOffsetY.Maximum,offsetY));
+                decimal surfaceScaleX=(decimal)ground.SurfaceScaleX;
+                _groundSurfaceScaleX.Value=Math.Max(_groundSurfaceScaleX.Minimum,
+                    Math.Min(_groundSurfaceScaleX.Maximum,surfaceScaleX));
+                decimal surfaceScaleY=(decimal)ground.SurfaceScaleY;
+                _groundSurfaceScaleY.Value=Math.Max(_groundSurfaceScaleY.Minimum,
+                    Math.Min(_groundSurfaceScaleY.Maximum,surfaceScaleY));
+                _groundFollowEdge.Checked=ground.FollowGroundEdge;
+            }
+            finally{_loadingGroundControls=false;}
+        }
+
+        private void SaveGroundSettings()
+        {
+            if(_loadingGroundControls||_manifest==null||
+                string.IsNullOrWhiteSpace(_manifest.ComponentProfileFile))return;
+            try
+            {
+                _backgroundProfile??=new BackgroundDepthProfile();
+                _backgroundProfile.Version=Math.Max(2,_backgroundProfile.Version);
+                _backgroundProfile.ForegroundGround=new ForegroundGroundSettings
+                {
+                    Enabled=_groundEnabled.Checked,
+                    Background=Math.Max(0,_groundBackground.SelectedIndex),
+                    CutY=(int)_groundCutY.Value,
+                    Depth=(float)_groundDepth.Value,
+                    OffsetY=(float)_groundOffsetY.Value,
+                    SurfaceScaleX=(float)_groundSurfaceScaleX.Value,
+                    SurfaceScaleY=(float)_groundSurfaceScaleY.Value,
+                    FollowGroundEdge=_groundFollowEdge.Checked,
+                    EdgeSearchRadius=56
+                };
+                SpriteDepthFiles.WriteJsonAtomic(_manifest.ComponentProfileFile,
+                    _backgroundProfile);
+                _status.Text=_groundEnabled.Checked?
+                    "Foreground ground enabled: "+_groundBackground.Text+
+                    " near Y="+_groundCutY.Value+" at front Z="+
+                    _groundDepth.Value.ToString("0.00")+
+                    ", offset Y="+_groundOffsetY.Value.ToString("0.###")+
+                    ", size="+_groundSurfaceScaleX.Value.ToString("0.00")+"x"+
+                    _groundSurfaceScaleY.Value.ToString("0.00")+
+                    ". The emulator will hot-reload it.":
+                    "Foreground ground disabled for this level.";
+            }
+            catch(Exception ex){ShowError("Could not save foreground ground",ex);}
         }
 
         private byte[] ReadExact(string name,int size)

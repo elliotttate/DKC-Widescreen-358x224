@@ -503,7 +503,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         {
             if (!File.Exists(path)) return new Dictionary<string, float>();
             string json = File.ReadAllText(path);
-            ComponentProfile profile = JsonSerializer.Deserialize<ComponentProfile>(json,
+            LayerComponentProfile profile = JsonSerializer.Deserialize<LayerComponentProfile>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             return profile?.ComponentDepths ?? new Dictionary<string, float>();
         }
@@ -582,12 +582,6 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         {
             hash ^= value;
             return hash * 1099511628211UL;
-        }
-
-        private sealed class ComponentProfile
-        {
-            public int Version { get; set; }
-            public Dictionary<string, float> ComponentDepths { get; set; }
         }
 
         private sealed class ComponentReport

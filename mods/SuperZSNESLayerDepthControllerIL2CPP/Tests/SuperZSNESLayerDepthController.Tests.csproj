@@ -11,5 +11,7 @@
     <Compile Include="..\NativeTileDepthPatcher.cs" Link="NativeTileDepthPatcher.cs" />
     <Compile Include="..\NativeSpriteLoopPatcher.cs" Link="NativeSpriteLoopPatcher.cs" />
     <Compile Include="..\ConnectedComponentModel.cs" Link="ConnectedComponentModel.cs" />
+    <Compile Include="..\ForegroundGroundProfile.cs" Link="ForegroundGroundProfile.cs" />
+    <Compile Include="..\ForegroundGroundRasterizer.cs" Link="ForegroundGroundRasterizer.cs" />
   </ItemGroup>
 </Project>

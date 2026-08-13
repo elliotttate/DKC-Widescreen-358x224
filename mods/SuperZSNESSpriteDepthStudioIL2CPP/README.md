@@ -19,11 +19,24 @@ of a small BepInEx IL2CPP runtime plugin and a separate resizable Windows editor
 6. Leave **all matching** clear for an OAM-slot rule, or enable it to apply the layer to matching animated appearances (tile bank, palette, priority, name select, and OBJ size).
 7. Scenery starts in **automatic** mode. Uncheck it to author a layer; re-check it
    to remove the override and return to conservative automatic placement.
+8. The toolbar's **Foreground ground cutout** controls create a separate front
+   path plane. Choose its source BG, edge seed, depth, tiny vertical offset, and
+   independent X/Y projection size. The tested Jungle preset uses front Z
+   `-4.00`, offset `-0.125` (one SNES pixel lower), and size `5.50 x 1.00` to
+   keep the cropped cutout edges outside a tilted view without making the
+   ground taller. The `-4.00` depth also keeps it clear of stock priority
+   planes that otherwise produce a rectangular depth-test occlusion.
 
 Profiles are saved immediately and hot-reloaded by the emulator. Captures retain
 raw 64 KiB VRAM, OAM, scanline CGRAM, PPU registers, BG scrolls, the component
 catalog, and a manifest under `Captures/`, so a mod author can return to exact
 moments later.
+
+Foreground extraction follows the live BG's natural path boundary; it does not
+use a hand-painted rectangular mask. Only connected sand-colour surface pixels
+are uploaded, while unrelated opaque rock/scenery below BG1 is made
+transparent. Unsupported PPU modes automatically hide the plane rather than
+displaying stale art.
 
 For DKC, captures also read the disassembly-documented normal-sprite WRAM
 tables (`$0D45` IDs, `$0B19/$0BC1` positions, and pose fields). Matching viewer

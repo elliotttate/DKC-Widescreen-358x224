@@ -16,7 +16,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
     {
         public const string PluginGuid = "dev.local.superzsnes.layerdepth.il2cpp";
         public const string PluginName = "SuperZSNES Layer Depth Controller IL2CPP";
-        public const string PluginVersion = "0.7.0";
+        public const string PluginVersion = "0.8.0";
         private Harmony _harmony;
         private NativeTileDepthPatcher _nativeTileDepth;
         private NativeSpriteLoopPatcher _nativeSpriteLoop;
@@ -89,7 +89,9 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 DepthController.Initialize(Log, Config, active, separation,
                     compressPriorityPlanes, priorityPlaneSpacing, neutral, gaps,
                     scales, step, cameraPitch, cameraYaw, cameraZoom,
-                    perspectiveCompensation, connectedComponents);
+                    perspectiveCompensation, connectedComponents,
+                    Path.Combine(Paths.PluginPath,
+                        "SuperZSNESLayerDepthControllerIL2CPP"));
                 if (removeDuplicateOamPass.Value)
                 {
                     _nativeSpriteLoop = new NativeSpriteLoopPatcher(
@@ -147,7 +149,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             try { _nativeTileDepth?.Dispose(); } catch { }
             try { _nativeSpriteLoop?.Dispose(); } catch { }
             DepthController.SetSpriteLoopStatus(false, string.Empty);
-            DepthController.RestoreDisplayMode();
+            DepthController.Shutdown();
             DepthController.WriteStatus("unloaded");
             return true;
         }
@@ -177,9 +179,10 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             DepthController.BeginFrame(__instance, ref __state);
         }
 
-        public static void GenerateBackgroundsPostfix(MainMenuManager.GFXModes __state)
+        public static void GenerateBackgroundsPostfix(PPURenderer __instance,
+            MainMenuManager.GFXModes __state)
         {
-            DepthController.EndFrame(__state);
+            DepthController.EndFrame(__instance, __state);
         }
 
         public static void SetupZPositionsPostfix(PPURenderer __instance)
@@ -217,6 +220,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         private static ConfigEntry<bool> _perspectiveCompensation;
         private static ConfigEntry<bool> _connectedComponents;
         private static ConnectedComponentDepthMapper _componentMapper;
+        private static ForegroundGroundOverlay _foregroundGround;
         private static bool _active;
         private static bool _displayModeOverridden;
         private static MainMenuManager.GFXModes _savedDisplayMode;
@@ -244,7 +248,8 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             ConfigEntry<float> initialPitch, ConfigEntry<float> initialYaw,
             ConfigEntry<float> initialZoom,
             ConfigEntry<bool> perspectiveCompensation,
-            ConfigEntry<bool> connectedComponents)
+            ConfigEntry<bool> connectedComponents,
+            string pluginDirectory)
         {
             _log = log;
             _config = config;
@@ -263,6 +268,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             _connectedComponents = connectedComponents;
             _active = active.Value;
             Directory.CreateDirectory(StatusDirectory);
+            _foregroundGround = new ForegroundGroundOverlay(pluginDirectory, log);
             MethodInfo backgrounds = AccessTools.Method(typeof(PPURenderer),
                 "GenerateBackgrounds", Type.EmptyTypes);
             Patches patches = backgrounds == null ? null : Harmony.GetPatchInfo(backgrounds);
@@ -304,8 +310,12 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             }
         }
 
-        internal static void EndFrame(MainMenuManager.GFXModes originalMode)
+        internal static void EndFrame(PPURenderer renderer,
+            MainMenuManager.GFXModes originalMode)
         {
+            _foregroundGround?.Refresh(renderer, _active,
+                _perspectiveCompensation?.Value ?? false,
+                GetCameraDistance(renderer));
             MainMenuManager.MainMenuSettings settings = MainMenuManager.Instance?.mainMenuSettings;
             if (_active && settings != null)
                 settings.gfxMode = originalMode;
@@ -401,6 +411,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 {
                     RestoreDisplayMode();
                     _componentMapper?.Clear();
+                    _foregroundGround?.Hide("controller-inactive");
                 }
                 else _cameraInitialized = false;
                 _log?.LogWarning("Layer depth 3D " + (_active ? "enabled" : "disabled"));
@@ -470,6 +481,13 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             _displayModeOverridden = false;
         }
 
+        internal static void Shutdown()
+        {
+            RestoreDisplayMode();
+            try { _foregroundGround?.Dispose(); } catch { }
+            _foregroundGround = null;
+        }
+
         internal static void WriteFailure(Exception exception)
         {
             _lastError = exception.GetType().Name + ": " + exception.Message;
@@ -484,7 +502,7 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 string gaps = _gapsText?.Value ?? string.Empty;
                 string scales = _scalesText?.Value ?? string.Empty;
                 string json = "{" +
-                    "\"version\":\"0.7.0\"," +
+                    "\"version\":\"0.8.0\"," +
                     "\"state\":\"" + Escape(state) + "\"," +
                     "\"active\":" + (_active ? "true" : "false") + "," +
                     "\"appliedFrames\":" + _appliedFrames + "," +
@@ -524,6 +542,34 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                         (_duplicateOamPassRemoved ? "true" : "false") + "," +
                     "\"spriteLoopPatchAddress\":\"" +
                         Escape(_spriteLoopPatchAddress) + "\"," +
+                    "\"foregroundGroundVisible\":" +
+                        ((_foregroundGround?.Visible ?? false) ? "true" : "false") + "," +
+                    "\"foregroundGroundLevel\":\"" +
+                        ((_foregroundGround?.Level ?? -1) < 0 ? string.Empty :
+                         (_foregroundGround?.Level ?? 0).ToString("X4")) + "\"," +
+                    "\"foregroundGroundCutY\":" +
+                        (_foregroundGround?.CutY ?? 0) + "," +
+                    "\"foregroundGroundDepth\":" +
+                        (_foregroundGround?.Depth ?? 0f).ToString(
+                            System.Globalization.CultureInfo.InvariantCulture) + "," +
+                    "\"foregroundGroundSurfaceScaleX\":" +
+                        (_foregroundGround?.SurfaceScaleX ?? 0f).ToString(
+                            System.Globalization.CultureInfo.InvariantCulture) + "," +
+                    "\"foregroundGroundSurfaceScaleY\":" +
+                        (_foregroundGround?.SurfaceScaleY ?? 0f).ToString(
+                            System.Globalization.CultureInfo.InvariantCulture) + "," +
+                    "\"foregroundGroundSourceWidth\":" +
+                        (_foregroundGround?.SourceWidth ?? 0f).ToString(
+                            System.Globalization.CultureInfo.InvariantCulture) + "," +
+                    "\"foregroundGroundSourceHeight\":" +
+                        (_foregroundGround?.SourceHeight ?? 0f).ToString(
+                            System.Globalization.CultureInfo.InvariantCulture) + "," +
+                    "\"foregroundGroundShader\":\"" +
+                        Escape(_foregroundGround?.ShaderName ?? string.Empty) + "\"," +
+                    "\"foregroundGroundUploads\":" +
+                        (_foregroundGround?.Uploads ?? 0) + "," +
+                    "\"foregroundGroundReason\":\"" +
+                        Escape(_foregroundGround?.LastReason ?? string.Empty) + "\"," +
                     "\"framebufferCompatibility\":\"Set PresentFramebuffer=false and ShadowRenderInterval=0\"," +
                     "\"lastError\":\"" + Escape(_lastError) + "\"}";
                 File.WriteAllText(Path.Combine(StatusDirectory, "status.json"), json);

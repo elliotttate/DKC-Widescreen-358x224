@@ -15,7 +15,7 @@ namespace SuperZSNESSpriteDepthStudio
     {
         public const string PluginGuid = "dev.local.superzsnes.spritedepthstudio.il2cpp";
         public const string PluginName = "SuperZSNES Object Depth Studio IL2CPP";
-        public const string PluginVersion = "0.3.0";
+        public const string PluginVersion = "0.4.0";
         private Harmony _harmony;
         private SpriteDepthNativePatcher _native;
 

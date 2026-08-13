@@ -1273,3 +1273,46 @@ The image inspector was also live-verified. Clicking Donkey Kong opened a
 maximized nearest-neighbor 34x56 source view at the correct fit scale, with
 wheel zoom, drag pan, 100%, fit, and F11 controls. Fit mode now recalculates
 after maximization/resizing rather than retaining an early small-layout scale.
+
+## 2026-08-12 authored foreground ground plane
+
+The requested "Kong between two copies of the path" effect cannot be produced
+by moving an existing SNES priority plane: DKC paints the walkable path and
+nearby scenery into the same BG. Layer Depth Controller v0.8 therefore creates
+one new presentation-only mesh. A CPU rasterizer reconstructs the selected
+368x224 Mode 1 background from live VRAM/CGRAM/register/scroll state, traces the
+natural ground boundary around an authored seed Y, smooths that boundary, and
+outputs only the connected pixels below it. The ROM, emulation state, OAM, and
+collision map remain unchanged.
+
+Live A/B testing identified two rectangle causes. The new mesh initially used
+a material/UV combination that did not preserve the packed texture's alpha.
+The retained path prioritizes `Sprites/Default`, supplies white vertex and
+renderer color, and samples only the packed opaque UV range. More importantly,
+BG1 is fully opaque below the walking surface: copying everything under the
+traced edge pulled dark rock/scenery onto the front plane as a block. The
+rasterizer now follows only the connected sand-colour surface and removes
+unrelated opaque pixels. Its Mode 1 16x16 tilemap addressing also matches the
+verified framebuffer oracle (8px tile coordinates are shifted exactly once).
+The cropped cutout is 46 source units wide; the Jungle profile uses
+`SurfaceScaleX=5.5`, `SurfaceScaleY=1.0` so its edges remain outside a tilted
+viewport without increasing its height. `OffsetY=-0.125` lowers the foreground
+by one SNES pixel.
+
+The final persistent central rectangle was isolated with an exact-camera live
+A/B: disabling only the generated foreground removed it, despite the extracted
+texture containing no such rectangle. The overlay was coplanar with a stock
+priority mesh at the earlier `Depth=-2.5`/`-3.0` settings, so that stock mesh
+won the depth test over part of the cutout. Moving the foreground to
+`Depth=-4.0` removed the rectangle while retaining the intended ordering around
+Kong. `-4.0` is now the controller and authoring-studio default.
+
+Object Depth Studio exposes source BG, edge seed, front Z, trace enable, Y
+offset, and X/Y size controls. Values save into the existing per-level
+`level-XXXX.json` file and hot-reload. Unsupported/non-Mode-1 state hides the
+plane. Offline raster tests cover transparency, edge following, exclusion of
+opaque hidden scenery, BGR555 color, and a preserved live snapshot; both
+IL2CPP projects and both test suites pass with zero warnings/errors. Live QA
+used the disposable v0.300 emulator and full-window WSLSnapit captures,
+including an exact same-camera enabled/disabled A/B. Production v0.300 remained
+untouched.

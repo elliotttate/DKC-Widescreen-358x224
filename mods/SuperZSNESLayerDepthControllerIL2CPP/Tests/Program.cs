@@ -1,12 +1,16 @@
 using System;
+using System.IO;
+using System.Text.Json;
 using SuperZSNESLayerDepthControllerIL2CPP;
 
 internal static class Program
 {
-    private static int Main()
+    private static int Main(string[] args)
     {
         try
         {
+            if (args.Length >= 2 && args[0] == "--inspect-ground-snapshot")
+                return InspectGroundSnapshot(args[1], args.Length >= 3 ? args[2] : null);
             Require(DepthMath.TryParseCsv("1,1,1,1,1,1,1,1,1,1,1,1,1",
                 13, 0f, 100f, out float[] gaps, out _), "valid 13-gap parse");
             Require(!DepthMath.TryParseCsv("1,2", 13, 0f, 100f, out _, out _),
@@ -93,6 +97,10 @@ internal static class Program
                 1, 1, 0, 7, 0.1f, 1, wrap: false);
             Near(animationA.Components[0].Depth, animationB.Components[0].Depth,
                 "animation graphics retain address-stable automatic depth");
+
+            TestForegroundGroundRasterizer();
+            Near(new ForegroundGroundSettings().Depth, -4f,
+                "foreground ground default avoids stock priority-plane coplanarity");
             string overrideId = separated.Components[0].Id;
             var overrides = new System.Collections.Generic.Dictionary<string, float>
                 { [overrideId] = 0.625f };
@@ -104,7 +112,7 @@ internal static class Program
 
             string roundTrip = DepthMath.ToCsv(new[] { 1f, 0.25f, 2.5f });
             Require(roundTrip == "1,0.25,2.5", "invariant CSV formatting");
-            Console.WriteLine("PASS: plane geometry, connected-component safety, authored overrides, native address-table stubs, and CSV persistence.");
+            Console.WriteLine("PASS: plane geometry, connected-component safety, foreground-ground cutouts, authored overrides, native address-table stubs, and CSV persistence.");
             return 0;
         }
         catch (Exception exception)
@@ -112,6 +120,157 @@ internal static class Program
             Console.Error.WriteLine("FAIL: " + exception.Message);
             return 1;
         }
+    }
+
+    private static int InspectGroundSnapshot(string directory, string outputPath)
+    {
+        using JsonDocument metadata = JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(directory, "snapshot.json")));
+        JsonElement xValues = metadata.RootElement.GetProperty("BackgroundScrollX");
+        JsonElement yValues = metadata.RootElement.GetProperty("BackgroundScrollY");
+        byte[] vram = File.ReadAllBytes(Path.Combine(directory, "snapshot-vram.bin"));
+        byte[] cgram = File.ReadAllBytes(Path.Combine(directory, "snapshot-cgram.bin"));
+        byte[] registers = File.ReadAllBytes(Path.Combine(directory,
+            "snapshot-registers.bin"));
+        int height = ForegroundGroundRasterizer.ViewHeight;
+        int width = ForegroundGroundRasterizer.ViewWidth;
+        var scrollX = new int[height];
+        var scrollY = new int[height];
+        var display = new byte[height];
+        var main = new byte[height];
+        var colorControl = new byte[height];
+        Array.Fill(scrollX, xValues[0].GetInt32());
+        Array.Fill(scrollY, yValues[0].GetInt32());
+        Array.Fill(display, registers[0]);
+        Array.Fill(main, registers[44]);
+        Array.Fill(colorControl, registers[48]);
+        var edges = new int[width];
+        var smooth = new int[width];
+        var output = new uint[width * height];
+        if (!ForegroundGroundRasterizer.TryRasterize(vram, cgram, registers,
+                scrollX, scrollY, display, main, colorControl, 0, 184, true, 56,
+                edges, smooth, output, out string reason))
+            throw new InvalidOperationException(reason);
+        int minX = width, maxX = -1, minY = height, maxY = -1, opaque = 0;
+        var occupiedColumns = new bool[width];
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+        {
+            if ((output[y * width + x] >> 24) == 0) continue;
+            opaque++;
+            occupiedColumns[x] = true;
+            minX = Math.Min(minX, x); maxX = Math.Max(maxX, x);
+            minY = Math.Min(minY, y); maxY = Math.Max(maxY, y);
+        }
+        int columns = 0;
+        foreach (bool occupied in occupiedColumns) if (occupied) columns++;
+        Console.WriteLine("opaque={0} bounds={1},{2}..{3},{4} columns={5}",
+            opaque, minX, minY, maxX, maxY, columns);
+        if (!string.IsNullOrWhiteSpace(outputPath))
+            WriteBitmap(outputPath, output, width, height);
+        return 0;
+    }
+
+    private static void WriteBitmap(string path, uint[] argb, int width, int height)
+    {
+        int pixelBytes = width * height * 4;
+        using var stream = File.Create(path);
+        using var writer = new BinaryWriter(stream);
+        writer.Write((ushort)0x4D42);
+        writer.Write(54 + pixelBytes);
+        writer.Write(0);
+        writer.Write(54);
+        writer.Write(40);
+        writer.Write(width);
+        writer.Write(height);
+        writer.Write((ushort)1);
+        writer.Write((ushort)32);
+        writer.Write(0);
+        writer.Write(pixelBytes);
+        writer.Write(2835); writer.Write(2835);
+        writer.Write(0); writer.Write(0);
+        for (int y = height - 1; y >= 0; y--)
+        for (int x = 0; x < width; x++)
+        {
+            uint value = argb[y * width + x];
+            writer.Write((byte)value);
+            writer.Write((byte)(value >> 8));
+            writer.Write((byte)(value >> 16));
+            writer.Write((byte)(value >> 24));
+        }
+    }
+
+    private static void TestForegroundGroundRasterizer()
+    {
+        var vram = new byte[65536];
+        var cgram = new byte[512];
+        var registers = new byte[64];
+        var scrollX = new int[ForegroundGroundRasterizer.ViewHeight];
+        var scrollY = new int[ForegroundGroundRasterizer.ViewHeight];
+        var display = new byte[ForegroundGroundRasterizer.ViewHeight];
+        var main = new byte[ForegroundGroundRasterizer.ViewHeight];
+        var colorControl = new byte[ForegroundGroundRasterizer.ViewHeight];
+        var edges = new int[ForegroundGroundRasterizer.ViewWidth];
+        var smooth = new int[ForegroundGroundRasterizer.ViewWidth];
+        var output = new uint[ForegroundGroundRasterizer.ViewWidth *
+            ForegroundGroundRasterizer.ViewHeight];
+        registers[0] = 15;
+        registers[5] = 1;
+        registers[7] = 0x20;
+        registers[11] = 0;
+        registers[44] = 1;
+        Array.Fill(display, (byte)15);
+        Array.Fill(main, (byte)1);
+        cgram[2] = 0x1F;
+        cgram[3] = 0;
+        vram[0] = 0x80;
+        Require(ForegroundGroundRasterizer.TryRasterize(vram, cgram, registers,
+            scrollX, scrollY, display, main, colorControl, 0, 10,
+            false, 56, edges, smooth, output,
+            out string reason),
+            "foreground ground synthetic raster: " + reason);
+        for (int y = 0; y < 10; y++)
+            for (int x = 0; x < ForegroundGroundRasterizer.ViewWidth; x++)
+                Require(output[y * ForegroundGroundRasterizer.ViewWidth + x] == 0,
+                    "foreground cut line remains transparent above authored Y");
+        Require((output[16 * ForegroundGroundRasterizer.ViewWidth + 56] >> 24) == 0xFF,
+            "foreground ground preserves opaque BG pixels below authored Y");
+        Require((output[16 * ForegroundGroundRasterizer.ViewWidth + 56] & 0x00FFFFFF) ==
+                0x00FF0000,
+            "foreground ground decodes the live BGR555 palette");
+        var cropped = new uint[output.Length];
+        ForegroundGroundRasterizer.CropToOpaqueBounds(output, 1, cropped,
+            out int left, out int top, out int width, out int height);
+        Require(left == 0 && top == 15 && width == 362 && height == 203,
+            "foreground crop follows the opaque cutout instead of a full dark quad: " +
+            left + "," + top + " " + width + "x" + height);
+        Require(cropped[0] == 0 && Array.Exists(cropped, value => value != 0),
+            "foreground crop preserves transparent padding and opaque content");
+        var band = new uint[output.Length];
+        uint sand = 0xFFCD8B39u;
+        uint hiddenRock = 0xFF181808u;
+        for (int y = 50; y <= 80; y++)
+            for (int x = 0; x < ForegroundGroundRasterizer.ViewWidth; x++)
+                band[y * ForegroundGroundRasterizer.ViewWidth + x] = sand;
+        for (int y = 81; y < ForegroundGroundRasterizer.ViewHeight; y++)
+            for (int x = 0; x < ForegroundGroundRasterizer.ViewWidth; x++)
+                band[y * ForegroundGroundRasterizer.ViewWidth + x] = hiddenRock;
+        ForegroundGroundRasterizer.ApplyNaturalGroundMask(band, 50, 32,
+            edges, smooth);
+        Require(band[50 * ForegroundGroundRasterizer.ViewWidth + 184] == sand &&
+                band[80 * ForegroundGroundRasterizer.ViewWidth + 184] == sand,
+            "foreground band keeps the connected sand surface");
+        Require(band[96 * ForegroundGroundRasterizer.ViewWidth + 184] == 0 &&
+                band[180 * ForegroundGroundRasterizer.ViewWidth + 184] == 0,
+            "foreground band excludes opaque hidden scenery below the surface");
+        Array.Clear(main, 0, main.Length);
+        Require(ForegroundGroundRasterizer.TryRasterize(vram, cgram, registers,
+            scrollX, scrollY, display, main, colorControl, 0, 10,
+            false, 56, edges, smooth, output,
+            out reason),
+            "foreground layer accepts a fully transparent main-screen interval");
+        Require(Array.TrueForAll(output, value => value == 0),
+            "foreground layer stays transparent when source BG is not on main screen");
     }
 
     private static void Near(float actual, float expected, string name)

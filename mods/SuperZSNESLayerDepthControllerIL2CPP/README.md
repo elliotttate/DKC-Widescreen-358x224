@@ -45,6 +45,14 @@ copy, while a tilted camera exposed a detached duplicate piece of a character.
 The exact-hash-gated native patch changes only the terminal comparison constant
 from 128 to 127, retaining all 128 OAM entries once and in their original order.
 
+Version 0.8 adds an authored foreground-ground cutout. For a selected BG it
+rasterizes the live 368x224 Mode 1 tilemap, follows the visible path edge, and
+keeps only the ground below it in a transparent texture. That texture is placed
+on a new front plane so Kong and other sprites can sit between the stock path
+and a foreground copy of the ground. It does not edit VRAM, OAM, collision, or
+ROM data. The cutout is profile-scoped per DKC level and fails closed outside
+supported Mode 1 state.
+
 Two earlier automatic grouping experiments were rejected. A managed IL2CPP
 mesh walker survived ordinary frames but produced three correlated CoreCLR
 access violations near the same scene boundary; that evidence does not imply
@@ -144,6 +152,31 @@ per-level overrides live in `profiles/level-XXXX.json`:
 Equal override values deliberately merge separate components visually. A zero
 value pins a component back to its stock priority plane. Overrides are clamped
 to -4..4 and reload when the profile file changes.
+
+The same profile can define the foreground ground:
+
+```json
+"ForegroundGround": {
+  "Enabled": true,
+  "Background": 0,
+  "CutY": 184,
+  "Depth": -4.0,
+  "OffsetY": -0.125,
+  "SurfaceScaleX": 5.5,
+  "SurfaceScaleY": 1.0,
+  "FollowGroundEdge": true,
+  "EdgeSearchRadius": 56
+}
+```
+
+`OffsetY=-0.125` lowers the plane by one SNES pixel. Separate X/Y surface
+scales match the stock 3D projection without turning the path into an oversized
+foreground wall; the tested Jungle calibration is 5.5x horizontally and 1x
+vertically. Only connected sand-colour surface pixels are retained; opaque
+rock/scenery below BG1's path is discarded instead of becoming a dark
+foreground rectangle. Keep the front plane at `Depth=-4.0`: the earlier
+`-2.5`/`-3.0` values could be coplanar with a stock priority mesh, allowing a
+rectangular section of the stock background to win the depth test.
 
 ## Widescreen renderer compatibility
 

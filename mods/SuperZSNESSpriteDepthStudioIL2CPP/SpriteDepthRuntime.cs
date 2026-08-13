@@ -487,7 +487,7 @@ namespace SuperZSNESSpriteDepthStudio
             {
                 Directory.CreateDirectory(_root);
                 File.WriteAllText(Path.Combine(_root, "status.json"), "{" +
-                    "\"version\":\"0.3.0\",\"state\":\"" + Escape(state) + "\"," +
+                    "\"version\":\"0.4.0\",\"state\":\"" + Escape(state) + "\"," +
                     "\"nativeApplied\":" + (_native?.Applied == true ? "true" : "false") + "," +
                     "\"tableUpdates\":" + _tableUpdates + ",\"captures\":" + _captures + "," +
                     "\"rom\":\"" + Escape(_lastRomPath) + "\",\"profile\":\"" + Escape(_profilePath) + "\"," +
