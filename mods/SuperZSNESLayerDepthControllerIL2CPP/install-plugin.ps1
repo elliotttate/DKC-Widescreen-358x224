@@ -24,6 +24,8 @@ ActiveAtStartup = true
 
 [Depth]
 Separation = 0.5
+CompressPriorityPlanes = true
+PriorityPlaneSpacing = 0.01
 NeutralBoundary = 6
 PlaneGaps = 1,1,1,1,1,1,1,1,1,1,1,1,1
 PlaneScales = 1,1,1,1,1,1,1,1,1,1,1,1,1,1
@@ -36,6 +38,9 @@ Spacing = 0.08
 MinimumTiles = 2
 MaximumAutoTiles = 64
 RefreshIntervalFrames = 4
+
+[SpriteCohesion]
+RemoveDuplicateOamPass = true
 
 [Controls]
 GapStep = 0.1

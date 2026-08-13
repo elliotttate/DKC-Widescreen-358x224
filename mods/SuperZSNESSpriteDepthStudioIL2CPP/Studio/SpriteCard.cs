@@ -35,8 +35,12 @@ namespace SuperZSNESSpriteDepthStudio
             var preview = new PixelPictureBox
             {
                 Image = bitmap, Location = new Point(S(8), S(34)), Size = new Size(S(236), S(144)),
-                BackColor = Color.FromArgb(18, 20, 24)
+                BackColor = Color.FromArgb(18, 20, 24), Cursor = Cursors.Hand
             };
+            preview.Click += (_,__) =>
+                new ImageInspectorForm(sprite.Identity, sprite.Detail, bitmap).Show();
+            new ToolTip().SetToolTip(preview,
+                "Click for full-screen pixel view. Mouse wheel zooms; drag pans.");
             var info = new Label
             {
                 Text = "X " + sprite.X + "   Y " + sprite.Y + "   " + sprite.Width + "×" + sprite.Height +

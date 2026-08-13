@@ -9,6 +9,7 @@
   <ItemGroup>
     <Compile Include="..\DepthMath.cs" Link="DepthMath.cs" />
     <Compile Include="..\NativeTileDepthPatcher.cs" Link="NativeTileDepthPatcher.cs" />
+    <Compile Include="..\NativeSpriteLoopPatcher.cs" Link="NativeSpriteLoopPatcher.cs" />
     <Compile Include="..\ConnectedComponentModel.cs" Link="ConnectedComponentModel.cs" />
   </ItemGroup>
 </Project>

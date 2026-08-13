@@ -15,7 +15,7 @@ namespace SuperZSNESSpriteDepthStudio
     {
         public const string PluginGuid = "dev.local.superzsnes.spritedepthstudio.il2cpp";
         public const string PluginName = "SuperZSNES Object Depth Studio IL2CPP";
-        public const string PluginVersion = "0.2.0";
+        public const string PluginVersion = "0.3.0";
         private Harmony _harmony;
         private SpriteDepthNativePatcher _native;
 
@@ -27,6 +27,9 @@ namespace SuperZSNESSpriteDepthStudio
                 "Launch the external scrollable Object Depth Studio window at startup.");
             ConfigEntry<float> spacing = Config.Bind("Depth", "LayerSpacing", 0.2f,
                 "World-space offset for each authored sprite depth layer (0..2).");
+            ConfigEntry<float> orderSpacing = Config.Bind("Depth", "OamOrderSpacing",
+                0.001f,
+                "Tiny ordering-only spacing between OAM slots in 3D (0.0001..0.0078125).");
             ConfigEntry<bool> require3D = Config.Bind("Depth", "RequireGimmick3D", true,
                 "Apply authored depths only while the layer controller has enabled Gimmick3D.");
             ConfigEntry<bool> persist = Config.Bind("Capture", "PersistCaptures", true,
@@ -37,7 +40,8 @@ namespace SuperZSNESSpriteDepthStudio
             {
                 _native = new SpriteDepthNativePatcher(message => Log.LogWarning(message));
                 _native.Apply(Path.Combine(Paths.GameRootPath, "GameAssembly.dll"));
-                SpriteDepthRuntime.Initialize(Log, _native, spacing, require3D, persist);
+                SpriteDepthRuntime.Initialize(Log, _native, spacing, orderSpacing,
+                    require3D, persist);
                 _harmony = new Harmony(PluginGuid);
                 PatchRequired(typeof(PPURenderer), "GenerateBackgrounds", Type.EmptyTypes,
                     nameof(SpriteDepthHooks.GenerateBackgroundsPrefix), null, Priority.Low);

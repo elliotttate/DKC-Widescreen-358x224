@@ -109,9 +109,12 @@ namespace SuperZSNESSpriteDepthStudio
                 _backgroundProfile=SpriteDepthFiles.ReadJson<BackgroundDepthProfile>(
                     manifest.ComponentProfileFile)??new BackgroundDepthProfile();
                 int groups=SpriteGroupBuilder.Build(decoded).Count;
-                _captureInfo.Text=manifest.RomFileName+"  •  "+groups+" logical sprites / "+manifest.ActiveSpriteCount+
-                    " visible OAM parts  •  "+backgrounds.Count+" visible scenery objects  •  level $"+
-                    manifest.Level+"  •  "+LocalTime(manifest.CapturedUtc)+
+                string levelName=string.IsNullOrWhiteSpace(manifest.LevelName)?
+                    ("level $"+manifest.Level):manifest.LevelName+" ($"+manifest.Level+")";
+                _captureInfo.Text=manifest.RomFileName+"  •  "+levelName+"  •  "+groups+
+                    " logical sprites / "+manifest.ActiveSpriteCount+
+                    " visible OAM parts  •  "+backgrounds.Count+" visible scenery objects  •  "+
+                    LocalTime(manifest.CapturedUtc)+
                     (manifest.MidFrameOamWrites>0?"  •  ⚠ mid-frame OAM writes":"");
                 RebuildCards();
                 _status.Text="Snapshot loaded. Change a depth value; the emulator hot-reloads the profile automatically.";
@@ -215,17 +218,58 @@ namespace SuperZSNESSpriteDepthStudio
 
         private List<StudioSprite> BuildGroupViews()
         {
-            return SpriteGroupBuilder.Build(_sprites).Select(g=>new StudioSprite
-            {Identity=g.Identity,Detail=g.Members.Count+" parts   "+SlotSummary(g.Members),
-             X=g.X,Y=g.Y,Width=g.Width,Height=g.Height,OpaquePixels=g.OpaquePixels,IntersectsScreen=true,
-             Pixels=g.Pixels,Members=g.Members}).ToList();
+            var result=new List<StudioSprite>();
+            var actors=new List<GameActorRecord>(_manifest?.Actors??new List<GameActorRecord>());
+            List<SpriteGroupRecord> groups=SpriteGroupBuilder.Build(_sprites);
+            GameActorRecord hero=actors.FirstOrDefault(a=>(a.SpriteId==1||a.SpriteId==2)&&
+                (a.CurrentPose!=0||a.DisplayedPose!=0));
+            SpriteGroupRecord heroGroup=hero==null?null:groups.OrderByDescending(g=>g.Members.Count)
+                .ThenByDescending(g=>g.OpaquePixels).FirstOrDefault();
+            if(hero!=null)actors.Remove(hero);
+            foreach(SpriteGroupRecord group in groups)
+            {
+                GameActorRecord actor=ReferenceEquals(group,heroGroup)?hero:
+                    FindNearestActor(group,actors);
+                if(actor!=null)actors.Remove(actor);
+                result.Add(new StudioSprite
+                {
+                    Identity=actor==null?group.Identity:actor.Name+"  •  "+group.Identity,
+                    Detail=(actor==null?string.Empty:"actor #"+actor.ActorSlot+" / ID $"+
+                        actor.SpriteId.ToString("X2")+" / pose $"+
+                        actor.DisplayedPose.ToString("X4")+"   ")+group.Members.Count+" parts   "+
+                        SlotSummary(group.Members),
+                    X=group.X,Y=group.Y,Width=group.Width,Height=group.Height,
+                    OpaquePixels=group.OpaquePixels,IntersectsScreen=true,
+                    Pixels=group.Pixels,Members=group.Members
+                });
+            }
+            return result;
         }
+
+        private static GameActorRecord FindNearestActor(SpriteGroupRecord group,
+            List<GameActorRecord> actors)
+        {
+            GameActorRecord best=null;int bestScore=int.MaxValue;
+            foreach(GameActorRecord actor in actors)
+            {
+                int dx=DistanceToRange(actor.ScreenX,group.X-8,group.X+group.Width+8);
+                int dy=DistanceToRange(actor.ScreenY,group.Y-8,group.Y+group.Height+8);
+                int score=dx*dx+dy*dy;
+                if(score<bestScore){best=actor;bestScore=score;}
+            }
+            return bestScore<=12*12?best:null;
+        }
+
+        private static int DistanceToRange(int value,int minimum,int maximum) =>
+            value<minimum?minimum-value:value>maximum?value-maximum:0;
 
         private List<StudioSprite> BuildBackgroundViews()
         {
             return _backgrounds.Select(item=>new StudioSprite
             {
-                Identity="BG"+(item.Background+1)+" scenery  •  "+item.TileCount+" tiles",
+                Identity=(string.IsNullOrWhiteSpace(_manifest?.LevelName)?string.Empty:
+                    _manifest.LevelName+"  •  ")+"BG"+(item.Background+1)+
+                    " scenery  •  "+item.TileCount+" tiles",
                 Detail=item.Id,
                 X=item.X,Y=item.Y,Width=item.Width,Height=item.Height,
                 OpaquePixels=item.OpaquePixels,IntersectsScreen=true,Pixels=item.Pixels,

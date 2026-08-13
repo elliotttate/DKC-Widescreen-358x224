@@ -28,6 +28,7 @@ namespace SuperZSNESSpriteDepthStudio
         private static ManualLogSource _log;
         private static SpriteDepthNativePatcher _native;
         private static ConfigEntry<float> _layerSpacing;
+        private static ConfigEntry<float> _orderSpacing;
         private static ConfigEntry<bool> _require3D;
         private static ConfigEntry<bool> _persistCaptures;
         private static string _root;
@@ -35,6 +36,7 @@ namespace SuperZSNESSpriteDepthStudio
         private static string _profiles;
         private static string _captureRequest;
         private static string _launchRequest;
+        private static string _loadStateRequest;
         private static string _lastRomPath = string.Empty;
         private static string _lastRomSha = string.Empty;
         private static string _profilePath = string.Empty;
@@ -49,12 +51,14 @@ namespace SuperZSNESSpriteDepthStudio
         internal static string RootDirectory => _root;
 
         internal static void Initialize(ManualLogSource log, SpriteDepthNativePatcher native,
-            ConfigEntry<float> layerSpacing, ConfigEntry<bool> require3D,
+            ConfigEntry<float> layerSpacing, ConfigEntry<float> orderSpacing,
+            ConfigEntry<bool> require3D,
             ConfigEntry<bool> persistCaptures)
         {
             _log = log;
             _native = native;
             _layerSpacing = layerSpacing;
+            _orderSpacing = orderSpacing;
             _require3D = require3D;
             _persistCaptures = persistCaptures;
             _root = Path.Combine(Paths.PluginPath, "SuperZSNESSpriteDepthStudioIL2CPP");
@@ -62,6 +66,7 @@ namespace SuperZSNESSpriteDepthStudio
             _profiles = Path.Combine(_root, "Profiles");
             _captureRequest = Path.Combine(_exchange, "capture.request");
             _launchRequest = Path.Combine(_exchange, "launch.request");
+            _loadStateRequest = Path.Combine(_exchange, "load-state.request");
             Directory.CreateDirectory(_exchange);
             Directory.CreateDirectory(_profiles);
             WriteStatus("loaded");
@@ -79,11 +84,19 @@ namespace SuperZSNESSpriteDepthStudio
                 bool allow = !_require3D.Value ||
                     MainMenuManager.Instance?.mainMenuSettings?.gfxMode == MainMenuManager.GFXModes.Gimmick3D;
                 float spacing = Math.Max(0f, Math.Min(2f, _layerSpacing.Value));
+                float orderSpacing = Math.Max(0.0001f, Math.Min(1f / 128f,
+                    _orderSpacing.Value));
                 float cameraDistance = Math.Max(5f, Math.Min(55f, 30f - renderer.zPos));
+                int priorityAddress = renderer.snesPPU.GetOAMPriority();
+                int startSlot = priorityAddress != 0 ? (priorityAddress & 0xFE) >> 1 : 0;
                 for (int slot = 0; slot < 128; slot++)
                 {
                     int layer = allow ? ResolveDepthFast(slot, Oam, ObjSel, _profile) : 0;
-                    float offset = layer * spacing;
+                    int order = SpriteDepthOrdering.RenderOrder(startSlot, slot);
+                    float targetOrderZ = order * orderSpacing;
+                    float offset = allow
+                        ? layer * spacing + SpriteDepthOrdering.CompressedOffset(
+                            startSlot, slot, orderSpacing) : 0f;
                     Offsets[slot] = offset;
                     int priority = (Oam[slot * 4 + 3] >> 4) & 3;
                     int plane = renderer.sprPriorityToZ == null || priority >= renderer.sprPriorityToZ.Length
@@ -91,9 +104,10 @@ namespace SuperZSNESSpriteDepthStudio
                     float baseZ = renderer.zPositions == null || plane < 0 || plane >= renderer.zPositions.Length
                         ? 0f : renderer.zPositions[plane];
                     float denominator = cameraDistance + baseZ;
-                    Scales[slot] = Math.Abs(denominator) < 0.001f ? 1f :
+                    float targetZ = baseZ + targetOrderZ + layer * spacing;
+                    Scales[slot] = !allow || Math.Abs(denominator) < 0.001f ? 1f :
                         Math.Max(0.05f, Math.Min(20f,
-                            (cameraDistance + baseZ + offset) / denominator));
+                            (cameraDistance + targetZ) / denominator));
                 }
                 _native.Update(Offsets, Scales);
                 _tableUpdates++;
@@ -122,6 +136,23 @@ namespace SuperZSNESSpriteDepthStudio
                 {
                     try { File.Delete(_launchRequest); } catch { }
                     LaunchStudio();
+                }
+                if (File.Exists(_loadStateRequest))
+                {
+                    string request = File.ReadAllText(_loadStateRequest).Trim();
+                    if (string.IsNullOrEmpty(request))
+                        throw new InvalidDataException("load-state.request is empty.");
+                    if (request.StartsWith("suffix:", StringComparison.OrdinalIgnoreCase))
+                        MasterExecutor.Instance.LoadState(request.Substring(7));
+                    else
+                    {
+                        string path = Path.GetFullPath(request);
+                        if (!File.Exists(path))
+                            throw new FileNotFoundException("Requested save state is missing.", path);
+                        MasterExecutor.Instance.LoadStateFilename(path);
+                    }
+                    File.Delete(_loadStateRequest);
+                    WriteStatus("state-loaded");
                 }
                 if (now >= _nextPoll)
                 {
@@ -183,6 +214,9 @@ namespace SuperZSNESSpriteDepthStudio
                 BackgroundObjectDecoder.Decode(Vram, Cgram, Registers, scrollX, scrollY,
                     componentReport).Count;
             string level = componentReport?.Level ?? ReadLevel(ppu).ToString("X4");
+            int levelId = int.TryParse(level, NumberStyles.HexNumber,
+                CultureInfo.InvariantCulture, out int parsedLevel) ? parsedLevel : ReadLevel(ppu);
+            List<GameActorRecord> actors = CaptureGameActors(ppu);
             string componentProfile = Path.Combine(Paths.PluginPath,
                 "SuperZSNESLayerDepthControllerIL2CPP", "profiles",
                 "level-" + level + ".json");
@@ -200,6 +234,8 @@ namespace SuperZSNESSpriteDepthStudio
                 CgramBytes = Cgram.Length,
                 ActiveSpriteCount = sprites.Count(s => s.IntersectsScreen),
                 Level = level,
+                LevelName = DkcSemanticNames.Level(levelId),
+                Actors = actors,
                 BackgroundScrollX = scrollX,
                 BackgroundScrollY = scrollY,
                 BackgroundDepthStep = componentReport?.Spacing > 0f
@@ -255,6 +291,49 @@ namespace SuperZSNESSpriteDepthStudio
             }
             catch { return 0; }
         }
+
+        private static List<GameActorRecord> CaptureGameActors(SNESPPU ppu)
+        {
+            var result = new List<GameActorRecord>();
+            try
+            {
+                Il2CppStructArray<byte> ram = ppu?.masterExecutor?.CoreMemoryMap?.GetRam();
+                if (ram == null || ram.Length < 0x170F) return result;
+                int layerX = ReadWord(ram, 0x088B);
+                int layerY = ReadWord(ram, 0x0895);
+                for (int slot = 0; slot < 26; slot++)
+                {
+                    int offset = slot * 2;
+                    int id = ReadWord(ram, 0x0D45 + offset);
+                    if (id <= 0 || id > 0xFF) continue;
+                    int worldX = ReadWord(ram, 0x0B19 + offset);
+                    int worldY = ReadWord(ram, 0x0BC1 + offset);
+                    result.Add(new GameActorRecord
+                    {
+                        ActorSlot = slot,
+                        SpriteId = id,
+                        Name = DkcSemanticNames.Actor(id),
+                        WorldX = worldX,
+                        WorldY = worldY,
+                        ScreenX = SignedDelta(worldX, layerX),
+                        ScreenY = SignedDelta(worldY, layerY),
+                        CurrentPose = ReadWord(ram, 0x0D11 + offset),
+                        DisplayedPose = ReadWord(ram, 0x0AE5 + offset)
+                    });
+                }
+            }
+            catch (Exception exception)
+            {
+                _log?.LogWarning("Could not capture named DKC actors: " + exception.Message);
+            }
+            return result;
+        }
+
+        private static int ReadWord(Il2CppStructArray<byte> ram, int address) =>
+            ram[address] | (ram[address + 1] << 8);
+
+        private static int SignedDelta(int value, int origin) =>
+            (short)((value - origin) & 0xFFFF);
 
         private static BackgroundComponentReport ExportComponentSnapshot(string destination)
         {
@@ -408,7 +487,7 @@ namespace SuperZSNESSpriteDepthStudio
             {
                 Directory.CreateDirectory(_root);
                 File.WriteAllText(Path.Combine(_root, "status.json"), "{" +
-                    "\"version\":\"0.2.0\",\"state\":\"" + Escape(state) + "\"," +
+                    "\"version\":\"0.3.0\",\"state\":\"" + Escape(state) + "\"," +
                     "\"nativeApplied\":" + (_native?.Applied == true ? "true" : "false") + "," +
                     "\"tableUpdates\":" + _tableUpdates + ",\"captures\":" + _captures + "," +
                     "\"rom\":\"" + Escape(_lastRomPath) + "\",\"profile\":\"" + Escape(_profilePath) + "\"," +

@@ -17,7 +17,7 @@ is why the editor's distance controls have no effect. This plugin patches after
 the method and reapplies a validated profile to the actual renderer arrays.
 
 DKC commonly places most scenery in only two SNES BG tilemaps, so priority
-planes alone can still look like two large cards. Version 0.4 has an optional,
+planes alone can still look like two large cards. Version 0.4 added an optional,
 exact-hash-gated native splitter that classifies connected opaque tilemap
 components. Neighboring cells remain on the same depth plane whenever opaque
 edge pixels touch, including a conservative one-pixel diagonal tolerance.
@@ -29,6 +29,21 @@ hot native DrawLines path performs one lookup by `(BG, tilemap VRAM address)`;
 there is no managed callback per rendered tile. Large connected scenery stays
 on its stock plane by default, while compact disconnected components receive
 stable shallow depth bands.
+
+Version 0.6 separates **draw ordering** from **scene geometry**. SNES priority
+planes still retain their exact front-to-back order, but their spacing is
+compressed to a tiny epsilon by default. This prevents a low/high-priority
+change inside one tree or terrain painting from becoming a large physical crack
+when the camera rotates. Connected-component/profile offsets remain much larger
+and are therefore the intentional 3D object distances.
+
+Version 0.7 fixes a separate stock renderer defect that only becomes obvious in
+3D. `PPURenderer.RenderLines` used `i <= 128`, then wrapped the OAM slot with
+`& 0x7F`. It therefore rendered the priority-rotation starting sprite twice:
+once at order Z 0 and again at order Z 1. Flat rendering hid the overlapping
+copy, while a tilted camera exposed a detached duplicate piece of a character.
+The exact-hash-gated native patch changes only the terminal comparison constant
+from 128 to 127, retaining all 128 OAM entries once and in their original order.
 
 Two earlier automatic grouping experiments were rejected. A managed IL2CPP
 mesh walker survived ordinary frames but produced three correlated CoreCLR
@@ -67,6 +82,28 @@ Unused planes remain configurable because other SNES modes assign them.
 `NeutralBoundary` anchors one boundary at Z=0, and `Separation` multiplies all
 gaps. `PlaneScales` contains backdrop followed by P0..P12; leave all values at
 1 and keep perspective compensation enabled for an aligned head-on view.
+
+The recommended cohesive mode is:
+
+```ini
+[Depth]
+CompressPriorityPlanes = true
+PriorityPlaneSpacing = 0.01
+```
+
+This spacing preserves depth-buffer order without turning priority boundaries
+into separate cardboard panels. Set `CompressPriorityPlanes=false` only to use
+the old priority-as-geometry experiment; then `Separation` controls the gaps.
+
+Keep the duplicate-pass correction enabled for 3D:
+
+```ini
+[SpriteCohesion]
+RemoveDuplicateOamPass = true
+```
+
+The setting changes no OAM data or game logic. It corrects the renderer's
+inclusive loop and restores the original bytes when the plugin unloads.
 
 The detailed split is controlled independently:
 

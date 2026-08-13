@@ -32,6 +32,10 @@ internal static class Program
             Near(profile.BackdropScale, 0.5f, "custom backdrop scale");
             Near(profile.PlaneScale[12], 1.8f, "custom P12 scale");
 
+            DepthProfile cohesive = DepthMath.Build(gaps, 0.01f, 6, scales);
+            Near(cohesive.PlaneZ[7] - cohesive.PlaneZ[10], 0.03f,
+                "cohesive mode keeps BG1 low/high ordered within a tiny geometric gap");
+
             Near(DepthMath.PerspectiveCompensation(3f, 30f), 1.111111f,
                 "far-plane perspective compensation");
             Near(DepthMath.PerspectiveCompensation(-3f, 30f), 0.909091f,
@@ -62,6 +66,12 @@ internal static class Program
                 "scale stub has no modulo divide");
             Require(zStub.Length == 13 && zStub[0] == 0xF3 && zStub[8] == 0xE9,
                 "Z stub shape");
+
+            Require(NativeSpriteLoopPatcher.LoopLimitRva == 0x393DC8,
+                "v0.300 RenderLines terminal comparison RVA");
+            Require(NativeSpriteLoopPatcher.OriginalBytes[2] == 0x80 &&
+                NativeSpriteLoopPatcher.ReplacementBytes[2] == 0x7F,
+                "129-pass loop is reduced to exactly 128 OAM entries");
 
             TileShape opaqueA = new TileShape(0x1000, 1, 1, 1, 1, 1, true);
             TileShape opaqueB = new TileShape(0x1002, 2, 1, 1, 1, 1, true);

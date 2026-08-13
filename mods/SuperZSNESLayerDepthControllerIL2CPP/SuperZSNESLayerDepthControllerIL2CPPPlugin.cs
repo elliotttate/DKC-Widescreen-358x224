@@ -16,9 +16,10 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
     {
         public const string PluginGuid = "dev.local.superzsnes.layerdepth.il2cpp";
         public const string PluginName = "SuperZSNES Layer Depth Controller IL2CPP";
-        public const string PluginVersion = "0.5.0";
+        public const string PluginVersion = "0.7.0";
         private Harmony _harmony;
         private NativeTileDepthPatcher _nativeTileDepth;
+        private NativeSpriteLoopPatcher _nativeSpriteLoop;
         private ConnectedComponentDepthMapper _componentMapper;
 
         public override void Load()
@@ -29,6 +30,12 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 "Start in 3D mode. F6 toggles it while the game is running.");
             ConfigEntry<float> separation = Config.Bind("Depth", "Separation", 0.5f,
                 "Global multiplier for all 13 adjacent priority-plane gaps (0..10).");
+            ConfigEntry<bool> compressPriorityPlanes = Config.Bind("Depth",
+                "CompressPriorityPlanes", true,
+                "Keep SNES priority as a tiny ordering offset instead of turning it into visible scene geometry.");
+            ConfigEntry<float> priorityPlaneSpacing = Config.Bind("Depth",
+                "PriorityPlaneSpacing", 0.01f,
+                "World-space spacing between priority planes while compression is enabled (0.001..0.1).");
             ConfigEntry<int> neutral = Config.Bind("Depth", "NeutralBoundary", 6,
                 "Boundary anchored at Z=0, from 0 (backdrop) through 13 (front edge).");
             ConfigEntry<string> gaps = Config.Bind("Depth", "PlaneGaps",
@@ -66,6 +73,9 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             ConfigEntry<int> componentRefreshInterval = Config.Bind("ConnectedComponents",
                 "RefreshIntervalFrames", 4,
                 "Capture the newest streamed tile state this often; classification runs coalesced on one worker.");
+            ConfigEntry<bool> removeDuplicateOamPass = Config.Bind("SpriteCohesion",
+                "RemoveDuplicateOamPass", true,
+                "Render each of the 128 SNES OAM slots once; fixes the stock 129th duplicate exposed by a tilted camera.");
             Config.Save();
 
             if (!enabled.Value)
@@ -76,9 +86,19 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
 
             try
             {
-                DepthController.Initialize(Log, Config, active, separation, neutral, gaps,
+                DepthController.Initialize(Log, Config, active, separation,
+                    compressPriorityPlanes, priorityPlaneSpacing, neutral, gaps,
                     scales, step, cameraPitch, cameraYaw, cameraZoom,
                     perspectiveCompensation, connectedComponents);
+                if (removeDuplicateOamPass.Value)
+                {
+                    _nativeSpriteLoop = new NativeSpriteLoopPatcher(
+                        message => Log.LogWarning(message));
+                    _nativeSpriteLoop.Apply(Path.Combine(Paths.GameRootPath,
+                        "GameAssembly.dll"));
+                    DepthController.SetSpriteLoopStatus(true,
+                        _nativeSpriteLoop.AddressHex);
+                }
                 if (connectedComponents.Value)
                 {
                     _nativeTileDepth = new NativeTileDepthPatcher(
@@ -114,6 +134,8 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             {
                 try { _harmony?.UnpatchSelf(); } catch { }
                 try { _nativeTileDepth?.Dispose(); } catch { }
+                try { _nativeSpriteLoop?.Dispose(); } catch { }
+                DepthController.SetSpriteLoopStatus(false, string.Empty);
                 DepthController.WriteFailure(exception);
                 Log.LogError(PluginName + " failed closed: " + exception);
             }
@@ -123,6 +145,8 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         {
             try { _harmony?.UnpatchSelf(); } catch { }
             try { _nativeTileDepth?.Dispose(); } catch { }
+            try { _nativeSpriteLoop?.Dispose(); } catch { }
+            DepthController.SetSpriteLoopStatus(false, string.Empty);
             DepthController.RestoreDisplayMode();
             DepthController.WriteStatus("unloaded");
             return true;
@@ -181,6 +205,8 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         private static ConfigFile _config;
         private static ConfigEntry<bool> _activeSetting;
         private static ConfigEntry<float> _separation;
+        private static ConfigEntry<bool> _compressPriorityPlanes;
+        private static ConfigEntry<float> _priorityPlaneSpacing;
         private static ConfigEntry<int> _neutral;
         private static ConfigEntry<string> _gapsText;
         private static ConfigEntry<string> _scalesText;
@@ -204,11 +230,15 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
         private static string _nativeModuleBase = string.Empty;
         private static string _nativeTrampolineBase = string.Empty;
         private static string _nativeDepthTableBase = string.Empty;
+        private static bool _duplicateOamPassRemoved;
+        private static string _spriteLoopPatchAddress = string.Empty;
         private static readonly string StatusDirectory = Path.Combine(
             Paths.PluginPath, "SuperZSNESLayerDepthControllerIL2CPP");
 
         internal static void Initialize(ManualLogSource log, ConfigFile config,
             ConfigEntry<bool> active, ConfigEntry<float> separation,
+            ConfigEntry<bool> compressPriorityPlanes,
+            ConfigEntry<float> priorityPlaneSpacing,
             ConfigEntry<int> neutral, ConfigEntry<string> gaps,
             ConfigEntry<string> scales, ConfigEntry<float> step,
             ConfigEntry<float> initialPitch, ConfigEntry<float> initialYaw,
@@ -220,6 +250,8 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             _config = config;
             _activeSetting = active;
             _separation = separation;
+            _compressPriorityPlanes = compressPriorityPlanes;
+            _priorityPlaneSpacing = priorityPlaneSpacing;
             _neutral = neutral;
             _gapsText = gaps;
             _scalesText = scales;
@@ -340,6 +372,12 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
             _nativeDepthTableBase = depthTableBase ?? string.Empty;
         }
 
+        internal static void SetSpriteLoopStatus(bool applied, string address)
+        {
+            _duplicateOamPassRemoved = applied;
+            _spriteLoopPatchAddress = address ?? string.Empty;
+        }
+
         private static float GetCameraDistance(PPURenderer renderer)
         {
             return Mathf.Clamp(30f - (renderer?.zPos ?? 0f), 5f, 55f);
@@ -416,7 +454,9 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                     out float[] gaps, out error)) return false;
             if (!DepthMath.TryParseCsv(_scalesText.Value, 14, 0.01f, 10f,
                     out float[] scales, out error)) return false;
-            float separation = Mathf.Clamp(_separation.Value, 0f, 10f);
+            float separation = _compressPriorityPlanes.Value
+                ? Mathf.Clamp(_priorityPlaneSpacing.Value, 0.001f, 0.1f)
+                : Mathf.Clamp(_separation.Value, 0f, 10f);
             int neutral = Mathf.Clamp(_neutral.Value, 0, 13);
             profile = DepthMath.Build(gaps, separation, neutral, scales);
             return true;
@@ -444,13 +484,18 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                 string gaps = _gapsText?.Value ?? string.Empty;
                 string scales = _scalesText?.Value ?? string.Empty;
                 string json = "{" +
-                    "\"version\":\"0.5.0\"," +
+                    "\"version\":\"0.7.0\"," +
                     "\"state\":\"" + Escape(state) + "\"," +
                     "\"active\":" + (_active ? "true" : "false") + "," +
                     "\"appliedFrames\":" + _appliedFrames + "," +
                     "\"selectedGap\":" + _selectedGap + "," +
                     "\"separation\":" + (_separation?.Value ?? 0f).ToString(
                         System.Globalization.CultureInfo.InvariantCulture) + "," +
+                    "\"compressPriorityPlanes\":" +
+                        ((_compressPriorityPlanes?.Value ?? false) ? "true" : "false") + "," +
+                    "\"priorityPlaneSpacing\":" +
+                        (_priorityPlaneSpacing?.Value ?? 0f).ToString(
+                            System.Globalization.CultureInfo.InvariantCulture) + "," +
                     "\"neutralBoundary\":" + (_neutral?.Value ?? 0) + "," +
                     "\"planeGaps\":\"" + Escape(gaps) + "\"," +
                     "\"planeScales\":\"" + Escape(scales) + "\"," +
@@ -475,6 +520,10 @@ namespace SuperZSNESLayerDepthControllerIL2CPP
                         Escape(_nativeTrampolineBase) + "\"," +
                     "\"nativeDepthTableBase\":\"" +
                         Escape(_nativeDepthTableBase) + "\"," +
+                    "\"duplicateOamPassRemoved\":" +
+                        (_duplicateOamPassRemoved ? "true" : "false") + "," +
+                    "\"spriteLoopPatchAddress\":\"" +
+                        Escape(_spriteLoopPatchAddress) + "\"," +
                     "\"framebufferCompatibility\":\"Set PresentFramebuffer=false and ShadowRenderInterval=0\"," +
                     "\"lastError\":\"" + Escape(_lastError) + "\"}";
                 File.WriteAllText(Path.Combine(StatusDirectory, "status.json"), json);

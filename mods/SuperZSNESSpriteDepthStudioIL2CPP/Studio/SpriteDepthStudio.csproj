@@ -4,7 +4,7 @@
     <UseWindowsForms>true</UseWindowsForms><LangVersion>10.0</LangVersion>
     <Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>SpriteDepthStudio</AssemblyName><RootNamespace>SuperZSNESSpriteDepthStudio</RootNamespace>
-    <Version>0.2.0</Version><Deterministic>true</Deterministic>
+    <Version>0.3.0</Version><Deterministic>true</Deterministic>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\SpriteDepthSchema.cs" Link="SpriteDepthSchema.cs" />

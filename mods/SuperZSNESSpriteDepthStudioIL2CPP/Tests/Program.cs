@@ -48,6 +48,13 @@ internal static class Program
             Require(SpriteDepthRules.Resolve(profile,same)==4,"appearance rule covers matching sprites");
             SpriteDepthRules.Set(profile,first,true,0);
             Require(profile.Rules.Count==0,"zero layer removes authored rule");
+            Require(SpriteDepthOrdering.RenderOrder(126,1)==3,
+                "OAM priority rotation wraps deterministically");
+            Near(SpriteDepthOrdering.CompressedOffset(0,64,0.001f),
+                0.064f-0.5f,"OAM order compression preserves order without visible card spacing");
+            Require(DkcSemanticNames.Actor(0x31)=="Swinging rope"&&
+                DkcSemanticNames.Level(0x00)=="Jungle Hijinxs",
+                "disassembly-derived actor and level names resolve");
 
             byte[] bgVram=new byte[65536],bgCgram=new byte[512],registers=new byte[64];
             registers[7]=0x21;
@@ -76,5 +83,6 @@ internal static class Program
         catch(Exception ex){Console.Error.WriteLine("FAIL: "+ex.Message);return 1;}
     }
     private static void Require(bool value,string name){if(!value)throw new InvalidOperationException(name);}
+    private static void Near(float actual,float expected,string name){if(Math.Abs(actual-expected)>0.0001f)throw new InvalidOperationException(name+": expected "+expected+", got "+actual);}
     private static bool Contains(byte[] h,byte[] n){for(int i=0;i<=h.Length-n.Length;i++){int j=0;for(;j<n.Length;j++)if(h[i+j]!=n[j])break;if(j==n.Length)return true;}return false;}
 }

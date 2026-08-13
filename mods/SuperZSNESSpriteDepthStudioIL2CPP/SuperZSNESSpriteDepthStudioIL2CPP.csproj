@@ -3,7 +3,7 @@
     <TargetFramework>net6.0</TargetFramework><LangVersion>10.0</LangVersion>
     <Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings><AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>SuperZSNESSpriteDepthStudioIL2CPP</AssemblyName><RootNamespace>SuperZSNESSpriteDepthStudio</RootNamespace>
-    <Version>0.2.0</Version><Deterministic>true</Deterministic><DebugType>portable</DebugType>
+    <Version>0.3.0</Version><Deterministic>true</Deterministic><DebugType>portable</DebugType>
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
     <BepInExIl2CppRoot Condition="'$(BepInExIl2CppRoot)' == ''">$(RepoRoot).deps\SuperZSNES_v0.300</BepInExIl2CppRoot>
     <InteropDir Condition="'$(InteropDir)' == ''">$(BepInExIl2CppRoot)\BepInEx\interop</InteropDir>

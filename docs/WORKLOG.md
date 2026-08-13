@@ -1198,3 +1198,78 @@ Studio 0.2.0, exported fresh components, and displayed decoded scenery cards in
 the resizable scrollable editor. Mid-frame BG scroll/layout effects are still an
 explicit future preview enhancement; authored runtime depths continue to use
 the mapper's exact render-time address table.
+
+## 2026-08-12 cohesive priority geometry and full-screen object inspection
+
+The remaining Jungle seams were traced to a conceptual mismatch rather than a
+failed component classifier. SuperZSNES maps SNES BG low/high priority and OAM
+order directly onto world-space Z. With the experimental 0.5 plane separation,
+an ordinary priority transition inside one connected tree or terrain painting
+became a large physical gap when the perspective camera rotated. Sprite slots
+had the same smaller problem because `RenderLines` adds `i/128` world units to
+each OAM entry. The catalog could identify a logical object correctly while the
+stock renderer still pulled its pre-existing priority pieces apart.
+
+Layer Depth Controller v0.6 introduces cohesive priority mode. Its default
+`PriorityPlaneSpacing=0.01` retains exact 13-plane front/back ordering for depth
+testing but treats it as a tiny ordering epsilon, not scene geometry. Connected
+component automatic/authored offsets remain independent at 0.08-world steps
+and become the meaningful physical object distance. The old wide plane gaps
+remain available with `CompressPriorityPlanes=false`.
+
+Object Depth Studio v0.3 applies the same design to sprites. It preserves the
+rotated OAM order starting at `GetOAMPriority()`, but compresses each slot step
+from `1/128` to a configurable default of `0.001`. Authored per-object offsets
+are added afterward, and the native scale table targets the final compressed Z.
+This keeps multi-part characters assembled without changing OAM, collision, or
+ROM state.
+
+Every object/scenery card is now clickable. It opens a cloned bitmap in a
+maximized nearest-neighbor inspector with pointer-centered wheel zoom, drag pan,
+fit, 100%, keyboard zoom, and optional F11 borderless full screen. Cloning keeps
+the inspector valid when the live catalog refreshes and disposes thumbnails.
+Both offline suites and both release builds pass with zero warnings/errors.
+
+The local DKC1 disassembly was also evaluated as semantic metadata. It contains
+reliable level IDs, the `$00..$78` normal-sprite name table, named WRAM actor
+arrays, and thousands of named graphics poses. v0.3 captures the 26 active
+normal-sprite slots from `$0D45` (ID), `$0B19/$0BC1` (world position), and
+`$0D11/$0AE5` (pose), projects them against Layer1 scroll, and conservatively
+labels the nearest logical OAM group. It also labels known level IDs. The
+disassembly does not define individual trees inside a painted BG tilemap, so
+background cards keep their stable component identity plus the level/BG name;
+inventing semantic tree names there would be less trustworthy than the image.
+
+## 2026-08-12 v0.300 duplicate OAM pass and decompiler-assisted labels
+
+A tilted-camera capture exposed a detached brown copy beside Donkey Kong even
+after every logical OAM part had been assigned one authored depth. The v0.300
+Mono reference and Hex-Rays body agreed on the cause: `PPURenderer.RenderLines`
+starts its counter at zero, increments after each pass, compares with 128 using
+`jg`, and wraps the OAM index with `& $7F`. It therefore executes passes 0..128;
+pass 128 is a second rendering of the starting OAM slot at order Z `128/128=1`.
+
+IDA database `GameAssembly.i64` verified the exact v0.300 native tail at
+`$10393DC8`: `81 F9 80 00 00 00` (`cmp ecx,$80`) followed by `7F 08`. Layer
+Depth Controller v0.7 changes only the immediate to `$7F`, so counters 0..127
+render all 128 slots exactly once. The patch is x86/hash/byte gated, flushes the
+instruction cache, and restores the six original bytes on unload. Live startup
+logged the applied address and `status.json` reported
+`duplicateOamPassRemoved=true`; a full-window tilted capture showed Donkey Kong
+assembled without the detached repeated piece.
+
+The local `Yoshifanatic1/Donkey-Kong-Country-1-Disassembly` was used as semantic
+metadata. `Misc_Defines_DKC1.asm` names level IDs and normal-sprite IDs;
+`RAM_Map_DKC1.asm` identifies the 26-slot arrays at `$0D45`, `$0B19`, `$0BC1`,
+`$0D11`, and `$0AE5`; `AssetPointersAndFiles.asm` names thousands of dynamic
+pose graphics. Object Depth Studio v0.3 now shows the named level and attaches
+actor names only through conservative matching, with a nonzero-pose Kong matched
+to the dominant player assembly. The tested Jungle capture labels Donkey Kong
+and Butterfly while leaving the formation bananas technical. Background trees
+remain component IDs because they are painted tilemap regions, not named game
+actors in the disassembly.
+
+The image inspector was also live-verified. Clicking Donkey Kong opened a
+maximized nearest-neighbor 34x56 source view at the correct fit scale, with
+wheel zoom, drag pan, 100%, fit, and F11 controls. Fit mode now recalculates
+after maximization/resizing rather than retaining an early small-layout scale.
