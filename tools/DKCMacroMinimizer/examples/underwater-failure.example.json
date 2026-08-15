@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "name": "underwater-failure-minimization-example",
+  "description": "Replace the placeholder paths and verify the WRAM outcome for the exact reproduction before live use.",
+  "controller": 1,
+  "state": {
+    "file": "failure-root.szst0"
+  },
+  "rom": {
+    "file": "DKC_Widescreen_358x224.sfc"
+  },
+  "macro": "0-59=RIGHT+B;60-67=RIGHT;68-127=DOWN+RIGHT+B;128-135=DOWN+RIGHT;136-195=RIGHT+B",
+  "outcome": {
+    "label": "failure",
+    "predicate": {
+      "any": [
+        {
+          "name": "life_counter_decreased",
+          "address": "0x7E0575",
+          "size": 2,
+          "op": "lt",
+          "compareTo": "baseline"
+        },
+        {
+          "all": [
+            {
+              "name": "screen_blank",
+              "address": "0x7E051A",
+              "size": 2,
+              "op": "eq",
+              "value": 0
+            },
+            {
+              "name": "level_unchanged",
+              "address": "0x7E0030",
+              "size": 2,
+              "op": "eq",
+              "value": "0x0025"
+            }
+          ]
+        }
+      ]
+    },
+    "settleFrames": 8,
+    "requirePredicateFalseAtRoot": true
+  },
+  "preserveTransitions": {
+    "mode": "buttons",
+    "buttons": ["B"]
+  },
+  "confirmationReplays": 3,
+  "maxEvaluations": 500,
+  "frameTimeoutMs": 60000
+}

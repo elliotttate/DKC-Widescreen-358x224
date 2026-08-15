@@ -43,7 +43,10 @@ class FakeRunner(regression.RegressionRunner):
 class RegressionRunnerTests(unittest.TestCase):
     def test_substitution_and_all_checked_in_recipes_validate(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*.json")):
-            raw = regression.validate_recipe(json.loads(path.read_text(encoding="utf-8")), path)
+            document = json.loads(path.read_text(encoding="utf-8"))
+            if "steps" not in document:
+                continue
+            raw = regression.validate_recipe(document, path)
             expanded = regression.substitute(raw, {"ROM": "test.sfc", "STATE": "test.szst0"})
             regression.validate_recipe(expanded, path)
 

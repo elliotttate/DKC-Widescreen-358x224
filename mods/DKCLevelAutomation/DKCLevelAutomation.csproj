@@ -6,7 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>DKCLevelAutomation</AssemblyName>
     <RootNamespace>DKCLevelAutomation</RootNamespace>
-    <Version>0.1.2</Version>
+    <Version>0.1.3</Version>
     <Deterministic>true</Deterministic>
     <DebugType>portable</DebugType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>

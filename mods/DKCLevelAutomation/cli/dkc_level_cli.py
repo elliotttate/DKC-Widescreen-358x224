@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import json
 import os
 import socket
@@ -138,6 +139,8 @@ def build_parser() -> argparse.ArgumentParser:
     read.add_argument("--address", required=True)
     read.add_argument("--size", type=int, choices=(1, 2, 3, 4), default=1)
     read.add_argument("--signed", action="store_true")
+    snapshot = sub.add_parser("snapshot-wram")
+    snapshot.add_argument("--output", help="Write the atomic 128 KiB WRAM snapshot to this file.")
     write = sub.add_parser("write")
     write.add_argument("--address", required=True)
     write.add_argument("--size", type=int, choices=(1, 2, 3, 4), default=1)
@@ -188,6 +191,8 @@ def command_from_args(args: argparse.Namespace) -> tuple[str, dict[str, Any]]:
         return "wait_wram", values
     if name == "read":
         return "read_wram", {"address": args.address, "size": args.size, "signed": args.signed}
+    if name == "snapshot-wram":
+        return "snapshot_wram", {}
     if name == "write":
         return "write_wram", {"address": args.address, "size": args.size, "value": args.value}
     if name == "raw":
@@ -225,7 +230,18 @@ def main() -> int:
             run_script(args.path, endpoint, args.socket_timeout)
         else:
             command, values = command_from_args(args)
-            print(json.dumps(request(endpoint, command, values, args.socket_timeout), indent=2))
+            result = request(endpoint, command, values, args.socket_timeout)
+            if args.subcommand == "snapshot-wram" and args.output:
+                destination = Path(args.output).resolve()
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                snapshot = base64.b64decode(result["data"], validate=True)
+                digest = hashlib.sha256(snapshot).hexdigest().upper()
+                if digest != str(result["sha256"]).upper():
+                    raise BridgeError("Atomic WRAM snapshot SHA-256 did not match the bridge response.")
+                destination.write_bytes(snapshot)
+                result = {key: value for key, value in result.items() if key != "data"}
+                result["output"] = str(destination)
+            print(json.dumps(result, indent=2))
         return 0
     except (BridgeError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)

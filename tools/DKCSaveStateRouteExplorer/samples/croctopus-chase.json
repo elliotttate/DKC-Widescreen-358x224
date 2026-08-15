@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "name": "croctopus-chase-short-underwater-search",
+  "description": "Short, exact-frame Croctopus Chase hypotheses. The 0x00C0 camera target comes from the first useful camera-object observation boundary in the object-window audit; confirm it against the supplied state before a live run.",
+  "controller": 1,
+  "state": {
+    "file": "DKC_Widescreen_358x224.szst0"
+  },
+  "search": {
+    "maxDepth": 4,
+    "beamWidth": 18,
+    "maxNodes": 180,
+    "predicateCheckFrames": 2
+  },
+  "actions": [
+    {
+      "id": "right-coast-8",
+      "frames": 8,
+      "buttons": "RIGHT",
+      "description": "Move right without a swim pulse."
+    },
+    {
+      "id": "right-b-hold-8",
+      "frames": 8,
+      "buttons": "RIGHT+B",
+      "description": "Observed right/swim control branch."
+    },
+    {
+      "id": "down-right-b-turn-8",
+      "frames": 8,
+      "buttons": "DOWN+RIGHT+B",
+      "description": "Short downward turn near the rock wall."
+    },
+    {
+      "id": "neutral-4",
+      "frames": 4,
+      "buttons": "NONE",
+      "description": "Let swimming animation/current state advance without direction."
+    }
+  ],
+  "underwaterPulseGenerators": [
+    {
+      "idPrefix": "croc-pulse",
+      "directions": ["RIGHT", "UP+RIGHT", "DOWN+RIGHT"],
+      "buttons": ["B", "Y"],
+      "totalFrames": [8],
+      "periodFrames": [4],
+      "pulseFrames": [1, 2]
+    }
+  ],
+  "objective": {
+    "terms": [
+      {
+        "name": "camera_x_progress",
+        "address": "0x7E1A62",
+        "size": 2,
+        "direction": "maximize",
+        "reference": "baseline",
+        "weight": 1,
+        "scale": 8
+      },
+      {
+        "name": "player_x_progress",
+        "address": "0x7E0B1D",
+        "size": 2,
+        "direction": "maximize",
+        "reference": "baseline",
+        "weight": "0.25",
+        "scale": 8
+      }
+    ]
+  },
+  "goal": {
+    "name": "camera_reaches_object-observation_boundary",
+    "address": "0x7E1A62",
+    "size": 2,
+    "op": "ge",
+    "value": "0x00C0"
+  },
+  "death": {
+    "name": "life_counter_decreased",
+    "address": "0x7E0575",
+    "size": 2,
+    "op": "lt",
+    "compareTo": "baseline"
+  },
+  "forbidden": {
+    "any": [
+      {
+        "name": "left_croctopus_chase",
+        "address": "0x7E0030",
+        "size": 2,
+        "op": "ne",
+        "value": "0x0025"
+      },
+      {
+        "name": "entrance_changed",
+        "address": "0x7E003E",
+        "size": 2,
+        "op": "ne",
+        "value": "0x003E"
+      }
+    ]
+  },
+  "dedup": {
+    "selectors": [
+      {"name": "level", "address": "0x7E0030", "size": 2},
+      {"name": "entrance", "address": "0x7E003E", "size": 2},
+      {"name": "camera_x_8px", "address": "0x7E1A62", "size": 2, "bucket": 8},
+      {"name": "camera_y_8px", "address": "0x7E1A4C", "size": 2, "bucket": 8},
+      {"name": "player_x_4px", "address": "0x7E0B1D", "size": 2, "bucket": 4},
+      {"name": "player_y_4px", "address": "0x7E0BC5", "size": 2, "bucket": 4},
+      {"name": "player_state", "address": "0x7E102D", "size": 2},
+      {"name": "lives", "address": "0x7E0575", "size": 2}
+    ]
+  },
+  "outputTop": 10
+}

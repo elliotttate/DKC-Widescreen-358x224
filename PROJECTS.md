@@ -44,9 +44,19 @@ the Mono-targeted v0.230 DLLs into the IL2CPP build.
 | Project | Purpose |
 | --- | --- |
 | `DKCLevelAutomation` | Authenticated local control bridge, exact-frame schedules, WRAM conditions, recipes, and regression runner. |
+| `DKCPlaytestRecorder` | Rolling 60-second in-memory checkpoints plus exact five-controller input history; F10 emits a ROM-hash-checked portable `.szst` replay bundle without steady-state disk writes. |
+| `DKCDebugInvincibility` | Disabled-by-default, signature-gated `BFA2A0=60` runtime override for surviving deterministic softlock routes without changing the camera or object scanner. |
+| `DKCObjectLifecycleTracer` | Corrected bank-BD actor/bookmark/type-5/type-9 lifecycle trace with raw actor indexes and exact allocator-PC semantics. Persistent ownership anomalies remain observations unless structurally definitive. |
+| `DKCSoftlockWatchdog` | Observation-only persistent watchpoints for eligible critical objects, broken bookings, missing children, type-9 contradictions, and true allocator exhaustion; commits atomic WRAM/evidence bundles. |
+| `DKCWramFlightRecorder` | Disarmed-by-default, exact-build-gated short-replay recorder that attributes selected WRAM writes to 65C816 PCs/registers with bounded instruction/write history. |
 | `DKCWidescreenDebugger` | Full WRAM/VRAM/CGRAM/OAM/PPU capture and authenticated local MCP bridge. |
 | `DKCTilemapInspector` | Raw tilemap reconstruction, seam/staleness analysis, and capture bridge. |
 | `DKCTileStreamTracer` | Opt-in CPU/PPU/DMA stream trace around the DKC tile streaming routines. |
+| `tools/DKCObjectWindowAuditor` | Static ROM/object-window audit correlated with captured WRAM, actor slots, bookmarks, section ranges, and logic-critical records. |
+| `tools/DKCFirstDivergenceLocator` | Deterministic stock-versus-wide replay that refines to the first changed frame and reports named WRAM, actor, bookmark, and optional lifecycle-PC evidence. |
+| `tools/DKCObjectPrefetchPhaseAuditor` | Tracks per-record allocation/cull/reallocation episodes and determines whether widened visibility only changes animation or advances position, motion, state, and collision-relevant behavior. |
+| `tools/DKCSaveStateRouteExplorer` | Replay-from-root beam search for difficult underwater/debug routes, with exact input macros, compact-WRAM deduplication, survival predicates, and reproducible route output. |
+| `tools/DKCMacroMinimizer` | Deterministic delta-debugger that reduces a failing controller macro while preserving a WRAM predicate and required button-transition semantics. |
 | `SuperZSNESCadenceCounter` | Lightweight Update/RunFrame cadence and batching counter. |
 | `SuperZSNESAllocationProbe` | Allocation and GC investigation. |
 | `SuperZSNESAudioTimingProbe` | Audio callback/lock timing investigation. |

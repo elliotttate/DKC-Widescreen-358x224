@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -14,7 +15,7 @@ namespace DKCLevelAutomation
     {
         public const string PluginGuid = "dev.local.superzsnes.dkclevelautomation";
         public const string PluginName = "DKC Level Automation";
-        public const string PluginVersion = "0.1.2";
+        public const string PluginVersion = "0.1.3";
 
         internal static DKCLevelAutomationPlugin Instance;
 
@@ -253,6 +254,7 @@ namespace DKCLevelAutomation
                     BeginWait(request, args);
                     return _active == null ? request.ResultJson : null;
                 case "read_wram": return ReadWram(args);
+                case "snapshot_wram": return SnapshotWram();
                 case "write_wram": return WriteWram(args);
                 default: throw new ArgumentException("Unknown automation command '" + command + "'.");
             }
@@ -394,6 +396,24 @@ namespace DKCLevelAutomation
             {
                 { "address", "0x" + (0x7E0000 + offset).ToString("X6") }, { "size", size },
                 { "value", signed ? (object)Wram.ToSigned(raw, size) : raw }, { "valueHex", "0x" + raw.ToString("X" ) }
+            });
+        }
+
+        private string SnapshotWram()
+        {
+            RequireLoadedRom();
+            var source = RequireRam();
+            var snapshot = new byte[0x20000];
+            Buffer.BlockCopy(source, 0, snapshot, 0, snapshot.Length);
+            byte[] digest;
+            using (var sha256 = SHA256.Create()) digest = sha256.ComputeHash(snapshot);
+            return Json.Object(new Dictionary<string, object>
+            {
+                { "address", "0x7E0000" }, { "size", snapshot.Length },
+                { "encoding", "base64" }, { "data", Convert.ToBase64String(snapshot) },
+                { "sha256", BitConverter.ToString(digest).Replace("-", string.Empty) },
+                { "frame", _master == null ? -1 : Reflect.IntCall(_master, "GetFrameNo", -1) },
+                { "paused", _master != null && Reflect.Get<bool>(_master, "_gamePaused", false) }
             });
         }
 

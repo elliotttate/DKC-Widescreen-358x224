@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/dkc-object-prefetch-phase-recipe.schema.json",
+  "title": "DKC object prefetch phase audit recipe",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "name", "states"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "margin": { "type": "integer", "minimum": 0, "maximum": 256, "default": 56 },
+    "states": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/state" }
+    }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index"],
+      "properties": {
+        "index": { "type": ["integer", "string"] },
+        "type": { "type": ["integer", "string"] },
+        "x": { "type": ["integer", "string"] },
+        "y": { "type": ["integer", "string"] },
+        "label": { "type": "string" }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "maxFrame", "inputs"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "maxFrame": { "type": "integer", "minimum": 0 },
+        "timeoutMs": { "type": "integer", "minimum": 1000, "default": 60000 },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[1-5]$" },
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "file", "scenarios"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "file": { "type": "string", "minLength": 1 },
+        "identity": { "type": "string" },
+        "expectedLevel": { "type": ["integer", "string"] },
+        "trackRecords": { "type": "boolean", "default": true },
+        "records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/record" }
+        },
+        "scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/scenario" }
+        }
+      }
+    }
+  }
+}

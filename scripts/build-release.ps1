@@ -7,7 +7,7 @@ param(
     [Parameter(Mandatory=$true)][string]$Deluxe16x9RomPath,
     [Parameter(Mandatory=$true)][string]$Restoration16x9RomPath,
     [string]$SuperZSNESRoot,
-    [string]$Version = 'v1.1.2',
+    [string]$Version = 'v1.1.3',
     [string]$OutputDirectory
 )
 
@@ -23,12 +23,12 @@ $packageDirectory = Join-Path $OutputDirectory 'package'
 
 $expected = @{
     Clean = @{ Path=$CleanRomPath; Algorithm='MD5'; Hash='30C5F292FF4CBBFCC00FD8FA96C2DE3B' }
-    Standard = @{ Path=$StandardRomPath; Algorithm='SHA256'; Hash='03EA182F7D0AA147BD020CB7B00F98E785D8BB00AAA1DBA95F458C33FDBBF34B' }
-    Deluxe = @{ Path=$DeluxeRomPath; Algorithm='SHA256'; Hash='F213800099DC4C35D7B69A249FC4A8A98FE9FE8D65FC8724096E6C2C6B568C0E' }
-    Restoration = @{ Path=$RestorationRomPath; Algorithm='SHA256'; Hash='CD6DA8C7C981118785014ABF1823BB3877389360587462D2CC247DE3EA2A7A79' }
-    Standard16x9 = @{ Path=$Standard16x9RomPath; Algorithm='SHA256'; Hash='F6BDF57A563C290E66A7726190DC22C754D4D42DBB4DF62C77C8CE6C05E7D144' }
-    Deluxe16x9 = @{ Path=$Deluxe16x9RomPath; Algorithm='SHA256'; Hash='03A7B36933C11E30561B65FFBA01EC02FC18A124979019FC30154148668DF64B' }
-    Restoration16x9 = @{ Path=$Restoration16x9RomPath; Algorithm='SHA256'; Hash='D8991560242D3BE1615D86890263E323F47A7560201D93893BD8C8EC53268F05' }
+    Standard = @{ Path=$StandardRomPath; Algorithm='SHA256'; Hash='2F7086758DC9CB744104DB422C40C4A1CA3B9988945097293F4FE4633E6F5A70' }
+    Deluxe = @{ Path=$DeluxeRomPath; Algorithm='SHA256'; Hash='6BBC08977C9E7E2296CF7E3FCE2677A985A8D8E70EC8C90205ECE7E58C001296' }
+    Restoration = @{ Path=$RestorationRomPath; Algorithm='SHA256'; Hash='E916722ED54C0CB5A088099FCD323FDB480CFFF9DBAB5D9F479BA4747660D647' }
+    Standard16x9 = @{ Path=$Standard16x9RomPath; Algorithm='SHA256'; Hash='613C804C761ACD8BF1213BEF867D15B637688B8EB969FC96B878CE94223AA4E4' }
+    Deluxe16x9 = @{ Path=$Deluxe16x9RomPath; Algorithm='SHA256'; Hash='C558A1634E048C4A8698128D21EC2950F5AD2B29926A796DB66D64C4A5F3A874' }
+    Restoration16x9 = @{ Path=$Restoration16x9RomPath; Algorithm='SHA256'; Hash='40DFC77F80E7248AA62A5519B679582EE92BDB7EF9355438C614FC9F6A428921' }
 }
 foreach ($entry in $expected.GetEnumerator()) {
     $path = (Resolve-Path -LiteralPath $entry.Value.Path).Path
@@ -145,6 +145,8 @@ patches, and the SuperZSNES v0.300 IL2CPP framebuffer renderer.
 - SuperZSNES v0.300 IL2CPP framebuffer renderer v0.1.10 with automatic profile detection
 - Native-width black sidebars for the Nintendo Presents and title splash scenes
 - Correct type-9 section-controller reach for Slipslide Ride ropes and enemies
+- Correct King K. Rool logical arena bounds without narrowing the wide camera
+- Correct Gang-Plank Galleon's private BG1 fill, including the left side of the arena
 - Exact source and output checksum verification
 
 No ROM, game assets, music, emulator, or BepInEx runtime is included. Supply a

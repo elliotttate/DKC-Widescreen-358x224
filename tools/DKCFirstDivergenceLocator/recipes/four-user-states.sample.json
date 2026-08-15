@@ -1,0 +1,122 @@
+{
+  "$schema": "../recipe.schema.json",
+  "schemaVersion": 1,
+  "name": "four-user-states-first-divergence",
+  "description": "Exact first-divergence searches for the four supplied user states. Each branch reloads the same state and applies the same exact controller schedule to stock and widescreen ROMs.",
+  "checkpointStride": 30,
+  "traceRadiusFrames": 2,
+  "predicate": {
+    "includeGroups": [
+      "core_gameplay",
+      "actor_pool",
+      "object_bookkeeping",
+      "scanner",
+      "section_controller",
+      "camera_and_bounds"
+    ],
+    "ignoreProfiles": ["expected_widescreen_camera_bounds"],
+    "ignore": []
+  },
+  "spriteNames": {
+    "0x0001": "Donkey Kong",
+    "0x0002": "Diddy Kong",
+    "0x000C": "Enguarde",
+    "0x0020": "Mincer",
+    "0x003C": "Sparkle",
+    "0x0054": "Chomps Jr.",
+    "0x0057": "Croctopus",
+    "0x006C": "Minigame controller",
+    "0x0070": "King K. Rool"
+  },
+  "states": [
+    {
+      "id": "szst0",
+      "file": "DKC_Widescreen_358x224.szst0",
+      "identity": "Croctopus Chase, level 0x0025, entrance 0x003E",
+      "expectedLevel": "0x0025",
+      "scenarios": [
+        {
+          "id": "neutral-lifecycle",
+          "description": "Autonomous enemy/culling lifecycle.",
+          "maxFrame": 120,
+          "inputs": { "1": "0-119=NONE" }
+        },
+        {
+          "id": "right-swim",
+          "description": "Observed RIGHT+B swim approach.",
+          "maxFrame": 240,
+          "inputs": { "1": "0-239=RIGHT+B" }
+        },
+        {
+          "id": "down-right-swim",
+          "description": "Downward turn near the wall, then down-right.",
+          "maxFrame": 180,
+          "inputs": { "1": "0-59=DOWN+B;60-179=DOWN+RIGHT+B" }
+        }
+      ]
+    },
+    {
+      "id": "szst1",
+      "file": "DKC_Widescreen_358x224.szst1",
+      "identity": "Poison Pond, level 0x0017, entrance 0x0022",
+      "expectedLevel": "0x0017",
+      "scenarios": [
+        {
+          "id": "neutral-lifecycle",
+          "maxFrame": 120,
+          "inputs": { "1": "0-119=NONE" }
+        },
+        {
+          "id": "right-enguarde-b",
+          "maxFrame": 300,
+          "inputs": { "1": "0-299=RIGHT+B" }
+        },
+        {
+          "id": "right-enguarde-y",
+          "maxFrame": 300,
+          "inputs": { "1": "0-299=RIGHT+Y" }
+        }
+      ]
+    },
+    {
+      "id": "szst2",
+      "file": "DKC_Widescreen_358x224.szst2",
+      "identity": "Gang-Plank Galleon, level 0x004C, entrance 0x0068",
+      "expectedLevel": "0x004C",
+      "scenarios": [
+        {
+          "id": "neutral-boss-lifecycle",
+          "maxFrame": 360,
+          "inputs": { "1": "0-359=NONE" }
+        },
+        {
+          "id": "approach-right-y",
+          "maxFrame": 240,
+          "inputs": { "1": "0-239=RIGHT+Y" }
+        },
+        {
+          "id": "approach-jump",
+          "maxFrame": 240,
+          "inputs": { "1": "0-59=RIGHT+Y;60=RIGHT+Y+B;61-239=RIGHT+Y" }
+        }
+      ]
+    },
+    {
+      "id": "szst3",
+      "file": "DKC_Widescreen_358x224.szst3",
+      "identity": "Unlocked Gang-Plank Galleon world map",
+      "scenarios": [
+        {
+          "id": "neutral-map-stability",
+          "maxFrame": 60,
+          "inputs": { "1": "0-59=NONE" }
+        },
+        {
+          "id": "map-right",
+          "maxFrame": 120,
+          "inputs": { "1": "0-119=RIGHT" }
+        }
+      ]
+    }
+  ]
+}

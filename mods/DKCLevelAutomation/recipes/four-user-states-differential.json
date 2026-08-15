@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "name": "four-user-states-differential",
+  "description": "External clean-vs-widescreen replay plan for three reported softlock-adjacent states plus an unlocked world-map state. Route macros are diagnostic branches, not claims about the intended player route.",
+  "spriteNames": {
+    "0x0001": "Donkey Kong",
+    "0x0002": "Diddy Kong",
+    "0x000C": "Enguarde",
+    "0x0020": "Mincer",
+    "0x003C": "Sparkle",
+    "0x0044": "UnknownSprite44",
+    "0x0054": "Chomps Jr.",
+    "0x0057": "Croctopus",
+    "0x006C": "Minigame controller",
+    "0x0070": "Current world boss / King K. Rool",
+    "0x0075": "UnknownSprite75"
+  },
+  "states": [
+    {
+      "id": "szst0",
+      "file": "DKC_Widescreen_358x224.szst0",
+      "identity": "Croctopus Chase, level 0x0025, entrance 0x003E; underwater softlock-adjacent report",
+      "expectedLevel": "0x0025",
+      "branches": [
+        {
+          "id": "neutral-lifecycle",
+          "hypothesis": "Separates autonomous enemy/culling changes from controller-driven movement.",
+          "macro": "0-119=NONE",
+          "checkpoints": [0, 1, 30, 60, 120],
+          "screenshotFrames": [1, 120]
+        },
+        {
+          "id": "right-swim",
+          "hypothesis": "Replays the observed RIGHT+B approach and catches the point where Diddy reached state 0x002B.",
+          "macro": "0-239=RIGHT+B",
+          "checkpoints": [0, 1, 30, 60, 120, 180, 240],
+          "screenshotFrames": [1, 120, 240],
+          "fullEvidenceFrames": [240]
+        },
+        {
+          "id": "down-right-swim",
+          "hypothesis": "Tests the alternate downward turn visible near the rock wall before continuing right.",
+          "macro": "0-59=DOWN+B;60-179=DOWN+RIGHT+B",
+          "checkpoints": [0, 1, 30, 60, 120, 180],
+          "screenshotFrames": [1, 60, 180]
+        }
+      ]
+    },
+    {
+      "id": "szst1",
+      "file": "DKC_Widescreen_358x224.szst1",
+      "identity": "Poison Pond, level 0x0017, entrance 0x0022; Enguarde softlock-adjacent report",
+      "expectedLevel": "0x0017",
+      "branches": [
+        {
+          "id": "neutral-lifecycle",
+          "hypothesis": "Records autonomous fish/obstacle spawning without changing Enguarde position.",
+          "macro": "0-119=NONE",
+          "checkpoints": [0, 1, 30, 60, 120],
+          "screenshotFrames": [1, 120]
+        },
+        {
+          "id": "right-enguarde-b",
+          "hypothesis": "Advances through the nearby section while exercising Enguarde's B action.",
+          "macro": "0-299=RIGHT+B",
+          "checkpoints": [0, 1, 30, 60, 120, 180, 240, 300],
+          "screenshotFrames": [1, 120, 240, 300],
+          "fullEvidenceFrames": [300]
+        },
+        {
+          "id": "right-enguarde-y",
+          "hypothesis": "Control branch for the same movement using Y instead of B.",
+          "macro": "0-299=RIGHT+Y",
+          "checkpoints": [0, 1, 30, 60, 120, 180, 240, 300],
+          "screenshotFrames": [1, 120, 240, 300]
+        }
+      ]
+    },
+    {
+      "id": "szst2",
+      "file": "DKC_Widescreen_358x224.szst2",
+      "identity": "Gang-Plank Galleon, level 0x004C, entrance 0x0068; King K. Rool encounter",
+      "expectedLevel": "0x004C",
+      "branches": [
+        {
+          "id": "neutral-boss-lifecycle",
+          "hypothesis": "Checks whether the boss encounter advances or stalls without player movement.",
+          "macro": "0-359=NONE",
+          "checkpoints": [0, 1, 30, 60, 120, 180, 240, 360],
+          "screenshotFrames": [1, 120, 240, 360],
+          "fullEvidenceFrames": [360]
+        },
+        {
+          "id": "approach-right-y",
+          "hypothesis": "Approaches King K. Rool with normal running input and records boss-state transitions.",
+          "macro": "0-239=RIGHT+Y",
+          "checkpoints": [0, 1, 30, 60, 90, 120, 180, 240],
+          "screenshotFrames": [1, 90, 180, 240],
+          "fullEvidenceFrames": [240]
+        },
+        {
+          "id": "approach-jump",
+          "hypothesis": "Approaches, jumps once, and continues right to expose collision/encounter gating differences.",
+          "macro": "0-59=RIGHT+Y;60=RIGHT+Y+B;61-239=RIGHT+Y",
+          "checkpoints": [0, 1, 30, 60, 61, 90, 120, 180, 240],
+          "screenshotFrames": [1, 60, 120, 240]
+        }
+      ]
+    },
+    {
+      "id": "szst3",
+      "file": "DKC_Widescreen_358x224.szst3",
+      "identity": "Unlocked Gang-Plank Galleon world map; navigation and level-selection test state",
+      "branches": [
+        {
+          "id": "neutral-map-stability",
+          "hypothesis": "World-map smoke test that catches unintended state or actor churn.",
+          "macro": "0-59=NONE",
+          "checkpoints": [0, 1, 30, 60],
+          "screenshotFrames": [1, 60]
+        },
+        {
+          "id": "map-right",
+          "hypothesis": "Exercises one deterministic navigation direction while preserving the unlocked state for reload.",
+          "macro": "0-119=RIGHT",
+          "checkpoints": [0, 1, 30, 60, 120],
+          "screenshotFrames": [1, 60, 120]
+        }
+      ]
+    }
+  ]
+}

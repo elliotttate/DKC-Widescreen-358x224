@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "name": "poison-pond-short-enguarde-search",
+  "description": "Short Enguarde direction and B/Y pulse hypotheses. The sample 0x0200 camera goal is an investigation waypoint before the later 0x0350 camera object, not a claim that it is the level exit.",
+  "controller": 1,
+  "state": {
+    "file": "DKC_Widescreen_358x224.szst1"
+  },
+  "search": {
+    "maxDepth": 4,
+    "beamWidth": 20,
+    "maxNodes": 220,
+    "predicateCheckFrames": 2
+  },
+  "actions": [
+    {
+      "id": "right-coast-8",
+      "frames": 8,
+      "buttons": "RIGHT"
+    },
+    {
+      "id": "right-b-hold-8",
+      "frames": 8,
+      "buttons": "RIGHT+B"
+    },
+    {
+      "id": "right-y-hold-8",
+      "frames": 8,
+      "buttons": "RIGHT+Y"
+    },
+    {
+      "id": "up-right-y-turn",
+      "sequence": [
+        {"frames": 3, "buttons": "UP+RIGHT+Y"},
+        {"frames": 5, "buttons": "RIGHT"}
+      ]
+    },
+    {
+      "id": "down-right-y-turn",
+      "sequence": [
+        {"frames": 3, "buttons": "DOWN+RIGHT+Y"},
+        {"frames": 5, "buttons": "RIGHT"}
+      ]
+    },
+    {
+      "id": "neutral-4",
+      "frames": 4,
+      "buttons": "NONE"
+    }
+  ],
+  "underwaterPulseGenerators": [
+    {
+      "idPrefix": "enguarde-pulse",
+      "directions": ["RIGHT", "UP+RIGHT", "DOWN+RIGHT"],
+      "buttons": ["B", "Y"],
+      "totalFrames": [8],
+      "periodFrames": [4],
+      "pulseFrames": [1, 2]
+    }
+  ],
+  "objective": {
+    "terms": [
+      {
+        "name": "camera_x_progress",
+        "address": "0x7E1A62",
+        "size": 2,
+        "direction": "maximize",
+        "reference": "baseline",
+        "weight": 1,
+        "scale": 8
+      },
+      {
+        "name": "enguarde_player_x_progress",
+        "address": "0x7E0B1B",
+        "size": 2,
+        "direction": "maximize",
+        "reference": "baseline",
+        "weight": "0.5",
+        "scale": 8
+      }
+    ]
+  },
+  "goal": {
+    "name": "camera_reaches_investigation_waypoint",
+    "address": "0x7E1A62",
+    "size": 2,
+    "op": "ge",
+    "value": "0x0200"
+  },
+  "death": {
+    "name": "life_counter_decreased",
+    "address": "0x7E0575",
+    "size": 2,
+    "op": "lt",
+    "compareTo": "baseline"
+  },
+  "forbidden": {
+    "any": [
+      {
+        "name": "left_poison_pond",
+        "address": "0x7E0030",
+        "size": 2,
+        "op": "ne",
+        "value": "0x0017"
+      },
+      {
+        "name": "entrance_changed",
+        "address": "0x7E003E",
+        "size": 2,
+        "op": "ne",
+        "value": "0x0022"
+      }
+    ]
+  },
+  "dedup": {
+    "selectors": [
+      {"name": "level", "address": "0x7E0030", "size": 2},
+      {"name": "entrance", "address": "0x7E003E", "size": 2},
+      {"name": "camera_x_8px", "address": "0x7E1A62", "size": 2, "bucket": 8},
+      {"name": "camera_y_8px", "address": "0x7E1A4C", "size": 2, "bucket": 8},
+      {"name": "player_x_4px", "address": "0x7E0B1B", "size": 2, "bucket": 4},
+      {"name": "player_y_4px", "address": "0x7E0BC3", "size": 2, "bucket": 4},
+      {"name": "player_state", "address": "0x7E102B", "size": 2},
+      {"name": "slot0_sprite_id", "address": "0x7E0D45", "size": 2},
+      {"name": "lives", "address": "0x7E0575", "size": 2}
+    ]
+  },
+  "outputTop": 10
+}

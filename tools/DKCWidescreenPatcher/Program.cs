@@ -21,27 +21,27 @@ namespace DkcWidescreenPatcher
             new PatchVariant("standard", "Widescreen 358x224 (recommended)",
                 "The complete widescreen gameplay patch with original SPC music.",
                 "DKC_Widescreen_358x224.sfc",
-                "03EA182F7D0AA147BD020CB7B00F98E785D8BB00AAA1DBA95F458C33FDBBF34B"),
+                "2F7086758DC9CB744104DB422C40C4A1CA3B9988945097293F4FE4633E6F5A70"),
             new PatchVariant("msu1-deluxe", "Widescreen + Deluxe MSU-1 hooks",
                 "For the 60-track DKC Deluxe MSU-1 pack. Audio is not included.",
                 "DKC_Widescreen_358x224_MSU1_Deluxe.sfc",
-                "F213800099DC4C35D7B69A249FC4A8A98FE9FE8D65FC8724096E6C2C6B568C0E"),
+                "6BBC08977C9E7E2296CF7E3FCE2677A985A8D8E70EC8C90205ECE7E58C001296"),
             new PatchVariant("msu1-restoration", "Widescreen + Restoration MSU-1 hooks",
                 "For traditional 27-track DKC restoration packs. Audio is not included.",
                 "DKC_Widescreen_358x224_MSU1_Restoration.sfc",
-                "CD6DA8C7C981118785014ABF1823BB3877389360587462D2CC247DE3EA2A7A79"),
+                "E916722ED54C0CB5A088099FCD323FDB480CFFF9DBAB5D9F479BA4747660D647"),
             new PatchVariant("16x9-standard", "16:9 widescreen 398x224",
                 "The optional near-exact 16:9 gameplay patch with original SPC music.",
                 "DKC_Widescreen_398x224.sfc",
-                "F6BDF57A563C290E66A7726190DC22C754D4D42DBB4DF62C77C8CE6C05E7D144"),
+                "613C804C761ACD8BF1213BEF867D15B637688B8EB969FC96B878CE94223AA4E4"),
             new PatchVariant("16x9-msu1-deluxe", "16:9 + Deluxe MSU-1 hooks",
                 "The 398x224 profile for the 60-track Deluxe pack. Audio is not included.",
                 "DKC_Widescreen_398x224_MSU1_Deluxe.sfc",
-                "03A7B36933C11E30561B65FFBA01EC02FC18A124979019FC30154148668DF64B"),
+                "C558A1634E048C4A8698128D21EC2950F5AD2B29926A796DB66D64C4A5F3A874"),
             new PatchVariant("16x9-msu1-restoration", "16:9 + Restoration MSU-1 hooks",
                 "The 398x224 profile for traditional 27-track packs. Audio is not included.",
                 "DKC_Widescreen_398x224_MSU1_Restoration.sfc",
-                "D8991560242D3BE1615D86890263E323F47A7560201D93893BD8C8EC53268F05")
+                "40DFC77F80E7248AA62A5519B679582EE92BDB7EF9355438C614FC9F6A428921")
         };
 
         [STAThread]

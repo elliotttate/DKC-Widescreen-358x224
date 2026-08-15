@@ -1,0 +1,82 @@
+{
+  "$schema": "../recipe.schema.json",
+  "schemaVersion": 1,
+  "name": "four-user-states-object-prefetch",
+  "description": "One focused replay for each supplied state. Catalog entries are high-value records documented by the offline object-window audit; all dynamically observed source records and bookmarks are reported even when absent from this partial catalog.",
+  "margin": 56,
+  "states": [
+    {
+      "id": "szst0",
+      "file": "DKC_Widescreen_358x224.szst0",
+      "identity": "Croctopus Chase, level 0x0025, entrance 0x003E",
+      "expectedLevel": "0x0025",
+      "records": [
+        { "index": "0x11", "type": "0x02", "x": "0x0218", "label": "upcoming camera object" }
+      ],
+      "scenarios": [
+        {
+          "id": "right-swim",
+          "description": "Observed RIGHT+B swim route.",
+          "maxFrame": 240,
+          "inputs": { "1": "0-239=RIGHT+B" }
+        }
+      ]
+    },
+    {
+      "id": "szst1",
+      "file": "DKC_Widescreen_358x224.szst1",
+      "identity": "Poison Pond, level 0x0017, entrance 0x0022",
+      "expectedLevel": "0x0017",
+      "records": [
+        { "index": "0x35", "type": "0x05", "label": "active type-5 group parent" },
+        { "index": "0x36", "type": "0x01", "x": "0x0140", "y": "0x6DC4", "label": "barrel cannon" },
+        { "index": "0x37", "type": "0x0F", "x": "0x0186", "label": "wide-prefetched Mincer A" },
+        { "index": "0x38", "type": "0x0F", "x": "0x0186", "label": "wide-prefetched Mincer B" },
+        { "index": "0x3D", "type": "0x02", "x": "0x0350", "y": "0x6DE0", "label": "next camera object" },
+        { "index": "0x46", "type": "0x02", "x": "0x0750", "y": "0x6E30", "label": "later camera object" },
+        { "index": "0x84", "label": "type-5 child bookmark A" },
+        { "index": "0x85", "label": "type-5 child bookmark B" }
+      ],
+      "scenarios": [
+        {
+          "id": "right-enguarde-b",
+          "description": "Poison Pond route most likely to expose early Mincer phase and pool pressure.",
+          "maxFrame": 300,
+          "inputs": { "1": "0-299=RIGHT+B" }
+        }
+      ]
+    },
+    {
+      "id": "szst2",
+      "file": "DKC_Widescreen_358x224.szst2",
+      "identity": "Gang-Plank Galleon, level 0x004C, entrance 0x0068",
+      "expectedLevel": "0x004C",
+      "records": [
+        { "index": "0x00", "x": "0x0100", "y": "0x0127", "label": "minigame controller" },
+        { "index": "0x01", "x": "0x0002", "y": "0x0100", "label": "sprite 0x75" }
+      ],
+      "scenarios": [
+        {
+          "id": "neutral-boss-lifecycle",
+          "maxFrame": 360,
+          "inputs": { "1": "0-359=NONE" }
+        }
+      ]
+    },
+    {
+      "id": "szst3",
+      "file": "DKC_Widescreen_358x224.szst3",
+      "identity": "Unlocked Gang-Plank Galleon world map",
+      "trackRecords": false,
+      "records": [],
+      "scenarios": [
+        {
+          "id": "map-smoke",
+          "description": "Preserves a four-state coverage placeholder without interpreting map actor tables as bank-BD objects.",
+          "maxFrame": 60,
+          "inputs": { "1": "0-59=NONE" }
+        }
+      ]
+    }
+  ]
+}

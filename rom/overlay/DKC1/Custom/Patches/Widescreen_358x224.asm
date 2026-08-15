@@ -45,6 +45,8 @@ endif
 !DKC1_Wide_EnableBananaFormationCameraFix = !TRUE
 !DKC1_Wide_EnableBananaFormationCoverage = !TRUE
 !DKC1_Wide_EnablePlayerEndpointRangeFix = !TRUE
+!DKC1_Wide_EnableKRoolArenaBoundsFix = !TRUE
+!DKC1_Wide_EnableKRoolTilemapFillFix = !TRUE
 !DKC1_Wide_EnableSynchronizedBananas = !FALSE
 
 ; ---------------------------------------------------------------------------
@@ -88,6 +90,24 @@ org $80C56F
 	dw !DKC1_WideAlternateBackstep
 org $80C57E
 	dw !DKC1_WideAlternateColumnCount
+endif
+
+; Gang-Plank Galleon's boss entrance performs a second, private 65-column
+; sweep after the normal level initializer.  That sweep deliberately fills
+; every entry in the 64-column BG1 ring with stock +$0100 stream coordinates.
+; It inherits the normal initializer's $1A5B=$0001 value, however, so the
+; widescreen stream helper used to mistake it for another wide initializer
+; and add the profile right edge.  The shifted 65-column sweep wrapped and
+; replaced ring columns 0..6 with out-of-arena/map data.  Mark only this
+; synchronous private loop, retain its stock selector, then restore $1A5B.
+if !DKC1_Wide_EnableKRoolTilemapFillFix == !TRUE
+org $809F70
+	JSL.l DKC1_Wide_BeginKRoolTilemapFill
+	NOP
+	NOP
+
+org $809F96
+	JML.l DKC1_Wide_EndKRoolTilemapFill
 endif
 
 ; ---------------------------------------------------------------------------
@@ -234,6 +254,25 @@ org $BF86FA
 endif
 
 ; ---------------------------------------------------------------------------
+; King K. Rool logical arena bounds
+
+if !DKC1_Wide_EnableKRoolArenaBoundsFix == !TRUE
+; K. Rool's movement and encounter-start helpers reuse the camera-bound words
+; as fixed logical arena edges. Widescreen moves those camera bounds inward by
+; the selected margin ($0038..$00C8 or $0048..$00B8), but the authored boss
+; arena remains $0000..$0100. Feeding the narrowed render bounds into the AI
+; clamps/wraps the boss early and delays one encounter transition by the left
+; margin. These routines are private to K. Rool, so restore their exact stock
+; logical constants without changing the widened camera or presentation.
+org $B6E165 : CMP.w #$0000
+org $B6E16F : CMP.w #$0100
+org $B6E174 : LDA.w #$0000
+org $B6E183 : LDA.w #$0100
+org $B6E198 : LDA.w #$0000
+org $B6E82B : SBC.w #$0000
+endif
+
+; ---------------------------------------------------------------------------
 ; Banana formation presentation
 
 if !DKC1_Wide_EnableBananaFormationCoverage == !TRUE
@@ -295,6 +334,14 @@ endif
 org $CA6C61
 
 DKC1_Wide_GetStreamX:
+	; $0002 is a private, synchronous marker used only by Gang-Plank
+	; Galleon's full-ring fill above.  That stock loop must use +$0100 for all
+	; 65 writes; applying either widescreen initializer offset shifts and wraps
+	; its last seven writes over the visible left extension.
+	LDA.w $1A5B
+	CMP.w #$0002
+	BEQ.b .OriginalRight
+
 	; The normal initializer starts at widenedCameraX minus the selected full
 	; width. Adding the selected right edge cancels both the widened minimum and
 	; temporary backstep, seeding every column while preserving the real camera.
@@ -439,6 +486,26 @@ DKC1_Wide_InitSpecialBounds:
 	LDA.w #!DKC1_WideSpecialUpper
 	STA.w $1B25
 	RTL
+
+if !DKC1_Wide_EnableKRoolTilemapFillFix == !TRUE
+DKC1_Wide_BeginKRoolTilemapFill:
+	; Reproduce the two overwritten stores, then mark this private sweep.
+	STZ.w !RAM_DKC1_Global_Layer1YPosLo
+	STZ.w $0897
+	LDA.w #$0002
+	STA.w $1A5B
+	RTL
+
+DKC1_Wide_EndKRoolTilemapFill:
+	; This helper is reached by JML from a bank-$80 routine entered with JSR.
+	; Restore state, then return to bank $80's existing RTS at $809F60; executing
+	; RTS while PB is still $CA would resume at the right offset in the wrong
+	; program bank.
+	STZ.w !RAM_DKC1_Global_Layer1XPosLo
+	LDA.w #$0001
+	STA.w $1A5B
+	JML.l $809F60
+endif
 
 DKC1_Wide_AdjustCameraBounds:
 	JSL.l $BCB052

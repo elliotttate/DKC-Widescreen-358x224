@@ -1,0 +1,3 @@
+*.request
+status.json
+status.json.tmp

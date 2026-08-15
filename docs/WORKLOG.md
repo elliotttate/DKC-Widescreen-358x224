@@ -1,5 +1,68 @@
 # DKC 358x224 Widescreen Engineering Log
 
+## 2026-08-15 — Portable rolling playtest reproduction
+
+SuperZSNES `.szst` files were verified to contain one machine snapshot only.
+The emulator's rewind history is a separate volatile in-memory ring of
+`SNESMemoryState`, normally sampled at 8 Hz; neither format retains the exact
+controller inputs that led to an intermittent object-scanner or streaming
+failure.
+
+`mods/DKCPlaytestRecorder` v0.1.0 now keeps 60 seconds of all five resolved
+16-bit SNES controller masks in a preallocated ring and captures a recycled
+full-machine state in memory every five seconds. The ordinary-play path does
+not write state files, screenshots, or PNGs. F10 (or `report.request`) pauses
+only for export, converts the oldest retained checkpoint into a normal
+`anchor.szst`, restores the exact current state, and emits inputs, endpoint
+WRAM, hashes, and compressed replay macros. The ROM is never bundled.
+
+`cli/replay_bundle.py` requires the manifest's exact ROM SHA-256, loads the
+anchor through DKCLevelAutomation v0.1.3+, applies the recorded masks for every
+emulated frame, and compares all 128 KiB of final WRAM to the reported digest.
+An exact digest proves deterministic reproduction; a mismatch is explicit
+evidence that another timing/input subsystem must be recorded. ROM changes,
+reset, explicit state loads, and frame-number discontinuities all invalidate
+the rolling timeline so reports cannot silently cross state episodes.
+
+Validation: plugin build against the installed v0.230 assemblies completed
+with zero warnings/errors; three allocation-free ring/alignment/macro model
+tests passed; the replay client compiled and completed a read-only status call
+against the live authenticated v0.1.3 bridge; the debugging skill validator
+passed after its playtester workflow was updated. The plugin has not been
+installed into or injected into the currently running emulator.
+
+## 2026-08-14 — Atomic four-state differential tooling
+
+Four external states were supplied for the next softlock pass: three adjacent
+to reported failures and one fully unlocked world map. Live inventory
+identified `szst0` as Croctopus Chase level `$0025` / entrance `$003E`, `szst1`
+as Poison Pond `$0017/$0022`, `szst2` as Gang-Plank Galleon `$004C/$0068`, and
+`szst3` as the unlocked map. The files remain external and are excluded by the
+repository's `*.szst*` rule.
+
+`DKCLevelAutomation` v0.1.3 adds `snapshot_wram`, which makes one game-thread
+copy of all 128 KiB WRAM and returns it with the exact emulated frame and a
+SHA-256 digest. This removes the cross-Unity-update ambiguity of separately
+reading dozens of actor/camera fields. The new
+`run_state_differential.py` runner loads a clean and candidate ROM in the same
+existing emulator process, reloads each immutable state for every branch, and
+executes identical exact-frame schedules. It never launches or terminates the
+emulator.
+
+The checked-in four-state plan currently contains 11 independent diagnostic
+branches and 73 atomic checkpoints per ROM. Reports include all 26 normal
+sprite slots, lifecycle transitions, camera/layer/bounds/game state, spatial
+actor matching, WRAM difference ranges, composed screenshots beginning after
+the first rendered frame, and selected full debugger bundles with OAM/VRAM/
+CGRAM/PPU state. The route macros are explicitly provisional until clean-ROM
+traces or the reporter identify each intended route. Full design and report
+interpretation are in `docs/FOUR_STATE_DIFFERENTIAL_DEBUGGING.md`.
+
+Validation completed without driving the live emulator: nine Python tests,
+the model smoke suite, a 500-request bridge handle test, Python bytecode
+compilation, recipe expansion, and a clean plugin build against the installed
+v0.230 BepInEx/Unity assemblies.
+
 ## 2026-08-14 — Slipslide Ride section-controller fix
 
 An external `DKC_Widescreen_358x224.szst5` report reproduced an intermittent
@@ -1359,3 +1422,166 @@ IL2CPP projects and both test suites pass with zero warnings/errors. Live QA
 used the disposable v0.300 emulator and full-window WSLSnapit captures,
 including an exact same-camera enabled/disabled A/B. Production v0.300 remained
 untouched.
+
+## 2026-08-14 deterministic softlock investigation tools
+
+The four supplied `.szst0` through `.szst3` reports required separating real
+object-scanner failures from expected widescreen activation timing. The
+automation bridge is now v0.1.3 and can atomically snapshot all 128 KiB of WRAM
+at an exact completed emulated frame. Its four-state differential runner uses
+independent replay branches and 73 checkpoints per ROM, while preserving the
+external states unchanged.
+
+`DKCObjectLifecycleTracer` was corrected through v0.2.1 before its evidence was
+used. Map/menu WRAM is no longer decoded as actors, the entrance table is
+bounded to its exact `$E6` entries, the allocator pool uses raw even indexes
+`$02..$32`, and replayed save-state timelines are segmented. Most importantly,
+clean-ROM opcode verification proves `$BDF3B1/$BDF3D2` are the actual exhausted
+returns and `$BDF3B5/$BDF3D6` are successful reservations. Older rows labeling
+the latter as exhaustion are invalid. The corrected analyzer reports no
+definitive allocator/ownership anomaly in the audited four-state sessions.
+
+Three complementary tools were added:
+
+- `tools/DKCObjectWindowAuditor` correlates ROM-authored bank-BD records with a
+  WRAM snapshot, scanner windows, bookmarks, type-5 children, type-9 ranges,
+  and both actor pools.
+- `tools/DKCSaveStateRouteExplorer` searches short controller routes by
+  replaying every branch from one immutable root state. It supports exact
+  underwater B/Y pulse patterns, weighted WRAM progress, death/forbidden
+  predicates, compact-state deduplication, and emits a reproducible macro.
+- `tools/DKCFirstDivergenceLocator` sequentially replays stock and widescreen
+  ROMs, hashes every frame so transient differences cannot reconverge unseen,
+  refines the first mismatching window to one frame, then independently
+  confirms both variants and reports named WRAM/actor/bookmark changes.
+
+The first live Poison Pond divergence search demonstrates why both raw and
+semantic classification are necessary. The supplied state begins with authored
+record `$38`, a Mincer, in raw actor index `$08` under both ROMs because the
+state itself was captured from widescreen play. At relative frame 1 stock culls
+that record while widescreen retains it: scanner record `$A4` is `$3A` wide
+versus `$37` stock and booking `$1963` is `$08` wide versus zero stock. This is
+not allocator exhaustion, but it can advance a moving actor's phase before the
+stock activation boundary.
+
+`tools/DKCObjectPrefetchPhaseAuditor` was added to analyze that distinction. It
+records complete allocation, active, and eligibility episodes for every
+observed/cataloged source record, including save-root-left-censored actors,
+stock cull gaps, later reallocation, and whether the same wide actor continued
+running throughout the gap. It compares source-linked actors rather than raw
+slots at the first later stock allocation/eligibility frame. Full per-frame
+WRAM images are stored in compressed archives with SHA-256 JSONL indexes.
+
+The corrected live Poison RIGHT+Y replay is decisive for record `$38`. Stock
+releases it on frame 1 and reallocates it on frame 19; widescreen keeps the same
+actor continuously active for all 18 intervening frames. At frame 19 the new
+stock Mincer is at `$0187/$6CE3` while the continuous wide Mincer is at
+`$014D/$6C72`, a delta of -58 X and -113 Y, with different Y speed, pose,
+animation state, and conservative collision-candidate fields. The tool
+classifies this as `behavior_phase_advancement`, not harmless visual prefetch.
+This proves wider activation changes moving-object simulation timing in this
+route; it does not by itself prove that the later route is a softlock.
+
+`tools/DKCMacroMinimizer` completes the reproduction pipeline. Given an
+immutable state, exact ROM, controller macro, and WRAM success/failure
+predicate, it applies segment ddmin, hierarchical range removal, frame-level
+ddmin, and a single-frame minimality pass. Configurable transition rules retain
+important underwater B/Y press/release edges. Every candidate is independently
+replayed and confirmed, then the root state and empty schedule are restored.
+
+`DKCSoftlockWatchdog` turns the corrected lifecycle model into persistent
+runtime watchpoints. It triggers only after configurable consecutive frames
+for eligible critical records without ownership, broken bookings, missing
+type-5 children, type-9 contradictions, or true zero-free-slot exhaustion, and
+commits an atomic full-WRAM/evidence directory. Pause and external capture
+actions are opt-in; the installed default remains observation-only. Its runtime
+signature gate validated the current widescreen ROM, and the freshly loaded
+Croctopus state had no active candidates.
+
+For route survival, `DKCDebugInvincibility` provides a reversible,
+signature-gated runtime PAR override `BFA2A0=60`. Clean and widescreen ROMs
+match the exact damage-path signature. It covers ordinary ground, underwater,
+and animal-buddy hit paths without changing camera/object logic; pits and
+scripted deaths remain possible and route predicates still detect lost lives.
+
+For write provenance, `DKCWramFlightRecorder` consumes the selected changed
+ranges from a First Divergence report. It has no hot Harmony hooks while
+disarmed. An explicit short arm transaction verifies the exact v0.230 assembly
+SHA/MVID, method tokens, signatures, and IL hashes before installing CPU and
+memory-write hooks. Matching writes retain old/new values, emulated frame,
+scanline/dot, CPU registers/flags/cycles/opcode text, and bounded preceding
+instruction/write rings. Manual dumps and read-only watchdog-trigger discovery
+are supported without assembly coupling. The project is built and verified but
+not installed in the current emulator process.
+
+## 2026-08-15 K. Rool left-edge tilemap and four-state closure
+
+Gang-Plank Galleon's fresh entrance had a separate graphical failure from the
+boss-logic bounds bug. After the normal level initializer, `CODE_809F70`
+performs a private 65-column BG1 sweep intended to fill all 64 ring columns
+using the stock stream selector `Layer1X + $0100`. It inherited `$1A5B=$0001`,
+so the widescreen stream helper treated the sweep as another wide initializer.
+The shifted 65 writes wrapped and replaced ring columns 0..6 with out-of-arena
+data; walking left exposed the corruption.
+
+The patch now marks only that synchronous private sweep with `$1A5B=$0002`.
+`DKC1_Wide_GetStreamX` retains the stock `+$0100` selector for the marker, and
+the exit helper restores `$1A5B=$0001` before jumping to the original bank-$80
+`RTS`. Returning directly from the bank-$CA helper is invalid because the
+original routine was entered with `JSR`; its return address belongs to bank
+$80. The existing K. Rool AI patch separately restores the authored logical
+arena constants `$0000..$0100` without narrowing the widescreen camera.
+
+For 358x224, a fresh candidate capture and a capture after exactly 180
+LEFT+Y frames both match the stock BG1 tilemap at all 4,096 bytes. The same two
+checks pass for 398x224. The six build variants are deterministic and hash
+locked in `rom/build.ps1`.
+
+The remaining supplied gameplay states were also rechecked against the final
+object patches. Croctopus Chase advances beyond the next critical camera
+record `$11` at X `$0218` to camera/player X beyond `$02A0`; its dependent
+actors are present. Poison Pond has a real widescreen-vs-stock moving-Mincer
+phase difference, but the archived deterministic 1,500-frame candidate route
+reaches camera X `$06E7`. At that point both later logic-critical records have
+materialized: actor `$44` from source record `$45` at authored X `$0350`, and
+actor `$5D` from source record `$46` at authored X `$0750`. The scanner cursors
+are `$45..$48`, with six or more ordinary pool entries available in the earlier
+audited chamber. This disproves the hypothesis that the wider Mincer lifetime
+causes the supplied Poison softlock. Reverting the general type-`$0F` window
+would instead hide actors already visible in the added widescreen area and was
+therefore rejected.
+
+The closure runner at
+`mods/DKCLevelAutomation/cli/run_softlock_closure.py` turns these routes into a
+release gate. It locks every external state by SHA-256, reloads each route from
+its immutable root, captures atomic 128 KiB WRAM checkpoints, verifies the
+expected scanner/actor transitions, and requires three byte-identical repeats.
+The accepted run is
+`ClosureRuns/softlock-closure-20260815-094700/report.json` (local evidence,
+ignored by Git). Croctopus finished its 1,860-frame route at camera X `$01DF`
+with full-WRAM SHA-256
+`8BAA72D816493D5E73C3DB0E98D009ADB268600DCA7CAD044AFC448BC4B0ED56`;
+Poison finished its 1,500-frame route at camera X `$06E7` with
+`0B7A1867AE95BB540F4EEC2F21816CE861FD7CA26E310FE77BB54F078019528F`.
+Every checkpoint matched across all three repeats.
+
+The Slipslide gate independently reloaded the supplied state three times. A
+single controlled transition check selected secondary cursor `$0025`, record
+pointer `$D9A0`, and controller end `$002C` on every run, with identical full
+WRAM. This deliberately tests the repaired private section-controller decision
+without depending on a long human route.
+
+K. Rool was verified from a fresh unlocked-map entry rather than by trying to
+repair VRAM already serialized into the old boss state. At fresh frame 10,527,
+the boss was active and the full-WRAM SHA-256 was
+`D43A34239E8348CCE2A65904B98C3553A29A9D95FEE9947D6FF78D387BC68FA9`.
+After 180 LEFT+Y frames it remained active and the WRAM SHA-256 was
+`BA08188C1C5DB7B1A4F0100F6EFE85EFBDA0F28A7C9DA3A368BFC4CF9E308BFE`.
+Both fresh and left-side BG1 captures had the same 4,096-byte tilemap SHA-256,
+`CFCC53A4AD3E585B360EFA9517400D07D65A16C430FC56D1E200B24E351B5F1D`,
+and differed from the stock oracle by zero bytes.
+
+Finally, all six release variants rebuilt under checksum locks: standard,
+Deluxe MSU-1, and Restoration MSU-1 at both 358x224 and 398x224. Their final
+SHA-256 values are recorded in `rom/build.ps1` and independently checked again
+by `scripts/build-release.ps1` before BPS generation and packaging.

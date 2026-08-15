@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/dkc-first-divergence-recipe.schema.json",
+  "title": "DKC stock-vs-widescreen first-divergence recipe",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "name", "predicate", "states"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "checkpointStride": { "type": "integer", "minimum": 1, "default": 30 },
+    "traceRadiusFrames": { "type": "integer", "minimum": 0, "default": 2 },
+    "spriteNames": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "predicate": { "$ref": "#/$defs/predicate" },
+    "states": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/state" }
+    }
+  },
+  "$defs": {
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start"],
+      "properties": {
+        "name": { "type": "string" },
+        "start": { "type": ["integer", "string"] },
+        "end": { "type": ["integer", "string"] },
+        "length": { "type": ["integer", "string"] }
+      },
+      "oneOf": [
+        { "required": ["end"], "not": { "required": ["length"] } },
+        { "required": ["length"], "not": { "required": ["end"] } }
+      ]
+    },
+    "predicate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "includeGroups": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "full_wram",
+              "core_gameplay",
+              "actor_pool",
+              "object_bookkeeping",
+              "scanner",
+              "section_controller",
+              "camera_and_bounds"
+            ]
+          }
+        },
+        "include": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/range" }
+        },
+        "ignoreProfiles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["expected_widescreen_camera_bounds"] }
+        },
+        "ignore": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/range" }
+        }
+      },
+      "anyOf": [
+        { "required": ["includeGroups"], "properties": { "includeGroups": { "minItems": 1 } } },
+        { "required": ["include"], "properties": { "include": { "minItems": 1 } } }
+      ]
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "maxFrame", "inputs"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "maxFrame": { "type": "integer", "minimum": 0 },
+        "timeoutMs": { "type": "integer", "minimum": 1000, "default": 60000 },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[1-5]$" },
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "file", "scenarios"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "file": { "type": "string", "minLength": 1 },
+        "identity": { "type": "string" },
+        "expectedLevel": { "type": ["integer", "string"] },
+        "scenarios": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/scenario" }
+        }
+      }
+    }
+  }
+}

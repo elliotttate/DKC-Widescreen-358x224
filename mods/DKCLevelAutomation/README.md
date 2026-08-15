@@ -51,6 +51,7 @@ python $cli load-state --file "D:\States\jungle-hijinx-start.szst0"
 python $cli schedule --controller 1 --macro "0-59=RIGHT+Y;60=B;61-179=RIGHT"
 python $cli run --frames 180
 python $cli read --address 0x7E1234 --size 2
+python $cli snapshot-wram --output .\checkpoint-wram.bin
 ```
 
 From the source tree, pass the installed endpoint explicitly:
@@ -111,6 +112,73 @@ python $cli write --address 0x7E0D84 --size 2 --value 0x0080
 ```
 
 Writes pause the emulator first.
+
+`snapshot-wram` copies all 128 KiB of WRAM in one game-thread bridge request and
+returns the emulator frame plus a SHA-256 digest. With `--output`, the CLI
+validates and decodes the base64 response into a binary file. This avoids
+sampling related actor/camera fields across many Unity updates and is the
+preferred primitive for differential softlock diagnosis.
+
+## Clean-vs-candidate save-state differential runner
+
+`cli\run_state_differential.py` replays external save states twice: first with a
+known-clean ROM and then with a candidate ROM. It never launches or terminates
+SuperZSNES. Every branch reloads the original state, installs one exact input
+schedule, and samples atomic WRAM at configured relative frames. Its report
+contains:
+
+- hashes for both ROMs and every external state;
+- camera, layer, bounds, level, entrance, input, pause/gameplay and display state;
+- all 26 normal-sprite slots with IDs, positions, speeds, poses, animation IDs,
+  state words and native screen-relative positions;
+- per-interval spawn/despawn/slot-replacement lifecycle events;
+- clean-vs-candidate actor matching by ID and nearest world position, so normal
+  slot allocation changes do not look like missing enemies;
+- changed WRAM ranges and busiest 256-byte pages;
+- selected full-width composed screenshots and optional complete debugger
+  captures containing WRAM, OAM, VRAM, CGRAM, PPU and renderer state.
+
+The checked-in `four-user-states-differential` plan identifies the supplied
+states as Croctopus Chase (`0x0025`), Poison Pond (`0x0017`), Gang-Plank
+Galleon (`0x004C`), and the unlocked world map. Its movement macros are labeled
+diagnostic hypotheses. Each is an independent branch, not an assertion that it
+is the intended route through the level.
+
+```powershell
+python .\cli\run_state_differential.py `
+  --recipe four-user-states-differential `
+  --baseline-rom "D:\ROMs\Donkey Kong Country (USA).sfc" `
+  --candidate-rom "D:\ROMs\DKC_Widescreen_358x224.sfc" `
+  --state-dir "D:\States" `
+  --automation-endpoint "<superzsnes>\BepInEx\plugins\DKCLevelAutomation\bridge.json" `
+  --debugger-endpoint "<superzsnes>\BepInEx\plugins\DKCWidescreenDebugger\bridge.json"
+```
+
+Use `--state szst0=<path>` (repeatable) when filenames or locations differ.
+Use `--no-debugger` for atomic WRAM-only runs. The runner requires an already
+running emulator and leaves it paused; state/ROM files and generated
+`DifferentialRuns` evidence are ignored by Git.
+
+## Softlock closure routes
+
+`cli\run_softlock_closure.py` codifies the recovered full Croctopus Chase and
+Poison Pond traversals plus the Slipslide Ride type-`$09` transition probe. It
+reloads each immutable supplied state, runs the exact 1,860/1,500-frame routes
+in checkpointed chunks, and asserts the logic-critical actors and scanner
+frontiers. Slipslide moves Layer1 Y through the descriptor's vertical band for
+one frame and requires secondary range `$25..$2C`. The default three
+repeats must produce byte-identical full-WRAM SHA-256 values at every matching
+checkpoint. The runner restores the first selected state, clears all schedules,
+and leaves the emulator paused.
+
+```powershell
+python .\cli\run_softlock_closure.py `
+  --rom '<candidate widescreen ROM>' `
+  --state0 '<states>\DKC_Widescreen_358x224.szst0' `
+  --state1 '<states>\DKC_Widescreen_358x224.szst1' `
+  --state5 '<states>\DKC_Widescreen_358x224.szst5' `
+  --automation-endpoint '<SuperZSNES>\BepInEx\plugins\DKCLevelAutomation\bridge.json'
+```
 
 ## JSON test scripts
 
@@ -240,6 +308,7 @@ Use the bundled CLI as the reference client. Supported commands are:
 - `run_frames(count)`, `step_frames(count)`
 - `wait_wram(address, size, op, value, mask?, signed?, max_frames, timeout_ms?)`
 - `read_wram(address, size, signed?)`, `write_wram(address, size, value)`
+- `snapshot_wram()` (atomic full 128 KiB WRAM, base64 plus frame and SHA-256)
 
 Only one frame-running operation can be active. `status` and `cancel` remain available from a second connection while one is running. The token protects against unrelated local processes accidentally driving the emulator; the bridge never binds to a LAN interface.
 

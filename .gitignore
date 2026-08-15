@@ -12,6 +12,8 @@
 .deps/
 artifacts/
 RegressionRuns/
+DifferentialRuns/
+ClosureRuns/
 RealtimeScrollRuns/
 Runs/
 Sessions/
