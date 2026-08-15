@@ -4,7 +4,7 @@
 
 The full DKC Deluxe path described below is now implemented as an optional,
 reproducible USA v1.0 overlay. `rom/build.ps1 -EnableMsu1Deluxe` produces ROM
-SHA-256 `FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5`
+SHA-256 `F213800099DC4C35D7B69A249FC4A8A98FE9FE8D65FC8724096E6C2C6B568C0E`
 without changing the standard widescreen output. The port relocates the public
 Rev. 2 patch's entrance capture, SPC music mute, music-select hook, and NMI poll
 to their asserted byte-equivalent v1.0 sites. Its code and tables occupy the
@@ -28,7 +28,7 @@ No BepInEx loader or runtime patch was present in that first v0.300 test.
 for restoration packs using the established `MSU track = DKC music ID + 1`
 mapping. It intentionally does not use the Deluxe replacement or rotating-map
 tables. Its locked ROM SHA-256 is
-`4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5`.
+`CD6DA8C7C981118785014ABF1823BB3877389360587462D2CC247DE3EA2A7A79`.
 
 `rom/setup-msu1-restoration.ps1` validates tracks 1-27 and creates hard links
 under the combined ROM basename. This prevents missing Deluxe-only tracks

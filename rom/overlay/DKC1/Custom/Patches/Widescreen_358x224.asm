@@ -184,6 +184,15 @@ org $BDFB1F : dw !DKC1_WideObjectActivationSpan
 org $BDFCDA : dw !DKC1_WideObjectActivationSpan
 org $BDFD0E : dw !DKC1_WideObjectActivationSpan
 
+; Slipslide Ride and other levels with type-$09 vertical-section controllers
+; use two private object-window checks. Their left margins are patched above at
+; $BDFF2A/$BDFFB2, so their spans must grow by the same total extension. Leaving
+; the stock $0140 span here moves the right edge 56 pixels left and can prevent
+; the controller from activating the next rope/enemy section until a death or
+; reload rebuilds its state.
+org $BDFF38 : dw !DKC1_WideObjectActivationSpan
+org $BDFFBF : dw !DKC1_WideObjectActivationSpan
+
 ; Two special right-side prefetch tests use cameraX+$120.
 org $BDF596 : dw !DKC1_WideObjectRightPrefetch
 org $BDFB8F : dw !DKC1_WideObjectRightPrefetch

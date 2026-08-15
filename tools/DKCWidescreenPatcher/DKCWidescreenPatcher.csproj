@@ -8,7 +8,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AssemblyName>DKC-Widescreen-Patcher</AssemblyName>
     <RootNamespace>DkcWidescreenPatcher</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.1.2</Version>
     <Deterministic>true</Deterministic>
     <DebugType>portable</DebugType>
     <ApplicationManifest>app.manifest</ApplicationManifest>

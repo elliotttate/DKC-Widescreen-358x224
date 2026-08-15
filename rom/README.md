@@ -19,7 +19,7 @@ This directory contains only the source overlay required to build the widescreen
   -OutputPath './artifacts/DKC_Widescreen_358x224.sfc'
 ```
 
-The expected output SHA-256 is `B4AB46098E48218E70B5349E09E7FE71E344D23E3568F46E956B44C670006D6D`.
+The expected output SHA-256 is `03EA182F7D0AA147BD020CB7B00F98E785D8BB00AAA1DBA95F458C33FDBBF34B`.
 
 ## Optional 16:9 profile
 
@@ -37,9 +37,9 @@ on each side by the framebuffer renderer:
 
 Expected SHA-256 values are:
 
-- Standard: `52272D471CF52B9F18FBA900DE3A5EC2E0D0B337061CCBB4DC2C8F945DCA6CFA`
-- Deluxe MSU-1: `C858CBFBD14C8C0F1D3435541242B948A6737E325CB2FAC5F914FE725FE2B1C1`
-- Restoration MSU-1: `E25B79726C1A552F4AFE150AE2A224A01385FA693F1C5C014C07C84A5DC94144`
+- Standard: `F6BDF57A563C290E66A7726190DC22C754D4D42DBB4DF62C77C8CE6C05E7D144`
+- Deluxe MSU-1: `03A7B36933C11E30561B65FFBA01EC02FC18A124979019FC30154148668DF64B`
+- Restoration MSU-1: `D8991560242D3BE1615D86890263E323F47A7560201D93893BD8C8EC53268F05`
 
 ## Deluxe MSU-1 music build
 
@@ -55,7 +55,7 @@ this project's USA v1.0 hooks; do not apply the original Deluxe IPS to this ROM.
 ```
 
 The expected Deluxe output SHA-256 is
-`FD2950B3AAE287E24F8D8B665AFBC3BE0EC3EEC07AA19DE055427DF76BD46AF5`.
+`F213800099DC4C35D7B69A249FC4A8A98FE9FE8D65FC8724096E6C2C6B568C0E`.
 The repository contains no audio. Given a matching, legally obtained 60-track
 pack, prepare a runnable same-basename bundle without duplicating its roughly
 1.44 GiB of PCM data:
@@ -78,6 +78,7 @@ The overlay changes asset extraction/build automation plus these game behaviors:
 - symmetric 56-pixel camera/render margins for 358x224, or 72-pixel margins for 398x224;
 - complete initial and moving tilemap streaming for the 368- or 400-pixel internal guard width;
 - widened sprite/object activation and culling;
+- matched type-9 section-controller spans, preventing missing Slipslide Ride ropes and enemies;
 - banana formation coverage, positioning, collision, and 9-bit OAM X handling;
 - restored player endpoint ranges at widened terminal cameras;
 - retry of missing children in active type-5 groups, fixing the Barrel Cannon Canyon upper-barrel softlock.
@@ -97,7 +98,7 @@ with:
 ```
 
 The expected Restoration output SHA-256 is
-`4484CB5374F3C04E9F8DA1880C21D85D0C0403286CFABB65639BAD7CFC55A5A5`.
+`CD6DA8C7C981118785014ABF1823BB3877389360587462D2CC247DE3EA2A7A79`.
 Prepare the same-basename runtime bundle without copying its PCM data:
 
 ```powershell
