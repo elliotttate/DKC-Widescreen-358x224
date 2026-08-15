@@ -556,7 +556,7 @@ namespace SuperZSNESDKCFramebufferRenderer
 #if IL2CPP
                           "\"version\":\"0.1.10-il2cpp\"," +
 #else
-                          "\"version\":\"0.4.15\"," +
+                          "\"version\":\"0.4.16\"," +
 #endif
                           "\"state\":\"" + Escape(state) + "\"," +
                           "\"geometryProfile\":\"" + Escape(_effectiveProfile) + "\"," +

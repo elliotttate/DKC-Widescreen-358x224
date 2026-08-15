@@ -1,5 +1,48 @@
 # DKC 358x224 Widescreen Engineering Log
 
+## 2026-08-14 — Slipslide Ride section-controller fix
+
+An external `DKC_Widescreen_358x224.szst5` report reproduced an intermittent
+Slipslide Ride failure in which later ropes and enemies never became active.
+The state is level `$0051`, entrance `$006D`, frame 15988, with the primary
+object range at `$00A0=000C`, no secondary range at `$00A2`, and the type-`$09`
+vertical-section controller in `$1E03-$1E0D`. The later rope/Zinger groups are
+authored normally; they belong to the controller's secondary ranges rather
+than a separate renderer path.
+
+The general widescreen object windows already paired a larger left safety
+margin with a larger total span. The two private type-`$09` checks did not:
+their `$0020` left margins at `$BDFF2A` and `$BDFFB2` had become `$0058`, but
+their matching `$0140` spans at `$BDFF38` and `$BDFFBF` remained stock. That
+moved each right edge 56 pixels left. Near the first Slipslide boundary, a
+camera at X `$0619` therefore stopped at `$0701`, short of the authored X
+`$0760`; the correct widescreen window reaches `$0771`.
+
+Both missing operands now use `!DKC1_WideObjectActivationSpan`. A controlled
+probe loaded the report state, held Layer1 X at `$0619`, and moved Layer1 Y
+through the first transition band. The old ROM left `$00A2=0000` and
+`$1E05=0000`; the corrected ROM selected secondary cursor `$0025` and
+controller record pointer `$D9A0` on the next frame. A normal 480-frame
+RIGHT+Y/UP route remained byte-identical to the previous ROM at its checkpoint:
+the full 128 KiB WRAM, VRAM, CGRAM, OAM, PPU I/O, and raw main-plane PNG all
+matched. Binary comparison of the standard ROM found only the two intended
+operand bytes (`$0140->$01B0`) plus the checksum/complement fields.
+
+A competing ordinary-sprite-pool hypothesis was rejected. Filling all 14
+normal-sprite slots did delay a rope, but both the unmodified and experimental
+ROMs instantiated it on the first frame after a slot was released. The stock
+outer scanner already retries this allocation failure, so no allocator hook
+was retained.
+
+Locked outputs after the section-controller fix:
+
+- 358x224 standard: `03EA182F7D0AA147BD020CB7B00F98E785D8BB00AAA1DBA95F458C33FDBBF34B`
+- 358x224 Deluxe: `F213800099DC4C35D7B69A249FC4A8A98FE9FE8D65FC8724096E6C2C6B568C0E`
+- 358x224 Restoration: `CD6DA8C7C981118785014ABF1823BB3877389360587462D2CC247DE3EA2A7A79`
+- 398x224 standard: `F6BDF57A563C290E66A7726190DC22C754D4D42DBB4DF62C77C8CE6C05E7D144`
+- 398x224 Deluxe: `03A7B36933C11E30561B65FFBA01EC02FC18A124979019FC30154148668DF64B`
+- 398x224 Restoration: `D8991560242D3BE1615D86890263E323F47A7560201D93893BD8C8EC53268F05`
+
 ## 2026-08-12 — 27-track Restoration MSU-1 mode
 
 The Sam Miller/qwerty Restoration pack contains the conventional tracks 1-27

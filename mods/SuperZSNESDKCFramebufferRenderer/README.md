@@ -101,7 +101,9 @@ black, preventing their 32-tile maps from wrapping into the widescreen margins.
 It applies the same treatment during the short Mode 9 level-loader interval
 where DKC's camera bounds are still `$0000/$0000`.
 
-v0.4.15 (IL2CPP v0.1.10) completes the optional 398x224 intro handling. The
+v0.4.16 retains compatibility with both the earlier ROM hashes and the
+section-controller-fixed v1.1.2 ROM hashes. v0.4.15 (IL2CPP v0.1.10) completed
+the optional 398x224 intro handling. The
 canonical DKC Mode 5 Nintendo Presents sequence still uses the stock renderer,
 but now receives a native-width fallback for that call only. The settled title
 signature also includes its observed BG3 map at `$7000`. Both changes preserve
